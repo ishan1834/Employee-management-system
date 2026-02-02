@@ -19,7 +19,7 @@ The platform focuses on **fair play, performance, scalability, and compliance**,
 
 ## 🌐 Live Platform
 
-- **Production URL:** https://thrylos.in  
+- **Production URL:** https://admin.thrylos.in  
 - **Platform Type:** Web-based esports tournament system  
 - **Target Audience:** Competitive gamers, tournament organizers, esports communities
 
