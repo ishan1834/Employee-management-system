@@ -161,3 +161,83 @@ const EsportsPlayersListPage: React.FC = () => {
         </Card>
 
       </div>
+            <Card>
+        <CardHeader>
+          <CardTitle>Players List</CardTitle>
+
+          <div className="flex gap-3">
+            <Input
+              placeholder="Search players..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <Button onClick={() => navigate('/dashboard/esports/add-player')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Player
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tournament</TableHead>
+                    <TableHead>UID</TableHead>
+                    <TableHead>Fees</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {filteredPlayers.map(player => (
+                    <TableRow key={player.id}>
+                      <TableCell>{player.player_name}</TableCell>
+                      <TableCell>{player.email}</TableCell>
+                      <TableCell>{player.tournament_name}</TableCell>
+                      <TableCell>{player.game_uid}</TableCell>
+                      <TableCell>₹{player.entry_fees}</TableCell>
+                      <TableCell>
+                        {player.payment_received ? 'Paid' : 'Pending'}
+                      </TableCell>
+                      <TableCell>
+                        <Button onClick={() => handleEdit(player.id)}>
+                          <Edit />
+                        </Button>
+                        <Button onClick={() => handleDelete(player.id)}>
+                          <Trash2 />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <Pagination>
+                <PaginationContent>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  />
+
+                  <PaginationNext
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  />
+                </PaginationContent>
+              </Pagination>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </ModuleLayout>
+  );
+};
+
+export default EsportsPlayersListPage;
