@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Edit, Trash2, Search, Plus, Users, IndianRupee, CheckCircle } from 'lucide-react';
+import { Edit, Trash2, Search, Plus, Gamepad2, Users, IndianRupee, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import ModuleLayout from '@/components/ModuleLayout';
@@ -13,7 +13,6 @@ import { useActivityLogger, ActivityActions } from '@/hooks/useActivityLogger';
 
 const EsportsPlayersListPage: React.FC = () => {
   const navigate = useNavigate();
-
   const [players, setPlayers] = useState<any[]>([]);
   const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,13 +20,13 @@ const EsportsPlayersListPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState({ total: 0, paid: 0, totalFees: 0 });
-
   const { toast } = useToast();
   const { logActivity } = useActivityLogger();
-
+  
   const itemsPerPage = 20;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-    useEffect(() => {
+
+  useEffect(() => {
     fetchPlayers();
     const interval = setInterval(fetchPlayers, 5000);
     return () => clearInterval(interval);
@@ -43,7 +42,7 @@ const EsportsPlayersListPage: React.FC = () => {
       const { data: allData, error: statsError } = await supabase
         .from('esports_players')
         .select('payment_received, entry_fees');
-
+      
       if (!statsError && allData) {
         setTotalCount(allData.length);
         setStats({
@@ -60,7 +59,6 @@ const EsportsPlayersListPage: React.FC = () => {
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
 
       if (error) throw error;
-
       setPlayers(data || []);
     } catch (error) {
       console.error('Error fetching players:', error);
@@ -73,7 +71,8 @@ const EsportsPlayersListPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-    const filterPlayers = () => {
+
+  const filterPlayers = () => {
     if (!searchTerm) {
       setFilteredPlayers(players);
       return;
@@ -85,7 +84,6 @@ const EsportsPlayersListPage: React.FC = () => {
       player.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       player.game_uid?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     setFilteredPlayers(filtered);
   };
 
@@ -102,6 +100,7 @@ const EsportsPlayersListPage: React.FC = () => {
 
       if (error) throw error;
 
+      // Log the activity
       await logActivity(ActivityActions.DELETE_ESPORTS_PLAYER, { 
         player_name: playerToDelete?.player_name,
         tournament: playerToDelete?.tournament_name
@@ -111,7 +110,7 @@ const EsportsPlayersListPage: React.FC = () => {
         title: "Success",
         description: "Player deleted successfully!",
       });
-
+      
       fetchPlayers();
     } catch (error: any) {
       toast({
@@ -125,113 +124,193 @@ const EsportsPlayersListPage: React.FC = () => {
   const handleEdit = (playerId: string) => {
     navigate(`/dashboard/esports/add-player?edit=${playerId}`);
   };
+
   return (
-    <ModuleLayout title="Esports Players">
-      
+    <ModuleLayout
+      title="Esports Players"
+    >
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        
-        <Card>
-          <CardContent className="pt-6 flex items-center gap-4">
-            <Users className="w-6 h-6 text-blue-500" />
-            <div>
-              <p>Total Players</p>
-              <p>{stats.total}</p>
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Players</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="pt-6 flex items-center gap-4">
-            <CheckCircle className="w-6 h-6 text-green-500" />
-            <div>
-              <p>Paid Players</p>
-              <p>{stats.paid}</p>
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Paid Players</p>
+                <p className="text-2xl font-bold">{stats.paid}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="pt-6 flex items-center gap-4">
-            <IndianRupee className="w-6 h-6 text-orange-500" />
-            <div>
-              <p>Total Fees</p>
-              <p>₹{stats.totalFees}</p>
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <IndianRupee className="w-6 h-6 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Fees</p>
+                <p className="text-2xl font-bold">₹{stats.totalFees.toLocaleString()}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
-
       </div>
-            <Card>
-        <CardHeader>
-          <CardTitle>Players List</CardTitle>
 
-          <div className="flex gap-3">
-            <Input
-              placeholder="Search players..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-
-            <Button onClick={() => navigate('/dashboard/esports/add-player')}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Player
-            </Button>
+      {/* Main Card */}
+      <Card className="border-border/50 bg-card/50">
+        <CardHeader className="border-b border-border/50">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <CardTitle className="text-xl">Players List</CardTitle>
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search players..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-full md:w-64 bg-background/50"
+                />
+              </div>
+              <Button onClick={() => navigate('/dashboard/esports/add-player')}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Player
+              </Button>
+            </div>
           </div>
         </CardHeader>
-
-        <CardContent>
+        <CardContent className="p-0">
           {isLoading ? (
-            <div>Loading...</div>
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Tournament</TableHead>
-                    <TableHead>UID</TableHead>
-                    <TableHead>Fees</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {filteredPlayers.map(player => (
-                    <TableRow key={player.id}>
-                      <TableCell>{player.player_name}</TableCell>
-                      <TableCell>{player.email}</TableCell>
-                      <TableCell>{player.tournament_name}</TableCell>
-                      <TableCell>{player.game_uid}</TableCell>
-                      <TableCell>₹{player.entry_fees}</TableCell>
-                      <TableCell>
-                        {player.payment_received ? 'Paid' : 'Pending'}
-                      </TableCell>
-                      <TableCell>
-                        <Button onClick={() => handleEdit(player.id)}>
-                          <Edit />
-                        </Button>
-                        <Button onClick={() => handleDelete(player.id)}>
-                          <Trash2 />
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/50 hover:bg-transparent">
+                      <TableHead className="font-semibold">Player Name</TableHead>
+                      <TableHead className="font-semibold">Email</TableHead>
+                      <TableHead className="font-semibold">Tournament</TableHead>
+                      <TableHead className="font-semibold">Game UID</TableHead>
+                      <TableHead className="font-semibold">Entry Fees</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPlayers.map((player) => (
+                      <TableRow key={player.id} className="border-border/50">
+                        <TableCell className="font-medium">{player.player_name}</TableCell>
+                        <TableCell className="text-muted-foreground">{player.email}</TableCell>
+                        <TableCell>{player.tournament_name}</TableCell>
+                        <TableCell className="font-mono text-sm">{player.game_uid}</TableCell>
+                        <TableCell>₹{player.entry_fees?.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            player.payment_received 
+                              ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+                              : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                          }`}>
+                            {player.payment_received ? 'Paid' : 'Pending'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(player.id)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(player.id)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-              <Pagination>
-                <PaginationContent>
-                  <PaginationPrevious
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                  />
+              {filteredPlayers.length === 0 && !isLoading && (
+                <div className="text-center py-12 text-muted-foreground">
+                  {searchTerm ? 'No players found matching your search.' : 'No players found. Add your first player!'}
+                </div>
+              )}
 
-                  <PaginationNext
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                  />
-                </PaginationContent>
-              </Pagination>
+              {totalPages > 1 && (
+                <div className="p-4 border-t border-border/50">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNum)}
+                              isActive={currentPage === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                  <p className="text-center text-sm text-muted-foreground mt-2">
+                    Page {currentPage} of {totalPages} • {totalCount} total players
+                  </p>
+                </div>
+              )}
             </>
           )}
         </CardContent>
