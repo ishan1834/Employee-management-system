@@ -28,6 +28,66 @@ interface ContentWorkLog {
   created_at: string;
   updated_at: string;
 }
+const navigate = useNavigate();
+const { adminProfile } = useAuth();
+const { toast } = useToast();
+const { logActivity } = useActivityLogger();
+const { markAttendanceAsPresent } = useAutoAttendance();
+
+const [contentLogs, setContentLogs] = useState<ContentWorkLog[]>([]);
+const [isLoading, setIsLoading] = useState(true);
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [editingLog, setEditingLog] = useState<ContentWorkLog | null>(null);
+const [showForm, setShowForm] = useState(false);
+const [formData, setFormData] = useState({
+  content_type: '',
+  title: '',
+  description: '',
+  platform: '',
+  file_url: '',
+  status: 'completed'
+});
+
+const [stats, setStats] = useState({
+  totalContent: 0,
+  posters: 0,
+  images: 0,
+  videos: 0,
+  socialPosts: 0,
+  blogs: 0
+});
+
+const fetchContentLogs = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('content_work_logs')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    setContentLogs(data || []);
+
+    const logs = data || [];
+    setStats({
+      totalContent: logs.length,
+      posters: logs.filter(l => l.content_type === 'poster').length,
+      images: logs.filter(l => l.content_type === 'image').length,
+      videos: logs.filter(l => l.content_type === 'video').length,
+      socialPosts: logs.filter(l => l.content_type === 'social_post').length,
+      blogs: logs.filter(l => l.content_type === 'blog').length
+    });
+  } catch (error) {
+    console.error('Error fetching content logs:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchContentLogs();
+  const interval = setInterval(fetchContentLogs, 5000);
+  return () => clearInterval(interval);
+}, []);
 
 const contentTypes = [
   { value: 'poster', label: 'Poster', icon: Image },
@@ -43,3 +103,4 @@ const ContentWorkDashboard: React.FC = () => {
 };
 
 export default ContentWorkDashboard;
+
