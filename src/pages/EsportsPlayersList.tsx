@@ -125,3 +125,39 @@ const EsportsPlayersListPage: React.FC = () => {
   const handleEdit = (playerId: string) => {
     navigate(`/dashboard/esports/add-player?edit=${playerId}`);
   };
+  return (
+    <ModuleLayout title="Esports Players">
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-4">
+            <Users className="w-6 h-6 text-blue-500" />
+            <div>
+              <p>Total Players</p>
+              <p>{stats.total}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-4">
+            <CheckCircle className="w-6 h-6 text-green-500" />
+            <div>
+              <p>Paid Players</p>
+              <p>{stats.paid}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-4">
+            <IndianRupee className="w-6 h-6 text-orange-500" />
+            <div>
+              <p>Total Fees</p>
+              <p>₹{stats.totalFees}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+      </div>
