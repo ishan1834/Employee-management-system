@@ -187,6 +187,22 @@ const contentTypes = [
 const ContentWorkDashboard: React.FC = () => {
   return <div>Content Work Dashboard</div>;
 };
+const getContentTypeIcon = (type: string) => {
+  const contentType = contentTypes.find(c => c.value === type);
+  if (contentType) {
+    const Icon = contentType.icon;
+    return <Icon className="h-4 w-4" />;
+  }
+  return <FileText className="h-4 w-4" />;
+};
+
+const getContentTypeLabel = (type: string) => {
+  return contentTypes.find(c => c.value === type)?.label || type;
+};
+
+const getPlatformLabel = (platform: string) => {
+  return platforms.find(p => p.value === platform)?.label || platform;
+};
 
 export default ContentWorkDashboard;
 
