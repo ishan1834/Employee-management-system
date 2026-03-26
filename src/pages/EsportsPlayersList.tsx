@@ -73,3 +73,55 @@ const EsportsPlayersListPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+    const filterPlayers = () => {
+    if (!searchTerm) {
+      setFilteredPlayers(players);
+      return;
+    }
+
+    const filtered = players.filter(player =>
+      player.player_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.tournament_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.game_uid?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    setFilteredPlayers(filtered);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this player?')) return;
+
+    const playerToDelete = players.find(p => p.id === id);
+
+    try {
+      const { error } = await supabase
+        .from('esports_players')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(ActivityActions.DELETE_ESPORTS_PLAYER, { 
+        player_name: playerToDelete?.player_name,
+        tournament: playerToDelete?.tournament_name
+      });
+
+      toast({
+        title: "Success",
+        description: "Player deleted successfully!",
+      });
+
+      fetchPlayers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete player",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (playerId: string) => {
+    navigate(`/dashboard/esports/add-player?edit=${playerId}`);
+  };
