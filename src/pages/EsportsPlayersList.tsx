@@ -27,3 +27,49 @@ const EsportsPlayersListPage: React.FC = () => {
 
   const itemsPerPage = 20;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
+    useEffect(() => {
+    fetchPlayers();
+    const interval = setInterval(fetchPlayers, 5000);
+    return () => clearInterval(interval);
+  }, [currentPage]);
+
+  useEffect(() => {
+    filterPlayers();
+  }, [players, searchTerm]);
+
+  const fetchPlayers = async () => {
+    setIsLoading(true);
+    try {
+      const { data: allData, error: statsError } = await supabase
+        .from('esports_players')
+        .select('payment_received, entry_fees');
+
+      if (!statsError && allData) {
+        setTotalCount(allData.length);
+        setStats({
+          total: allData.length,
+          paid: allData.filter(p => p.payment_received).length,
+          totalFees: allData.reduce((sum, p) => sum + (p.entry_fees || 0), 0)
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('esports_players')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
+      if (error) throw error;
+
+      setPlayers(data || []);
+    } catch (error) {
+      console.error('Error fetching players:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch players data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
