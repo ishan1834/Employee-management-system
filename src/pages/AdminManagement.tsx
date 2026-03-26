@@ -1,29 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import ModuleLayout from '@/components/ModuleLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Eye, UserPlus, Coffee, Ban, CheckCircle, Key } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/types/database';
-import { useToast } from '@/components/ui/use-toast';
-import { roleNames } from '@/types/auth';
-import { castToAdminProfiles } from '@/utils/adminTypeCasting';
-import AccessRestrictedState from '@/components/AccessRestrictedState';
+import React, { useState, useEffect } from "react";
 
-type AdminProfile = Database['public']['Tables']['admins']['Row'] & { status?: string };
+// Layout & UI
+import ModuleLayout from "@/components/ModuleLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 
-import React, { useState } from "react";
+// Icons
+import { Plus, Edit, Trash2, Eye, UserPlus, Coffee, Ban, CheckCircle, Key } from "lucide-react";
+
+// Hooks & Context
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+
+// Supabase & Types
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/types/database";
+import { roleNames } from "@/types/auth";
+import { castToAdminProfiles } from "@/utils/adminTypeCasting";
+
+// Components
+import AccessRestrictedState from "@/components/AccessRestrictedState";
+
+// Types
+type AdminProfile = Database["public"]["Tables"]["admins"]["Row"] & {
+  status?: string;
+};
 
 /* ========================================================= */
 /* TYPES                                                     */
