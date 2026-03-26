@@ -82,7 +82,93 @@ const fetchContentLogs = async () => {
     setIsLoading(false);
   }
 };
+useEffect(() => {
+  if (editingLog) {
+    setFormData({
+      content_type: editingLog.content_type,
+      title: editingLog.title,
+      description: editingLog.description || '',
+      platform: editingLog.platform || '',
+      file_url: editingLog.file_url || '',
+      status: editingLog.status
+    });
+    setShowForm(true);
+  }
+}, [editingLog]);
 
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!adminProfile?.id) return;
+
+  setIsSubmitting(true);
+  try {
+    if (editingLog) {
+      const { error } = await supabase
+        .from('content_work_logs')
+        .update(formData)
+        .eq('id', editingLog.id);
+
+      if (error) throw error;
+
+      await logActivity(ActivityActions.UPDATE_CONTENT_WORK, {
+        title: formData.title,
+        content_type: formData.content_type,
+        platform: formData.platform
+      });
+
+      toast({ title: 'Success', description: 'Content log updated successfully' });
+    } else {
+      const { error } = await supabase
+        .from('content_work_logs')
+        .insert({
+          ...formData,
+          admin_id: adminProfile.id
+        });
+
+      if (error) throw error;
+
+      await logActivity(ActivityActions.CREATE_CONTENT_WORK, {
+        title: formData.title,
+        content_type: formData.content_type,
+        platform: formData.platform
+      });
+
+      await markAttendanceAsPresent();
+
+      toast({ title: 'Success', description: 'Content log added successfully' });
+    }
+
+    setFormData({ content_type: '', title: '', description: '', platform: '', file_url: '', status: 'completed' });
+    setEditingLog(null);
+    setShowForm(false);
+    fetchContentLogs();
+  } catch (error: any) {
+    toast({ title: 'Error', description: error.message, variant: 'destructive' });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+const handleDelete = async (id: string) => {
+  if (!confirm('Are you sure you want to delete this content log?')) return;
+
+  const logToDelete = contentLogs.find(l => l.id === id);
+
+  try {
+    const { error } = await supabase.from('content_work_logs').delete().eq('id', id);
+    if (error) throw error;
+
+    await logActivity(ActivityActions.DELETE_CONTENT_WORK, {
+      title: logToDelete?.title,
+      content_type: logToDelete?.content_type
+    });
+
+    toast({ title: 'Success', description: 'Content log deleted' });
+    fetchContentLogs();
+  } catch (error: any) {
+    toast({ title: 'Error', description: error.message, variant: 'destructive' });
+  }
+};
 useEffect(() => {
   fetchContentLogs();
   const interval = setInterval(fetchContentLogs, 5000);
