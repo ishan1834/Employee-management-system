@@ -1,20 +1,5 @@
 
 
-  const fetchOverviewStats = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Fetch all data sources
-      const [
-        { data: paymentVerifications },
-        { data: esportsPlayers },
-        { data: socialOrders }
-      ] = await Promise.all([
-        supabase.from('payment_verifications').select('*'),
-        supabase.from('esports_players').select('*'),
-        supabase.from('social_media_orders').select('*')
-      ]);
-
       // Calculate real revenue from all sources
       const paymentRevenue = (paymentVerifications as any[])?.filter(p => p.payment_received).reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
       const esportsRevenue = (esportsPlayers as any[])?.filter(p => p.payment_received).reduce((sum, p) => sum + (p.entry_fees || 0), 0) || 0;
