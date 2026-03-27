@@ -1,40 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
-import ModuleLayout from '@/components/ModuleLayout';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, MessageCircle, Search, Send } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 
-const FeedbackSystem: React.FC = () => {
-  const { adminProfile } = useAuth();
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState('');
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [category, setCategory] = useState('general');
-  const [toAdminId, setToAdminId] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [responseText, setResponseText] = useState('');
-  const isSuperAdmin = adminProfile?.role === 'super_admin';
-
-  const fetchData = async () => {
-    const [{ data: fbData }, { data: adminsData }] = await Promise.all([
-      supabase.from('feedback' as any).select('*, from:admins!feedback_from_admin_id_fkey(name, role), to:admins!feedback_to_admin_id_fkey(name), responder:admins!feedback_responded_by_fkey(name)').order('created_at', { ascending: false }),
-      supabase.from('admins').select('id, name, role')
-    ]);
-    setFeedbacks((fbData as any[]) || []);
-    setAdmins(adminsData || []);
-    setLoading(false);
   };
 
   useEffect(() => { fetchData(); const i = setInterval(fetchData, 5000); return () => clearInterval(i); }, []);
