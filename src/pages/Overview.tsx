@@ -1,8 +1,3 @@
-import React, { useState, useEffect } from 'react';
-import ModuleLayout from '@/components/ModuleLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, DollarSign, ShoppingCart, Activity } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 const Overview: React.FC = () => {
   const [stats, setStats] = useState({
