@@ -1,24 +1,4 @@
 
-
-      // Calculate real revenue from all sources
-      const paymentRevenue = (paymentVerifications as any[])?.filter(p => p.payment_received).reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-      const esportsRevenue = (esportsPlayers as any[])?.filter(p => p.payment_received).reduce((sum, p) => sum + (p.entry_fees || 0), 0) || 0;
-      const socialRevenue = (socialOrders as any[])?.filter(o => o.payment_received).reduce((sum, o) => sum + (o.payment_amount || 0), 0) || 0;
-
-      const totalRevenue = paymentRevenue + esportsRevenue + socialRevenue;
-
-      // Calculate pending orders from all sources
-      const pendingPayments = (paymentVerifications as any[])?.filter(p => !p.payment_received).length || 0;
-      const pendingEsports = (esportsPlayers as any[])?.filter(p => !p.payment_received).length || 0;
-      const pendingSocial = (socialOrders as any[])?.filter(o => !o.payment_received).length || 0;
-      
-      const pendingOrders = pendingPayments + pendingEsports + pendingSocial;
-
-      // Calculate total transactions
-      const totalTransactions = ((paymentVerifications as any[])?.filter(p => p.payment_received).length || 0) +
-                               ((esportsPlayers as any[])?.filter(p => p.payment_received).length || 0) +
-                               ((socialOrders as any[])?.filter(o => o.payment_received).length || 0);
-
       // Calculate monthly growth
       const now = new Date();
       const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
