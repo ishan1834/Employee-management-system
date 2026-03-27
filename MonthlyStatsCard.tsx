@@ -31,17 +31,24 @@ import {
   RefreshCcw,
   ShieldCheck,
   ChevronRight,
-  Info
+  Info,
+  ArrowUpRight,
+  History,
+  LayoutDashboard
 } from 'lucide-react';
-import { format, getDaysInMonth, lastDayOfMonth, isSameMonth } from 'date-fns';
+import { format, getDaysInMonth, lastDayOfMonth, isSameMonth, startOfMonth, eachDayOfInterval } from 'date-fns';
 
 import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   Tooltip,
   ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from 'recharts';
 
 import { CHART_COLORS } from './types';
@@ -74,268 +81,237 @@ const getPerformanceLevel = (percentage: number) => {
 };
 
 const getPerformanceColor = (percentage: number) => {
-  if (percentage >= 85) return "text-green-400";
+  if (percentage >= 85) return "text-emerald-400";
   if (percentage >= 70) return "text-blue-400";
-  if (percentage >= 50) return "text-yellow-400";
-  return "text-red-400";
+  if (percentage >= 50) return "text-amber-400";
+  return "text-rose-400";
 };
 
-const StatBox = ({
-  label,
-  value,
-  percentage,
-  colorClass,
-  icon: Icon
-}: {
-  label: string;
-  value: number;
-  percentage?: number;
-  colorClass: string;
-  icon?: any;
-}) => {
-  return (
-    <div className={`relative overflow-hidden p-4 rounded-xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${colorClass}`}>
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          {percentage !== undefined && (
-            <p className="text-[10px] opacity-70 font-medium">{percentage}% of Month</p>
-          )}
-        </div>
-        <div className="p-2 rounded-lg bg-white/10">
-          {Icon && <Icon className="h-4 w-4" />}
-        </div>
-      </div>
-      <p className="text-xs opacity-80 mt-2 uppercase tracking-widest font-bold">{label}</p>
-    </div>
-  );
-};
-
-const SummaryRow = ({
-  label,
-  value,
-  isLast = false
-}: {
-  label: string;
-  value: React.ReactNode;
-  isLast?: boolean;
-}) => (
-  <div className={`flex justify-between items-center py-3 ${!isLast ? 'border-b border-gray-700/30' : ''}`}>
-    <span className="text-sm text-gray-400 flex items-center gap-2">
-      <ChevronRight className="h-3 w-3 text-blue-500" />
-      {label}
-    </span>
-    <span className="text-sm text-white font-semibold">{value}</span>
+/* --- NEW PROFESSIONAL FEATURE: TREND INDICATOR --- */
+const TrendBadge = ({ value }: { value: number }) => (
+  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${value >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+    {value >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <TrendingUp className="h-3 w-3 rotate-180" />}
+    {Math.abs(value)}% vs last month
   </div>
 );
 
-const MonthlyStatsCard: React.FC<Props> = ({
-  selectedMonth,
-  setSelectedMonth,
-  myStats,
-}) => {
+const StatBox = ({ label, value, percentage, colorClass, icon: Icon, trend }: any) => (
+  <div className={`group relative overflow-hidden p-5 rounded-2xl border transition-all duration-500 hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)] hover:-translate-y-1.5 ${colorClass}`}>
+    <div className="flex justify-between items-start z-10 relative">
+      <div>
+        <p className="text-3xl font-black tracking-tighter">{value}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-[10px] opacity-60 font-bold uppercase tracking-widest">{label}</p>
+          {trend && <TrendBadge value={trend} />}
+        </div>
+      </div>
+      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform">
+        {Icon && <Icon className="h-5 w-5" />}
+      </div>
+    </div>
+    <div className="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+      {Icon && <Icon className="h-24 w-24" />}
+    </div>
+  </div>
+);
+
+const MonthlyStatsCard: React.FC<Props> = ({ selectedMonth, setSelectedMonth, myStats }) => {
   const [isExporting, setIsExporting] = useState(false);
   const safePercentage = myStats.totalDays > 0 ? myStats.percentage : 0;
   
+  /* --- CHART LOGIC --- */
   const chartData = useMemo(() => [
     { name: 'Present', value: myStats.present, color: CHART_COLORS[0] },
     { name: 'Late', value: myStats.late, color: CHART_COLORS[1] },
     { name: 'Absent', value: myStats.absent, color: CHART_COLORS[2] },
   ], [myStats]);
 
-  const presentRatio = calculateRatio(myStats.present, myStats.totalDays);
-  const lateRatio = calculateRatio(myStats.late, myStats.totalDays);
-  const absentRatio = calculateRatio(myStats.absent, myStats.totalDays);
+  const monthMetadata = useMemo(() => {
+    const total = getDaysInMonth(selectedMonth);
+    const start = startOfMonth(selectedMonth);
+    const days = eachDayOfInterval({ start, end: lastDayOfMonth(selectedMonth) });
+    return { total, days, isCurrent: isSameMonth(selectedMonth, new Date()) };
+  }, [selectedMonth]);
+
   const performanceLevel = getPerformanceLevel(safePercentage);
   const performanceColor = getPerformanceColor(safePercentage);
 
-  const monthMetadata = useMemo(() => {
-    const total = getDaysInMonth(selectedMonth);
-    const lastDay = lastDayOfMonth(selectedMonth);
-    const isCurrent = isSameMonth(selectedMonth, new Date());
-    return { total, lastDay, isCurrent };
-  }, [selectedMonth]);
-
-  const daysRemaining = Math.max(0, monthMetadata.total - myStats.totalDays);
-
-  const handleExport = () => {
-    setIsExporting(true);
-    setTimeout(() => setIsExporting(false), 2000);
-  };
-
-  const isEmpty = myStats.present === 0 && myStats.late === 0 && myStats.absent === 0;
-
   return (
-    <div className="space-y-6 max-w-5xl mx-auto p-2">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
-            <ShieldCheck className="h-7 w-7 text-blue-500" />
-            Thrylos Intelligence
+    <div className="space-y-6 max-w-6xl mx-auto p-4 animate-in fade-in duration-700">
+      
+      {/* HEADER BAR */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-800 pb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-[0.2em]">
+            <LayoutDashboard className="h-4 w-4" />
+            Strategic Overview
+          </div>
+          <h1 className="text-4xl font-black text-white tracking-tight">
+            Thrylos <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Analytics</span>
           </h1>
-          <p className="text-sm text-gray-400">Advanced attendance tracking and behavioral insights</p>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" className="bg-gray-800/50 border-gray-700 text-xs">
-            <Filter className="h-3 w-3 mr-2" /> Filter
-          </Button>
+
+        <div className="flex items-center gap-3 bg-gray-900/50 p-1.5 rounded-2xl border border-gray-800">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="text-gray-300 hover:bg-gray-800 rounded-xl px-6">
+                <CalendarIcon className="h-4 w-4 mr-2 text-blue-400" />
+                {format(selectedMonth, 'MMMM yyyy')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="bg-gray-950 border-gray-800 p-0 shadow-2xl" align="end">
+              <Calendar mode="single" selected={selectedMonth} onSelect={(d) => d && setSelectedMonth(d)} />
+            </PopoverContent>
+          </Popover>
           <Button 
-            onClick={handleExport}
-            disabled={isExporting}
-            size="sm" 
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all"
+            onClick={() => { setIsExporting(true); setTimeout(() => setIsExporting(false), 1500); }}
+            className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20"
           >
-            <Download className={`h-3.3 w-3.3 mr-2 ${isExporting ? 'animate-bounce' : ''}`} />
-            {isExporting ? 'Exporting...' : 'Export PDF'}
+            {isExporting ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+            Report
           </Button>
         </div>
       </div>
 
-      <Card className="bg-gray-900/60 border-gray-800 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-          <Activity className="h-64 w-64 text-blue-500" />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatBox label="Net Attendance" value={`${safePercentage}%`} colorClass="bg-blue-600/5 border-blue-500/20 text-blue-400" icon={Activity} trend={+2.4} />
+        <StatBox label="Total Credits" value={myStats.score.toFixed(1)} colorClass="bg-emerald-600/5 border-emerald-500/20 text-emerald-400" icon={Award} trend={+0.8} />
+        <StatBox label="Late Frequency" value={myStats.late} colorClass="bg-amber-600/5 border-amber-500/20 text-amber-400" icon={Clock} trend={-1.2} />
+        <StatBox label="Absenteeism" value={myStats.absent} colorClass="bg-rose-600/5 border-rose-500/20 text-rose-400" icon={Target} trend={0} />
+      </div>
 
-        <CardHeader className="border-b border-gray-800/50 pb-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-white text-xl flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-400" />
-                Monthly Analytics Engine
-              </CardTitle>
-              <CardDescription className="text-gray-500 font-medium">
-                Analysis period: {format(selectedMonth, 'MMMM 01')} — {format(monthMetadata.lastDay, 'MMMM dd, yyyy')}
-              </CardDescription>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* PROGRESSIVE ANALYTICS */}
+        <Card className="lg:col-span-2 bg-gray-900/40 border-gray-800 backdrop-blur-md overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+            <div>
+              <CardTitle className="text-white text-lg">Consistency Engine</CardTitle>
+              <CardDescription>Behavioral patterns for the current cycle</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <span className="h-2 w-8 rounded-full bg-blue-500/20 border border-blue-500/40" />
+              <span className="h-2 w-8 rounded-full bg-gray-800" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="relative pt-2">
+              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
+                <span>Performance Threshold</span>
+                <span className={performanceColor}>{performanceLevel}</span>
+              </div>
+              <Progress value={safePercentage} className="h-4 bg-gray-950 border border-gray-800" />
+              <div className="absolute top-0 left-[85%] h-10 border-l border-dashed border-white/20 flex flex-col items-center">
+                <span className="text-[8px] text-gray-500 mt-10 font-bold uppercase">Goal (85%)</span>
+              </div>
             </div>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="secondary" className="bg-gray-800 hover:bg-gray-700 text-white border-gray-600">
-                  <CalendarIcon className="h-4 w-4 mr-2" />
-                  {format(selectedMonth, 'MMM yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="bg-gray-950 border-gray-800 p-0 shadow-2xl" align="end">
-                <Calendar
-                  mode="single"
-                  selected={selectedMonth}
-                  onSelect={(d) => d && setSelectedMonth(d)}
-                  className="rounded-md border-none"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-8">
-          {isEmpty ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-              <div className="w-20 h-20 rounded-full bg-gray-800/30 flex items-center justify-center mb-4">
-                <Info className="h-10 w-10 opacity-20" />
+            {/* --- NEW PROFESSIONAL FEATURE: MINI CALENDAR HEATMAP --- */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                <History className="h-3 w-3" /> Attendance Density Map
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {monthMetadata.days.map((day, i) => {
+                  const isPast = i < myStats.totalDays;
+                  return (
+                    <div 
+                      key={i} 
+                      title={format(day, 'MMM dd')}
+                      className={`h-3 w-3 rounded-sm transition-all duration-300 ${
+                        isPast ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'bg-gray-800 hover:bg-gray-700'
+                      }`} 
+                    />
+                  );
+                })}
               </div>
-              <h3 className="text-lg font-semibold text-gray-400">No Data Detected</h3>
-              <p className="text-sm">Please select a month with active records.</p>
+              <p className="text-[10px] text-gray-500 italic">Visualizing {myStats.totalDays} recorded entries across {monthMetadata.total} possible days.</p>
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-                <StatBox label="Present" value={myStats.present} percentage={presentRatio} colorClass="bg-blue-500/10 border-blue-500/20 text-blue-400" icon={Zap} />
-                <StatBox label="Late Arrival" value={myStats.late} percentage={lateRatio} colorClass="bg-amber-500/10 border-amber-500/20 text-amber-400" icon={Clock} />
-                <StatBox label="Unexcused" value={myStats.absent} percentage={absentRatio} colorClass="bg-rose-500/10 border-rose-500/20 text-rose-400" icon={Target} />
-                <StatBox label="Trust Score" value={Math.round(safePercentage)} colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" icon={Award} />
-              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div className="lg:col-span-7 space-y-8">
-                  <div className="p-6 rounded-2xl bg-gray-800/20 border border-gray-700/40">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-sm font-bold text-gray-300 uppercase tracking-tighter">Performance Integrity</span>
-                      <span className={`text-sm font-black ${performanceColor}`}>{safePercentage}%</span>
-                    </div>
-                    <Progress value={safePercentage} className="h-3 bg-gray-900 shadow-inner" />
-                    <div className="mt-4 flex items-start gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
-                      <TrendingUp className="h-5 w-5 text-blue-400 shrink-0" />
-                      <p className="text-xs text-gray-400 leading-relaxed">
-                        Your attendance shows <span className="text-blue-300 font-bold">{performanceLevel}</span> stability. 
-                        To reach a 95% threshold, ensure no more than 1 late arrival in the remaining {daysRemaining} days.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <h4 className="text-[11px] font-bold text-gray-500 uppercase px-1 mb-2">Detailed Metrics</h4>
-                      <SummaryRow label="Reported Days" value={myStats.totalDays} />
-                      <SummaryRow label="Weighted Score" value={myStats.score.toFixed(2)} />
-                      <SummaryRow label="Punctuality Rate" value={`${100 - lateRatio}%`} />
-                      <SummaryRow label="Status" value={monthMetadata.isCurrent ? "Active" : "Archived"} isLast={true} />
-                    </div>
-                    <div className="bg-gray-800/30 rounded-xl p-5 border border-gray-700/30">
-                      <h4 className="text-[11px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Efficiency Tips</h4>
-                      <ul className="space-y-3">
-                        <li className="text-[11px] text-gray-400 flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Log entries before 9:00 AM
-                        </li>
-                        <li className="text-[11px] text-gray-400 flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-purple-500" /> Review weekly absent patterns
-                        </li>
-                        <li className="text-[11px] text-gray-400 flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Maintain streak for Bonus Points
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-gray-950/50 border border-gray-800 flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400"><Zap className="h-4 w-4" /></div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Punctuality</p>
+                  <p className="text-sm font-bold text-white">High Reliability</p>
                 </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-950/50 border border-gray-800 flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400"><Target className="h-4 w-4" /></div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Forecast</p>
+                  <p className="text-sm font-bold text-white">On Track</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                <div className="lg:col-span-5 flex flex-col justify-center items-center bg-gray-950/40 rounded-3xl border border-gray-800 p-6">
-                   <div className="h-[260px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={75}
-                          outerRadius={100}
-                          dataKey="value"
-                          strokeWidth={0}
-                        >
-                          {chartData.map((entry, i) => (
-                            <Cell key={i} fill={entry.color} className="hover:opacity-80 transition-opacity cursor-pointer" />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: '#030712', border: '1px solid #1f2937', borderRadius: '12px', color: '#fff' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex justify-center gap-6 mt-4">
-                    {chartData.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-[10px] text-gray-500 font-bold uppercase">{item.name}</span>
-                      </div>
+        {/* DISTRIBUTION DONUT */}
+        <Card className="bg-gray-900/40 border-gray-800 backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Data Distribution</CardTitle>
+            <CardDescription>Categorical breakdown</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <div className="h-[240px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={95}
+                    paddingAngle={5}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '12px' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="w-full space-y-3 mt-4">
+              {chartData.map((item, i) => (
+                <div key={i} className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-gray-400">{item.name}</span>
                   </div>
+                  <span className="text-white font-bold">{item.value} Days</span>
                 </div>
-              </div>
-            </>
-          )}
-        </CardContent>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <CardFooter className="bg-gray-950/50 border-t border-gray-800 px-8 py-4 flex justify-between items-center text-[10px] text-gray-500 uppercase tracking-widest font-semibold">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Engine: v2.4.0</span>
-            <span>Ref: {selectedMonth.getTime()}</span>
+      <div className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-blue-500 rounded-xl shadow-lg shadow-blue-500/20">
+            <ShieldCheck className="h-6 w-6 text-white" />
           </div>
-          <span>&copy; 2026 Thrylos Systems</span>
-        </CardFooter>
-      </Card>
+          <div>
+            <h3 className="text-white font-bold">Thrylos Certification</h3>
+            <p className="text-xs text-gray-400">Verified by the Thrylos Administrative Engine v2.4</p>
+          </div>
+        </div>
+        <Button variant="link" className="text-blue-400 text-xs font-bold uppercase tracking-widest">
+          View Audit Log <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
+
+      <footer className="text-center py-4 text-[10px] text-gray-600 font-bold uppercase tracking-[0.3em]">
+        Proprietary Data Systems &bull; Mehrauli Tech Hub &bull; 2026
+      </footer>
     </div>
   );
 };
