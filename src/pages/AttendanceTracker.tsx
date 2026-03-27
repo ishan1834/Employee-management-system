@@ -30,3 +30,29 @@ interface AttendanceRecord {
   date: string;
   status: string;
 }
+const AttendanceTracker: React.FC = () => {
+  const { adminProfile } = useAuth();
+  const { toast } = useToast();
+  const { logActivity } = useActivityLogger();
+
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [reason, setReason] = useState('');
+
+  const today = new Date();
+  const todayStr = formatDateForDB(today);
+
+  const getCurrentTimeBasedStatus = () => {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 11) return 'present';
+    if (hour >= 11 && hour < 17) return 'late';
+    return 'absent';
+  };
+
+  const getTimeBasedMessage = () => {
+    const hour = new Date().getHours();
+    if (hour < 6) return "Attendance opens at 6 AM";
+    if (hour < 11) return "Full attendance window";
+    if (hour < 17) return "Late window";
+    return "Absent window";
+  };
