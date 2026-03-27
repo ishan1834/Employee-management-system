@@ -1,16 +1,4 @@
 
-const Overview: React.FC = () => {
-  const [stats, setStats] = useState({
-    totalRevenue: 0,
-    pendingOrders: 0,
-    totalTransactions: 0,
-    monthlyGrowth: 0
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchOverviewStats();
-  }, []);
 
   const fetchOverviewStats = async () => {
     try {
