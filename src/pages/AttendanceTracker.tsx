@@ -56,3 +56,34 @@ const AttendanceTracker: React.FC = () => {
     if (hour < 17) return "Late window";
     return "Absent window";
   };
+    useEffect(() => {
+    if (adminProfile) {
+      fetchAdmins();
+      fetchAttendanceData();
+    }
+  }, [selectedDate, adminProfile]);
+
+  const fetchAdmins = async () => {
+    const { data } = await supabase.from('admins').select('*');
+    console.log(data);
+  };
+
+  const fetchAttendanceData = async () => {
+    const { data } = await supabase.from('attendance').select('*');
+    console.log(data);
+  };  useEffect(() => {
+    if (adminProfile) {
+      fetchAdmins();
+      fetchAttendanceData();
+    }
+  }, [selectedDate, adminProfile]);
+
+  const fetchAdmins = async () => {
+    const { data } = await supabase.from('admins').select('*');
+    console.log(data);
+  };
+
+  const fetchAttendanceData = async () => {
+    const { data } = await supabase.from('attendance').select('*');
+    console.log(data);
+  };
