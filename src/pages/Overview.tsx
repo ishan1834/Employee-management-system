@@ -434,6 +434,13 @@ const Overview: React.FC = () => {
         </Card>
 
         {/* Monthly Growth */}
+
+
+
+
+
+
+        
         <Card className={`relative overflow-hidden transition-all duration-300 group ${
           growthPositive
             ? 'border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-transparent hover:border-emerald-500/40'
@@ -479,6 +486,11 @@ const Overview: React.FC = () => {
           </div>
           <div className="space-y-2">
             {/* Last month bar */}
+
+
+
+
+            
             <div className="flex items-center gap-3">
               <span className="text-xs text-zinc-600 w-20 shrink-0 text-right">Last</span>
               <div className="flex-1 bg-white/5 rounded-full h-2 overflow-hidden">
@@ -507,3 +519,99 @@ const Overview: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+
+
+
+      
+      {/* ── Source Breakdown ───────────────────────────────────────────── */}
+
+
+
+
+      
+      <div className="mb-2">
+        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Revenue by Source</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {sources.map(src => (
+            <SourceCard key={src.label} source={src} total={stats.totalRevenue} />
+          ))}
+        </div>
+      </div>
+
+
+
+
+
+
+      
+
+      {/* ── Pipeline health ────────────────────────────────────────────── */}
+      <Card className="mt-4 border-white/8 bg-white/3">
+        <CardContent className="p-4">
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">Pipeline Health</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-lg font-bold text-white font-mono">{stats.totalTransactions}</p>
+              <p className="text-xs text-zinc-600">Completed</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold text-amber-400 font-mono">{stats.pendingOrders}</p>
+              <p className="text-xs text-zinc-600">Pending</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold text-white font-mono">
+                {stats.totalTransactions + stats.pendingOrders > 0
+                  ? Math.round((stats.totalTransactions / (stats.totalTransactions + stats.pendingOrders)) * 100)
+                  : 0}%
+              </p>
+              <p className="text-xs text-zinc-600">Conversion</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold text-sky-400 font-mono">
+                ₹{stats.avgTransactionValue.toLocaleString('en-IN')}
+              </p>
+              <p className="text-xs text-zinc-600">Avg. Value</p>
+            </div>
+          </div>
+
+
+
+
+
+
+          
+          {/* Conversion bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-zinc-600 mb-1">
+              <span>Conversion rate</span>
+              <span>
+                {stats.totalTransactions + stats.pendingOrders > 0
+                  ? Math.round((stats.totalTransactions / (stats.totalTransactions + stats.pendingOrders)) * 100)
+                  : 0}%
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+              <div
+                className="h-full bg-emerald-500 transition-all duration-1000"
+                style={{
+                  width: stats.totalTransactions + stats.pendingOrders > 0
+                    ? `${(stats.totalTransactions / (stats.totalTransactions + stats.pendingOrders)) * 100}%`
+                    : '0%'
+                }}
+              />
+              <div className="h-full bg-amber-500/50 flex-1 transition-all duration-1000" />
+            </div>
+            <div className="flex justify-between text-xs text-zinc-700 mt-1">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Paid</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500/50" /> Pending</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+    </ModuleLayout>
+  );
+};
+
+export default Overview;
