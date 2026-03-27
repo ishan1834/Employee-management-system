@@ -87,3 +87,28 @@ const AttendanceTracker: React.FC = () => {
     const { data } = await supabase.from('attendance').select('*');
     console.log(data);
   };
+  const markAttendance = async () => {
+    if (!adminProfile) return;
+
+    const status = getCurrentTimeBasedStatus();
+
+    await supabase.from('attendance').insert({
+      admin_id: adminProfile.id,
+      date: todayStr,
+      status,
+      reason
+    });
+
+    toast({
+      title: "Attendance Marked",
+      description: status,
+    });
+  };
+
+  const getMonthlyStats = (data: any[]) => {
+    const present = data.filter(d => d.status === 'present').length;
+    const late = data.filter(d => d.status === 'late').length;
+    const absent = data.filter(d => d.status === 'absent').length;
+
+    return { present, late, absent };
+  };
