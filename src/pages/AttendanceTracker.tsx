@@ -112,3 +112,28 @@ const AttendanceTracker: React.FC = () => {
 
     return { present, late, absent };
   };
+  return (
+    <ModuleLayout title="Attendance Tracker">
+      <Card>
+        <CardHeader>
+          <CardTitle>Mark Attendance</CardTitle>
+          <CardDescription>{getTimeBasedMessage()}</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <Textarea
+            placeholder="Reason (optional)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+
+          <Button onClick={markAttendance}>
+            Mark {getCurrentTimeBasedStatus()}
+          </Button>
+        </CardContent>
+      </Card>
+    </ModuleLayout>
+  );
+};
+
+export default AttendanceTracker;
