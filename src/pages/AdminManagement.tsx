@@ -180,11 +180,13 @@ const AdminManagement: React.FC = () => {
   /* ========================================================= */
 
   return (
-    <div>
-      {/* UI will go here */}
-      <h1 className="text-xl font-bold">Admin Management</h1>
-    </div>
-  );
+  <div>
+    {/* UI will go here */}
+    <h1 className="text-xl font-bold">
+      Admin Management
+    </h1>
+  </div>
+);
 };
 
 export default AdminManagement;
