@@ -130,7 +130,22 @@ const handleDeleteFile = async (file: FileItem) => {
     toast({ title: 'Delete Failed', variant: 'destructive' });
   }
 };
+const getFileIcon = (type: string | null) => {
+  if (type?.startsWith('image/')) return Image;
+  return File;
+};
 
+const formatFileSize = (bytes: number | null) => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+const filteredFiles = files.filter(file =>
+  file.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
 const handleDownloadFile = async (file: FileItem) => {
   try {
     const { data } = await supabase.storage.from('uploads').download(file.file_path);
