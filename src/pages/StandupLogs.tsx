@@ -79,30 +79,74 @@ const StandupLogs: React.FC = () => {
         actions={!hasSubmittedToday ? <Button onClick={() => setShowForm(!showForm)} size="sm"><Plus className="w-4 h-4 mr-1" /> Today's Standup</Button> : <Badge className="bg-green-500/20 text-green-400">✓ Submitted</Badge>}>
         
         {showForm && !hasSubmittedToday && (
-          <Card className="mb-6 border-white/10 bg-white/5">
-            <CardContent className="p-4 space-y-3">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Yesterday I worked on:</label>
-                <Textarea placeholder="What did you accomplish yesterday?" value={yesterday} onChange={e => setYesterday(e.target.value)} className="bg-white/5 border-white/10" />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Today I plan to:</label>
-                <Textarea placeholder="What will you work on today?" value={today} onChange={e => setToday(e.target.value)} className="bg-white/5 border-white/10" />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Blockers:</label>
-                <Input placeholder="Any blockers? (optional)" value={blockers} onChange={e => setBlockers(e.target.value)} className="bg-white/5 border-white/10" />
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400">Mood:</span>
-                {Object.entries(moodIcons).map(([key, icon]) => (
-                  <button key={key} onClick={() => setMood(key)} className={`p-2 rounded-lg ${mood === key ? 'bg-white/10 ring-1 ring-blue-500' : 'hover:bg-white/5'}`}>{icon}</button>
-                ))}
-                <Button onClick={handleSubmit} size="sm" className="ml-auto">Submit</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+  <Card className="mb-6 border-white/10 bg-white/5">
+    <CardContent className="space-y-3 p-4">
+      
+      <div>
+        <label className="mb-1 block text-xs text-gray-400">
+          Yesterday I worked on:
+        </label>
+        <Textarea
+          placeholder="What did you accomplish yesterday?"
+          value={yesterday}
+          onChange={(e) => setYesterday(e.target.value)}
+          className="border-white/10 bg-white/5"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs text-gray-400">
+          Today I plan to:
+        </label>
+        <Textarea
+          placeholder="What will you work on today?"
+          value={today}
+          onChange={(e) => setToday(e.target.value)}
+          className="border-white/10 bg-white/5"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs text-gray-400">
+          Blockers:
+        </label>
+        <Input
+          placeholder="Any blockers? (optional)"
+          value={blockers}
+          onChange={(e) => setBlockers(e.target.value)}
+          className="border-white/10 bg-white/5"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-gray-400">Mood:</span>
+
+        {Object.entries(moodIcons).map(([key, icon]) => (
+          <button
+            key={key}
+            onClick={() => setMood(key)}
+            className={`rounded-lg p-2 ${
+              mood === key
+                ? 'bg-white/10 ring-1 ring-blue-500'
+                : 'hover:bg-white/5'
+            }`}
+          >
+            {icon}
+          </button>
+        ))}
+
+        <Button
+          onClick={handleSubmit}
+          size="sm"
+          className="ml-auto"
+        >
+          Submit
+        </Button>
+      </div>
+
+    </CardContent>
+  </Card>
+)}
 
         <div className="mb-4 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
