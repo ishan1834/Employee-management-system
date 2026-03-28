@@ -1,16 +1,26 @@
-project_id = "thzzwyvxptadtdiblpul"
+# THRYLOS - Backend Server Configuration
+# Project ID: thzzwyvxptadtdiblpul
 
-[functions.get-location]
-verify_jwt = false
+[project]
+id = "thzzwyvxptadtdiblpul"
 
-[functions.admin-management]
-verify_jwt = false
+# --- Authentication & OTP Flow ---
 
 [functions.send-otp]
 verify_jwt = false
 
 [functions.verify-otp]
 verify_jwt = false
+
+# --- Management & Geo-Location ---
+
+[functions.admin-management]
+verify_jwt = false
+
+[functions.get-location]
+verify_jwt = false
+
+# --- Automated Cron & Attendance Jobs ---
 
 [functions.monthly-attendance-review]
 verify_jwt = false
