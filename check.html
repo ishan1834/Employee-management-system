@@ -1,33 +1,48 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>THRYLOS - Admin Dashboard</title>
-    <meta name="description" content="THRYLOS Admin Dashboard - Manage eSports & Betting Platforms" />
+    <title>THRYLOS | Admin Dashboard</title>
+    
+    <meta name="description" content="Advanced admin dashboard for managing eSports tournaments and betting platforms." />
     <meta name="author" content="THRYLOS" />
-    <meta name="keywords" content="THRYLOS, admin dashboard, eSports, betting platforms, tournament management" />
-    <link rel="icon" href="/dist/mulogo.png" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="/dist/mulogo.png" />
+    <meta name="keywords" content="THRYLOS, admin dashboard, eSports, betting, tournament management" />
+    <link rel="canonical" href="https://admin.thrylos.com" />
 
-    <meta property="og:title" content="THRYLOS Admin Dashboard" />
-    <meta property="og:description" content="Advanced admin dashboard for managing eSports tournaments and betting platforms" />
+    <link rel="icon" href="/dist/mulogo.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/dist/mulogo.png" />
+    <meta name="theme-color" content="#ffffff" />
+
     <meta property="og:type" content="website" />
+    <meta property="og:title" content="THRYLOS Admin Dashboard" />
+    <meta property="og:description" content="Manage eSports & Betting Platforms with the THRYLOS advanced interface." />
     <meta property="og:image" content="/dist/mulogo.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@THRYLOS" />
+    <meta name="twitter:title" content="THRYLOS Admin Dashboard" />
     <meta name="twitter:image" content="/dist/mulogo.png" />
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
+
+    <style>
+      body { margin: 0; background-color: #f9fafb; font-family: 'Inter', sans-serif; }
+      #root { min-height: 100vh; }
+    </style>
   </head>
 
   <body>
+    <noscript>
+      <div style="text-align: center; padding: 50px;">
+        <h2>JavaScript Required</h2>
+        <p>Please enable JavaScript to view the THRYLOS Admin Dashboard.</p>
+      </div>
+    </noscript>
+
     <div id="root"></div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
