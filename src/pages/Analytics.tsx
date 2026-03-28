@@ -7,15 +7,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { TrendingUp, DollarSign, ShoppingCart, Activity } from 'lucide-react';
 
 const Analytics: React.FC = () => {
-  const [analyticsData, setAnalyticsData] = useState({
-    esportsRevenue: 0,
-    socialRevenue: 0,
-    paymentRevenue: 0,
-    totalOrders: 0,
-    totalTransactions: 0,
-    totalRevenue: 0,
-    monthlyGrowth: 0
-  });
+  type AnalyticsData = {
+  esportsRevenue: number;
+  socialRevenue: number;
+  paymentRevenue: number;
+  totalOrders: number;
+  totalTransactions: number;
+  totalRevenue: number;
+  monthlyGrowth: number;
+};
+
+const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
+  esportsRevenue: 0,
+  socialRevenue: 0,
+  paymentRevenue: 0,
+  totalOrders: 0,
+  totalTransactions: 0,
+  totalRevenue: 0,
+  monthlyGrowth: 0,
+});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
