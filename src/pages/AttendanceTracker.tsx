@@ -91,19 +91,38 @@ const AttendanceTracker: React.FC = () => {
   };
 
   const getTimeBasedMessage = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    
-    if (hours >= 6 && hours < 11) {
-      return { status: 'Present', message: 'Mark now for full attendance (6 AM - 11 AM)', color: 'text-blue-500' };
-    } else if (hours >= 11 && hours < 17) {
-      return { status: 'Late', message: 'Late window (11 AM - 5 PM) - counts as half day', color: 'text-gray-400' };
-    } else if (hours >= 17) {
-      return { status: 'Absent', message: 'After 5 PM - marked as absent', color: 'text-gray-500' };
-    } else {
-      return { status: 'Early', message: 'Attendance opens at 6 AM', color: 'text-gray-500' };
-    }
+  const hours = new Date().getHours();
+
+  if (hours >= 6 && hours < 11) {
+    return {
+      status: 'Present',
+      message: 'Mark now for full attendance (6 AM - 11 AM)',
+      color: 'text-blue-500',
+    };
+  }
+
+  if (hours >= 11 && hours < 17) {
+    return {
+      status: 'Late',
+      message: 'Late window (11 AM - 5 PM) - counts as half day',
+      color: 'text-gray-400',
+    };
+  }
+
+  if (hours >= 17) {
+    return {
+      status: 'Absent',
+      message: 'After 5 PM - marked as absent',
+      color: 'text-gray-500',
+    };
+  }
+
+  return {
+    status: 'Early',
+    message: 'Attendance opens at 6 AM',
+    color: 'text-gray-500',
   };
+};
 
   const checkWorkLogToday = async () => {
     if (!adminProfile) return;
