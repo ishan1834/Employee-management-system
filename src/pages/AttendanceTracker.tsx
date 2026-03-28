@@ -211,25 +211,27 @@ const AttendanceTracker: React.FC = () => {
   };
 
   const fetchAttendanceData = async () => {
-    if (!isSuperAdmin) return;
-    
-    try {
-      const dateStr = formatDateForDB(selectedDate);
-      const { data: attendance, error } = await supabase
-        .from('attendance')
-        .select(`
-          *,
-          admin:admins!admin_id(name, email, role)
-        `)
-        .eq('date', dateStr)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setAttendanceData(attendance || []);
-    } catch (error) {
-      console.error('Error fetching attendance data:', error);
-    }
-  };
+  if (!isSuperAdmin) return;
+
+  try {
+    const dateStr = formatDateForDB(selectedDate);
+
+    const { data, error } = await supabase
+      .from('attendance')
+      .select(`
+        *,
+        admin:admins!admin_id(name, email, role)
+      `)
+      .eq('date', dateStr)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    setAttendanceData(data ?? []);
+  } catch (err) {
+    console.error('Error fetching attendance data:', err);
+  }
+};
 
   const fetchTodayAttendance = async () => {
     if (!isSuperAdmin) return;
