@@ -1,24 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  ArrowLeft, Users, Briefcase, Award, FileText, 
-  Calendar, ChevronRight, Loader2, Clock, Check, X,
-  DollarSign, UserCheck, UserX
-} from 'lucide-react';
-import { format } from 'date-fns';
 
-const HRDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { adminProfile } = useAuth();
-  const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
     totalInterns: 0,
