@@ -141,14 +141,17 @@ const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
   const pieColors = ['#8b5cf6', '#06b6d4', '#10b981'];
 
   if (isLoading) {
-    return (
-      <ModuleLayout title="Analytics Dashboard" description="Loading analytics data...">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </ModuleLayout>
-    );
-  }
+  return (
+    <ModuleLayout
+      title="Analytics Dashboard"
+      description="Loading analytics data..."
+    >
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
+      </div>
+    </ModuleLayout>
+  );
+}
 
   return (
     <ModuleLayout
