@@ -45,3 +45,21 @@ import { AttendanceRecord } from './types';
       console.error('Error fetching my attendance:', error);
     }
   };
+  useEffect(() => {
+    if (adminProfile) {
+      refetchAll();
+    }
+  }, [selectedDate, selectedMonth, adminProfile]);
+
+  return {
+    attendanceData,
+    allAdmins,
+    todayAttendance,
+    myAttendance,
+    monthlyAttendance,
+    fetchAttendanceData,
+    fetchTodayAttendance,
+    fetchMyAttendance,
+    fetchMonthlyAttendance,
+  };
+};
