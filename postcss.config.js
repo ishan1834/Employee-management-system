@@ -3,10 +3,14 @@
 // ==========================================================
 
 // Import required plugins
+
+
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
 
 // Optional plugins for extended functionality
+
+
 const postcssNested = require('postcss-nested');
 const postcssImport = require('postcss-import');
 const postcssMixins = require('postcss-mixins');
@@ -14,25 +18,49 @@ const postcssVariables = require('postcss-simple-vars');
 const postcssPresetEnv = require('postcss-preset-env');
 const cssnano = require('cssnano');
 
+
+
 // ==========================================================
+
+
 //                ENVIRONMENT DETECTION
+
+
 // ==========================================================
+
+
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = !isProduction;
 
+
+
 // ==========================================================
+
+
 //                BASE PLUGINS CONFIG
+
+
 // ==========================================================
+
+
 
 const basePlugins = {
   tailwindcss: {},
   autoprefixer: {},
 };
 
+
+
 // ==========================================================
+
+
 //                ADVANCED PLUGINS CONFIG
+
+
 // ==========================================================
+
+
 
 const advancedPlugins = [
   postcssImport(),
@@ -44,6 +72,9 @@ const advancedPlugins = [
       accentColor: '#38bdf8',
     },
   }),
+
+
+  
   postcssNested(),
   postcssPresetEnv({
     stage: 1,
@@ -53,9 +84,21 @@ const advancedPlugins = [
   }),
 ];
 
+
+
+
 // ==========================================================
+
+
+
 //                PRODUCTION OPTIMIZATION
+
+
+
 // ==========================================================
+
+
+
 
 const productionPlugins = isProduction
   ? [
@@ -83,9 +126,21 @@ function debugLogger() {
 }
 debugLogger.postcss = true;
 
+
+
+
 // ==========================================================
+
+
+
 //                FINAL EXPORT CONFIG
+
+
+
 // ==========================================================
+
+
+
 
 module.exports = {
   plugins: [
@@ -105,9 +160,21 @@ module.exports = {
   ],
 };
 
+
+
+
 // ==========================================================
+
+
+
 //                EXTRA NOTES (FOR SCALABILITY)
+
+
+
 // ==========================================================
+
+
+
 
 /*
   This configuration supports:
@@ -133,9 +200,21 @@ module.exports = {
   → real-world production apps
 */
 
+
+
+
 // ==========================================================
+
+
+
 //                OPTIONAL EXTENSIONS
+
+
+
 // ==========================================================
+
+
+
 
 // Example: Adding future plugins dynamically
 function loadOptionalPlugins() {
@@ -146,12 +225,27 @@ function loadOptionalPlugins() {
     // optional.push(require('postcss-discard-comments')());
   }
 
+
+
+  
   return optional;
 }
+
+
+
 
 // Merge optional plugins
 module.exports.plugins.push(...loadOptionalPlugins());
 
+
+
+
 // ==========================================================
+
+
+
 //                END OF CONFIG
+
+
+
 // ==========================================================
