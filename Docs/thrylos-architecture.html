@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thrylos EMS — System Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080a10;
+  --bg2:      #0c0f1a;
+  --bg3:      #111420;
+  --bg4:      #161a28;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.12);
+  --border3:  rgba(255,255,255,0.18);
+
+  --violet:   #8b7ff5;
+  --violet2:  #a89aff;
+  --violet-d: rgba(139,127,245,0.12);
+  --violet-g: rgba(139,127,245,0.25);
+
+  --cyan:     #22d3c4;
+  --cyan-d:   rgba(34,211,196,0.10);
+  --cyan-g:   rgba(34,211,196,0.22);
+
+  --sky:      #60a5fa;
+  --sky-d:    rgba(96,165,250,0.10);
+  --sky-g:    rgba(96,165,250,0.22);
+
+  --rose:     #fb7185;
+  --rose-d:   rgba(251,113,133,0.10);
+  --rose-g:   rgba(251,113,133,0.22);
+
+  --amber:    #fbbf24;
+  --amber-d:  rgba(251,191,36,0.10);
+  --amber-g:  rgba(251,191,36,0.22);
+
+  --lime:     #84cc16;
+  --lime-d:   rgba(132,204,22,0.10);
+  --lime-g:   rgba(132,204,22,0.22);
+
+  --slate:    #94a3b8;
+  --slate-d:  rgba(148,163,184,0.08);
+  --slate-g:  rgba(148,163,184,0.16);
+
+  --text:     #e2e8f0;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+  --text4:    #2d3748;
+
+  --mono:    'JetBrains Mono', monospace;
+  --serif:   'Instrument Serif', serif;
+  --sans:    'Outfit', sans-serif;
+
+  --radius:  12px;
+  --radius2: 8px;
+  --radius3: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 400;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ═══ NOISE OVERLAY ═══════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.5;
+}
+
+/* ═══ GRID PATTERN ════════════════════════════════ */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ═══ NAV ═════════════════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px;
+  background: rgba(8,10,16,0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-logo-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; font-size: 11px; color: #fff;
+}
+.nav-logo-text {
+  font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: 0.04em;
+  color: var(--text);
+}
+.nav-logo-text span { color: var(--text3); font-weight: 400; }
+
+.nav-pills {
+  display: flex; gap: 2px; list-style: none;
+}
+.nav-pills a {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  color: var(--text3); text-decoration: none;
+  padding: 5px 12px; border-radius: 20px;
+  transition: all 0.2s; letter-spacing: 0.04em;
+  border: 1px solid transparent;
+}
+.nav-pills a:hover, .nav-pills a.active {
+  color: var(--text); background: var(--bg4); border-color: var(--border2);
+}
+
+.nav-meta {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-status {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(132,204,22,0.08); border: 1px solid rgba(132,204,22,0.2);
+  border-radius: 20px; padding: 3px 10px; color: var(--lime);
+}
+.pulse-dot {
+  width: 5px; height: 5px; background: var(--lime); border-radius: 50%;
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(0.6); }
+}
+
+/* ═══ WRAPPER ═════════════════════════════════════ */
+.page-wrap {
+  position: relative; z-index: 1;
+  max-width: 1440px; margin: 0 auto;
+  padding: 0 48px;
+}
+
+section {
+  padding-top: 100px; padding-bottom: 80px;
+  position: relative; z-index: 1;
+}
+
+/* ═══ SECTION HEADERS ═════════════════════════════ */
+.sec-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 16px;
+}
+.sec-eyebrow::before {
+  content: ''; width: 20px; height: 1px; background: var(--text3);
+}
+
+.sec-title {
+  font-family: var(--sans); font-weight: 800;
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.1; letter-spacing: -0.02em;
+  margin-bottom: 12px; color: var(--text);
+}
+.sec-title em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--violet2); }
+
+.sec-sub {
+  font-size: 15px; color: var(--text2); max-width: 560px;
+  line-height: 1.75; margin-bottom: 52px; font-weight: 300;
+}
+
+/* ═══ DIVIDER ══════════════════════════════════════ */
+.divider {
+  height: 1px; background: var(--border);
+  margin: 0; position: relative; z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION 1 — HERO + INDUSTRY FLOWCHART
+═══════════════════════════════════════════════════ */
+#overview { padding-top: 128px; }
+
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--violet-d); border: 1px solid rgba(139,127,245,0.25);
+  border-radius: 20px; padding: 5px 14px;
+  font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  color: var(--violet2); margin-bottom: 20px;
+}
+
+/* ─── FLOWCHART CANVAS ─── */
+.flowchart-wrap {
+  width: 100%; overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+.flowchart {
+  min-width: 900px;
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+/* Layer rows */
+.fc-layer {
+  width: 100%; display: flex; flex-direction: column; align-items: center;
+}
+
+.fc-tier {
+  width: 100%;
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 20px 24px;
+  background: rgba(255,255,255,0.015);
+  position: relative; overflow: visible;
+}
+
+.fc-tier-label {
+  position: absolute; top: -11px; left: 20px;
+  background: var(--bg); padding: 0 10px;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+.fc-tier-inner {
+  display: flex; align-items: stretch; justify-content: center;
+  gap: 10px; flex-wrap: wrap;
+}
+
+/* Arrow between tiers */
+.fc-arrow {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0; padding: 0; height: 52px; position: relative;
+  width: 100%; justify-content: center;
+}
+.fc-arrow-line {
+  width: 1px; flex: 1;
+  background: linear-gradient(to bottom, var(--border2), rgba(255,255,255,0.3), var(--border2));
+}
+.fc-arrow-head {
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid rgba(255,255,255,0.25);
+}
+.fc-arrow-label {
+  position: absolute; left: calc(50% + 14px);
+  top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 9px; font-weight: 500;
+  color: var(--text3); letter-spacing: 0.08em;
+  white-space: nowrap; background: var(--bg);
+  padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
+}
+
+/* ─── FLOW NODE ─── */
+.fn {
+  border-radius: 10px; padding: 14px 18px;
+  border: 1px solid; cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 150px; flex: 1; max-width: 240px;
+  position: relative; text-align: left;
+}
+.fn:hover { transform: translateY(-2px); }
+
+.fn-icon {
+  font-size: 18px; margin-bottom: 8px; display: block; line-height: 1;
+}
+.fn-title {
+  font-family: var(--sans); font-weight: 700; font-size: 13px;
+  line-height: 1.2; margin-bottom: 4px;
+}
+.fn-sub {
+  font-family: var(--mono); font-size: 9.5px; line-height: 1.6;
+  opacity: 0.55;
+}
+.fn-badge {
+  display: inline-block; margin-top: 6px;
+  font-family: var(--mono); font-size: 8.5px; font-weight: 600;
+  padding: 2px 7px; border-radius: 3px; letter-spacing: 0.06em;
+}
+
+/* Node colors */
+.fn-violet { background:var(--violet-d); border-color:rgba(139,127,245,0.35); color:#c4bcff; }
+.fn-violet:hover { box-shadow: 0 8px 32px rgba(139,127,245,0.18); }
+.fn-cyan   { background:var(--cyan-d);   border-color:rgba(34,211,196,0.3);   color:#a0ede8; }
+.fn-cyan:hover   { box-shadow: 0 8px 32px rgba(34,211,196,0.12); }
+.fn-sky    { background:var(--sky-d);    border-color:rgba(96,165,250,0.3);   color:#bfdbfe; }
+.fn-sky:hover    { box-shadow: 0 8px 32px rgba(96,165,250,0.12); }
+.fn-rose   { background:var(--rose-d);   border-color:rgba(251,113,133,0.3);  color:#fecdd3; }
+.fn-rose:hover   { box-shadow: 0 8px 32px rgba(251,113,133,0.12); }
+.fn-amber  { background:var(--amber-d);  border-color:rgba(251,191,36,0.3);   color:#fde68a; }
+.fn-amber:hover  { box-shadow: 0 8px 32px rgba(251,191,36,0.12); }
+.fn-lime   { background:var(--lime-d);   border-color:rgba(132,204,22,0.3);   color:#d9f99d; }
+.fn-lime:hover   { box-shadow: 0 8px 32px rgba(132,204,22,0.12); }
+.fn-slate  { background:var(--slate-d);  border-color:rgba(148,163,184,0.2);  color:#cbd5e1; }
+.fn-slate:hover  { box-shadow: 0 8px 32px rgba(148,163,184,0.08); }
+
+.fn-violet .fn-badge { background:rgba(139,127,245,0.2); color:#a89aff; }
+.fn-cyan   .fn-badge { background:rgba(34,211,196,0.15);  color:#5eead4; }
+.fn-sky    .fn-badge { background:rgba(96,165,250,0.15);  color:#93c5fd; }
+.fn-rose   .fn-badge { background:rgba(251,113,133,0.15); color:#fda4af; }
+.fn-amber  .fn-badge { background:rgba(251,191,36,0.15);  color:#fcd34d; }
+.fn-lime   .fn-badge { background:rgba(132,204,22,0.15);  color:#a3e635; }
+.fn-slate  .fn-badge { background:rgba(148,163,184,0.12); color:#94a3b8; }
+
+/* h-connector in a row */
+.fn-conn {
+  display: flex; align-items: center; flex-shrink: 0;
+  color: var(--text3); padding: 0 4px;
+}
+.fn-conn-line {
+  width: 24px; height: 1px;
+  background: linear-gradient(to right, var(--border2), rgba(255,255,255,0.25));
+}
+.fn-conn::after { content: '▶'; font-size: 7px; color: rgba(255,255,255,0.2); }
+
+/* ─── SYSTEM STATS BAR ─── */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 1px; background: var(--border);
+  border-radius: 14px; overflow: hidden;
+  margin-bottom: 40px; border: 1px solid var(--border);
+}
+.stat-cell {
+  background: var(--bg2); padding: 18px 24px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: background 0.2s;
+}
+.stat-cell:hover { background: var(--bg3); }
+.stat-val {
+  font-family: var(--mono); font-weight: 700; font-size: 24px;
+  background: linear-gradient(135deg, var(--violet2), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+.stat-label {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION 2 — FRONTEND DEEP DIVE
+═══════════════════════════════════════════════════ */
+.fe-layout {
+  display: grid; grid-template-columns: 240px 1fr;
+  gap: 32px; align-items: start;
+}
+.fe-sticky {
+  position: sticky; top: 80px;
+}
+.fe-nav {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.fe-nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: var(--radius2);
+  font-size: 13px; color: var(--text2);
+  text-decoration: none; transition: all 0.2s;
+  border: 1px solid transparent; font-weight: 400;
+}
+.fe-nav a:hover, .fe-nav a.active {
+  color: var(--text); background: var(--bg3); border-color: var(--border2);
+}
+.fe-nav-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.fe-sections { display: flex; flex-direction: column; gap: 40px; }
+
+.fe-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+  overflow: hidden; scroll-margin-top: 80px;
+  transition: border-color 0.2s;
+}
+.fe-card:hover { border-color: var(--border2); }
+
+.fe-card-head {
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.012);
+}
+.fe-card-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.fe-card-title { font-family: var(--sans); font-weight: 700; font-size: 16px; }
+.fe-card-sub {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;
+}
+.fe-card-body { padding: 24px; }
+
+/* mini flow inside cards */
+.mini-flow { display: flex; flex-direction: column; gap: 10px; }
+.mini-row {
+  display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap;
+}
+.mn {
+  flex: 1; min-width: 130px; border-radius: var(--radius2);
+  padding: 12px 14px; border: 1px solid;
+}
+.mn-title { font-weight: 600; font-size: 12px; margin-bottom: 3px; }
+.mn-code { font-family: var(--mono); font-size: 9.5px; opacity: 0.5; line-height: 1.7; }
+.mn-arr { display: flex; align-items: center; color: var(--text3); font-size: 12px; flex-shrink: 0; }
+
+/* code block */
+.code-block {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius2); padding: 16px 20px;
+  font-family: var(--mono); font-size: 11.5px; color: #90b4d4;
+  line-height: 1.85; overflow-x: auto; margin-top: 16px;
+}
+.c-dim { color: var(--text3); }
+.c-key { color: var(--amber); }
+.c-fn  { color: #c4bcff; }
+.c-str { color: #f0c060; }
+
+/* data table */
+.data-tbl {
+  width: 100%; border-collapse: collapse; font-size: 12.5px;
+}
+.data-tbl th {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em;
+  color: var(--text3); text-transform: uppercase; text-align: left;
+  padding: 8px 12px; border-bottom: 1px solid var(--border); font-weight: 500;
+}
+.data-tbl td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text2); vertical-align: top; line-height: 1.6;
+}
+.data-tbl td:first-child { color: var(--text); font-weight: 500; font-family: var(--mono); font-size: 12px; }
+.data-tbl tr:last-child td { border-bottom: none; }
+.data-tbl tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* routes table */
+.route-path { font-family: var(--mono); font-size: 11px; color: var(--sky); }
+
+/* hooks grid */
+.hooks-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 12px; }
+.hook-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius2); padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+.hook-card:hover { border-color: var(--border2); }
+.hook-name { font-family: var(--mono); font-size: 11.5px; color: var(--cyan); font-weight: 500; margin-bottom: 4px; }
+.hook-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.hook-tag {
+  display: inline-block; margin-top: 6px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em;
+  padding: 2px 6px; border-radius: 3px; text-transform: uppercase;
+}
+
+/* pages grid */
+.pages-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 10px; }
+.page-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius2); padding: 12px 14px;
+  transition: all 0.2s;
+}
+.page-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.page-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.page-name { font-weight: 600; font-size: 12.5px; }
+.page-route { font-family: var(--mono); font-size: 9.5px; color: var(--text3); margin-top: 2px; }
+
+/* tech stack pills */
+.stack-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.stack-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 12.5px; font-weight: 500; color: var(--text);
+  transition: border-color 0.2s;
+}
+.stack-pill:hover { border-color: var(--border2); }
+.stack-pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ═══════════════════════════════════════════════════
+   SECTION 3 — DATABASE
+═══════════════════════════════════════════════════ */
+.db-group { margin-bottom: 36px; }
+.db-group-label {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.db-group-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.db-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 12px; }
+
+.db-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.db-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.db-card-head {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.02);
+}
+.db-table-name { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--text); }
+.db-card-body { padding: 8px 0; }
+
+.db-field {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 16px; font-family: var(--mono); font-size: 10.5px;
+  color: var(--text2);
+}
+.db-field-icon {
+  font-size: 8px; flex-shrink: 0; width: 16px; text-align: center;
+}
+.db-field-name { flex: 1; }
+.db-field-type { color: var(--text3); font-size: 9.5px; }
+.db-pk { color: var(--amber); }
+.db-fk { color: var(--sky); }
+.db-rt { color: var(--lime); }
+
+/* ═══════════════════════════════════════════════════
+   SECTION 4 — REALTIME DATA FLOW
+═══════════════════════════════════════════════════ */
+.rt-layout {
+  display: grid; grid-template-columns: 1fr 80px 1fr; gap: 0; align-items: start;
+}
+.rt-col { display: flex; flex-direction: column; gap: 10px; }
+.rt-col-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3);
+  margin-bottom: 4px;
+}
+.rt-event {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius2); padding: 14px 16px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.rt-event:hover { border-color: var(--border2); transform: scale(1.01); }
+.rt-event-title { font-weight: 600; font-size: 13px; margin-bottom: 5px; }
+.rt-event-detail {
+  font-family: var(--mono); font-size: 9.5px; color: var(--text2);
+  line-height: 1.7; opacity: 0.65;
+}
+.rt-channel { border-left: 2px solid; }
+.rt-channel-lime  { border-color: var(--lime);  }
+.rt-channel-amber { border-color: var(--amber); }
+.rt-channel-sky   { border-color: var(--sky);   }
+
+.rt-center-col {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 20px 0; gap: 6px;
+}
+.rt-spine {
+  width: 2px; flex: 1;
+  background: linear-gradient(to bottom, var(--violet), var(--cyan));
+  opacity: 0.3; border-radius: 1px;
+}
+.rt-bi { font-size: 16px; color: var(--text3); }
+
+.rt-polling-note {
+  margin-top: 28px; padding: 18px 22px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); border-left: 3px solid var(--amber);
+}
+.rt-polling-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 10px;
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION 5 — ROLE MATRIX
+═══════════════════════════════════════════════════ */
+.matrix-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+.matrix-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 700px; }
+.matrix-tbl th {
+  padding: 14px 16px; font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  border-bottom: 1px solid var(--border2); white-space: nowrap;
+  background: var(--bg2); text-align: center;
+}
+.matrix-tbl th:first-child { text-align: left; }
+.matrix-tbl td {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  text-align: center; color: var(--text2);
+}
+.matrix-tbl td:first-child { text-align: left; color: var(--text); font-weight: 500; }
+.matrix-tbl tr:hover td { background: rgba(255,255,255,0.02); }
+.matrix-tbl tr:last-child td { border-bottom: none; }
+.chk-yes { color: var(--lime); font-size: 15px; font-weight: 700; }
+.chk-no  { color: var(--text4); font-size: 15px; }
+.chk-par { color: var(--amber); font-family: var(--mono); font-size: 10px; }
+
+.role-header-mod { color: #c4bcff; }
+.role-header-con { color: #a0ede8; }
+.role-header-tch { color: #bfdbfe; }
+.role-header-adm { color: #fde68a; }
+.role-header-sad { color: #fecdd3; }
+
+.helpers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 20px; }
+.helper-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius2); padding: 14px 16px;
+}
+.helper-fn { font-family: var(--mono); color: var(--cyan); font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.helper-desc { font-size: 12px; color: var(--text2); }
+
+/* ═══ BADGE SYSTEM ════════════════════════════════ */
+.badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 4px; font-family: var(--mono); font-size: 9.5px;
+  font-weight: 500; margin: 1px;
+}
+.b-violet { background:var(--violet-d); color:#c4bcff; border: 1px solid rgba(139,127,245,0.25); }
+.b-cyan   { background:var(--cyan-d);   color:#a0ede8; border: 1px solid rgba(34,211,196,0.25); }
+.b-sky    { background:var(--sky-d);    color:#bfdbfe; border: 1px solid rgba(96,165,250,0.25); }
+.b-rose   { background:var(--rose-d);   color:#fecdd3; border: 1px solid rgba(251,113,133,0.25); }
+.b-amber  { background:var(--amber-d);  color:#fde68a; border: 1px solid rgba(251,191,36,0.25); }
+.b-lime   { background:var(--lime-d);   color:#d9f99d; border: 1px solid rgba(132,204,22,0.25); }
+.b-slate  { background:var(--slate-d);  color:#cbd5e1; border: 1px solid rgba(148,163,184,0.18); }
+
+/* ═══ REVEAL ANIMATION ════════════════════════════ */
+.reveal {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ═══ SCROLLBAR ═══════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ═══ FOOTER ══════════════════════════════════════ */
+footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 28px 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1440px; margin: 0 auto;
+}
+.footer-left {
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.footer-left strong { color: var(--text2); }
+.footer-right { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+/* ═══ INFO CALLOUT ════════════════════════════════ */
+.callout {
+  border-radius: var(--radius2); padding: 16px 20px;
+  margin-top: 16px; border-left: 3px solid;
+}
+.callout-title { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.callout-body { font-size: 12.5px; color: var(--text2); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══════════════════════════════════════ -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo-mark">T</div>
+    <div class="nav-logo-text">THRYLOS <span>EMS</span></div>
+  </div>
+  <ul class="nav-pills">
+    <li><a href="#overview" class="active">Overview</a></li>
+    <li><a href="#frontend">Frontend</a></li>
+    <li><a href="#backend">Backend / DB</a></li>
+    <li><a href="#realtime">Data Flow</a></li>
+    <li><a href="#roles">Roles</a></li>
+  </ul>
+  <div class="nav-meta">
+    <div class="nav-status"><div class="pulse-dot"></div> v1.0 · Live</div>
+  </div>
+</nav>
+
+<!-- ═══ SECTION 1 — OVERVIEW ══════════════════════ -->
+<div class="page-wrap">
+<section id="overview">
+  <div class="hero-kicker">SYSTEM ARCHITECTURE · THRYLOS EMS</div>
+  <div class="sec-title">Full-Stack <em>Architecture</em> Map</div>
+  <p class="sec-sub">Complete system diagram — from browser hitting Netlify CDN through React auth guards, across 30+ feature modules, down to Supabase PostgreSQL, Realtime WebSockets, and Edge Functions.</p>
+
+  <!-- Stats bar -->
+  <div class="stats-bar reveal">
+    <div class="stat-cell">
+      <div class="stat-val">37</div>
+      <div class="stat-label">DB Tables</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">31</div>
+      <div class="stat-label">Routes</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">6</div>
+      <div class="stat-label">RT Channels</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">6</div>
+      <div class="stat-label">Roles</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">2</div>
+      <div class="stat-label">Edge Fns</div>
+    </div>
+  </div>
+
+  <!-- INDUSTRY-GRADE FLOWCHART -->
+  <div class="flowchart-wrap reveal">
+    <div class="flowchart">
+
+      <!-- TIER 1: CLIENT -->
+      <div class="fc-layer">
+        <div class="fc-tier" style="max-width:420px; border-color:rgba(148,163,184,0.2);">
+          <span class="fc-tier-label">01 · CLIENT LAYER</span>
+          <div class="fc-tier-inner">
+            <div class="fn fn-slate" style="max-width:100%; min-width:100%; text-align:center;">
+              <span class="fn-icon">🌐</span>
+              <div class="fn-title">Browser / Mobile Client</div>
+              <div class="fn-sub">admin.thrylos.in · Netlify CDN · Global Edge<br>React 18 · TypeScript · Vite · SPA</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc-arrow">
+        <div class="fc-arrow-line"></div>
+        <div class="fc-arrow-head"></div>
+        <span class="fc-arrow-label">HTTPS · TLS 1.3</span>
+      </div>
+
+      <!-- TIER 2: AUTH -->
+      <div class="fc-layer">
+        <div class="fc-tier" style="max-width:900px; border-color:rgba(139,127,245,0.3);">
+          <span class="fc-tier-label" style="color:var(--violet2);">02 · AUTHENTICATION LAYER</span>
+          <div class="fc-tier-inner">
+            <div class="fn fn-violet">
+              <span class="fn-icon">🔐</span>
+              <div class="fn-title">Login Form</div>
+              <div class="fn-sub">Email + password<br>OTP via Brevo email<br>2-factor capable</div>
+              <span class="fn-badge">LoginForm.tsx</span>
+            </div>
+            <div class="fn-conn"><div class="fn-conn-line"></div></div>
+            <div class="fn fn-violet">
+              <span class="fn-icon">🔑</span>
+              <div class="fn-title">Supabase Auth</div>
+              <div class="fn-sub">signInWithPassword()<br>verifyOtp · JWT issue<br>refresh token cycle</div>
+              <span class="fn-badge">supabase-js SDK</span>
+            </div>
+            <div class="fn-conn"><div class="fn-conn-line"></div></div>
+            <div class="fn fn-violet">
+              <span class="fn-icon">📦</span>
+              <div class="fn-title">AuthContext</div>
+              <div class="fn-sub">user · adminProfile<br>session · loadingState<br>hasRole() · canAccess()</div>
+              <span class="fn-badge">AuthContext.tsx</span>
+            </div>
+            <div class="fn-conn"><div class="fn-conn-line"></div></div>
+            <div class="fn fn-violet">
+              <span class="fn-icon">📍</span>
+              <div class="fn-title">IP Geolocation</div>
+              <div class="fn-sub">ipwho.is + ipify<br>city · ISP · region<br>→ audit_logs INSERT</div>
+              <span class="fn-badge">on every login</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc-arrow">
+        <div class="fc-arrow-line"></div>
+        <div class="fc-arrow-head"></div>
+        <span class="fc-arrow-label">JWT validated · session stored</span>
+      </div>
+
+      <!-- TIER 3: ROUTING -->
+      <div class="fc-layer">
+        <div class="fc-tier" style="max-width:780px; border-color:rgba(34,211,196,0.28);">
+          <span class="fc-tier-label" style="color:var(--cyan);">03 · ROUTING & PERMISSION GUARDS</span>
+          <div class="fc-tier-inner">
+            <div class="fn fn-cyan">
+              <span class="fn-icon">🛡</span>
+              <div class="fn-title">ProtectedRoute</div>
+              <div class="fn-sub">no session → /login<br>status checks:<br>suspended · on_leave</div>
+              <span class="fn-badge">ProtectedRoute.tsx</span>
+            </div>
+            <div class="fn-conn"><div class="fn-conn-line"></div></div>
+            <div class="fn fn-cyan">
+              <span class="fn-icon">🗺</span>
+              <div class="fn-title">React Router v6</div>
+              <div class="fn-sub">31 lazy-loaded routes<br>Suspense + Loader<br>code-split bundles</div>
+              <span class="fn-badge">App.tsx Routes</span>
+            </div>
+            <div class="fn-conn"><div class="fn-conn-line"></div></div>
+            <div class="fn fn-cyan">
+              <span class="fn-icon">🏠</span>
+              <div class="fn-title">Dashboard Shell</div>
+              <div class="fn-sub">Header · Sidebar<br>MobileBottomNav<br>ModuleLayout wrapper</div>
+              <span class="fn-badge">Layout.tsx</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc-arrow">
+        <div class="fc-arrow-line"></div>
+        <div class="fc-arrow-head"></div>
+        <span class="fc-arrow-label">route matched · layout mounted</span>
+      </div>
+
+      <!-- TIER 4: FEATURE MODULES -->
+      <div class="fc-layer">
+        <div class="fc-tier" style="border-color:rgba(96,165,250,0.28);">
+          <span class="fc-tier-label" style="color:var(--sky);">04 · FEATURE MODULES — src/pages/*  (30+ components)</span>
+          <div class="fc-tier-inner">
+            <div class="fn fn-sky">
+              <span class="fn-icon">👥</span>
+              <div class="fn-title">HR</div>
+              <div class="fn-sub">Employees · Leave<br>Performance · HR Board<br>Internships</div>
+            </div>
+            <div class="fn fn-sky">
+              <span class="fn-icon">⏰</span>
+              <div class="fn-title">Attendance</div>
+              <div class="fn-sub">Auto check-in hook<br>time-based logic<br>useAutoAttendance</div>
+            </div>
+            <div class="fn fn-sky">
+              <span class="fn-icon">💳</span>
+              <div class="fn-title">Finance</div>
+              <div class="fn-sub">Payment verification<br>tx ID lookup<br>Analytics dashboard</div>
+            </div>
+            <div class="fn fn-rose">
+              <span class="fn-icon">🎮</span>
+              <div class="fn-title">Esports</div>
+              <div class="fn-sub">Players · Tournaments<br>Add · Edit · Roster<br>social media orders</div>
+            </div>
+            <div class="fn fn-rose">
+              <span class="fn-icon">📋</span>
+              <div class="fn-title">Work Logs</div>
+              <div class="fn-sub">Tech · Content roles<br>individual dashboards<br>auto-attendance trigger</div>
+            </div>
+            <div class="fn fn-amber">
+              <span class="fn-icon">💬</span>
+              <div class="fn-title">Chat</div>
+              <div class="fn-sub">Realtime WebSocket<br>team-chat channel<br>all admins connected</div>
+            </div>
+            <div class="fn fn-amber">
+              <span class="fn-icon">🔔</span>
+              <div class="fn-title">Notifications</div>
+              <div class="fn-sub">Bell + NotificationCenter<br>5 RT channels<br>cert · payment · intern</div>
+            </div>
+            <div class="fn fn-slate">
+              <span class="fn-icon">🛠</span>
+              <div class="fn-title">Admin Tools</div>
+              <div class="fn-sub">Audit logs · Bulk upload<br>File manager<br>SuperAdmin panel</div>
+            </div>
+            <div class="fn fn-slate">
+              <span class="fn-icon">📌</span>
+              <div class="fn-title">People Ops</div>
+              <div class="fn-sub">Kanban board · Standups<br>Events · Polls<br>Certificates</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc-arrow">
+        <div class="fc-arrow-line"></div>
+        <div class="fc-arrow-head"></div>
+        <span class="fc-arrow-label">supabase-js SDK · REST + WebSocket</span>
+      </div>
+
+      <!-- TIER 5: BACKEND -->
+      <div class="fc-layer">
+        <div class="fc-tier" style="max-width:960px; border-color:rgba(132,204,22,0.28);">
+          <span class="fc-tier-label" style="color:var(--lime);">05 · SUPABASE BACKEND — thzzwyvxptadtdiblpul.supabase.co</span>
+          <div class="fc-tier-inner">
+            <div class="fn fn-lime">
+              <span class="fn-icon">🗄</span>
+              <div class="fn-title">PostgreSQL</div>
+              <div class="fn-sub">37 tables · RLS policies<br>FK relationships<br>JSONB + timestamptz</div>
+              <span class="fn-badge">Primary DB</span>
+            </div>
+            <div class="fn fn-lime">
+              <span class="fn-icon">⚡</span>
+              <div class="fn-title">Realtime Engine</div>
+              <div class="fn-sub">WebSocket channels<br>postgres_changes<br>6 active subscriptions</div>
+              <span class="fn-badge">Broadcast</span>
+            </div>
+            <div class="fn fn-lime">
+              <span class="fn-icon">📁</span>
+              <div class="fn-title">Storage</div>
+              <div class="fn-sub">Certificates · Files<br>Profile images<br>Signed URLs</div>
+              <span class="fn-badge">Object Store</span>
+            </div>
+            <div class="fn fn-cyan">
+              <span class="fn-icon">λ</span>
+              <div class="fn-title">Edge Functions</div>
+              <div class="fn-sub">verify-otp (Brevo)<br>get-location (ipwho)<br>Deno runtime</div>
+              <span class="fn-badge">Serverless</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc-arrow">
+        <div class="fc-arrow-line"></div>
+        <div class="fc-arrow-head"></div>
+        <span class="fc-arrow-label">external API calls</span>
+      </div>
+
+      <!-- TIER 6: EXTERNAL SERVICES -->
+      <div class="fc-layer">
+        <div class="fc-tier" style="max-width:680px; border-color:rgba(148,163,184,0.2);">
+          <span class="fc-tier-label">06 · EXTERNAL SERVICES</span>
+          <div class="fc-tier-inner">
+            <div class="fn fn-slate">
+              <span class="fn-icon">☁️</span>
+              <div class="fn-title">Netlify</div>
+              <div class="fn-sub">CDN · SPA hosting<br>_redirects · edge<br>auto-deploy</div>
+            </div>
+            <div class="fn fn-slate">
+              <span class="fn-icon">📧</span>
+              <div class="fn-title">Brevo</div>
+              <div class="fn-sub">Transactional email<br>OTP delivery<br>SMTP API</div>
+            </div>
+            <div class="fn fn-slate">
+              <span class="fn-icon">🌍</span>
+              <div class="fn-title">IP Services</div>
+              <div class="fn-sub">ipwho.is · ipify.org<br>Geolocation on login<br>ISP · city · region</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /flowchart -->
+  </div><!-- /flowchart-wrap -->
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 2 — FRONTEND ══════════════════════ -->
+<section id="frontend">
+  <div class="sec-eyebrow">02 · Frontend Internals</div>
+  <div class="sec-title">React App <em>Internals</em></div>
+  <p class="sec-sub">How the app boots, how auth state flows through the component tree, how every page is loaded, and what each custom hook actually does.</p>
+
+  <div class="fe-layout">
+    <!-- Sidebar -->
+    <div class="fe-sticky">
+      <div class="fe-nav">
+        <a href="#fe-boot" class="fe-nav-item active">
+          <div class="fe-nav-dot" style="background:var(--violet)"></div> App Bootstrap
+        </a>
+        <a href="#fe-auth" class="fe-nav-item">
+          <div class="fe-nav-dot" style="background:var(--violet)"></div> Auth Flow
+        </a>
+        <a href="#fe-routing" class="fe-nav-item">
+          <div class="fe-nav-dot" style="background:var(--cyan)"></div> All 31 Routes
+        </a>
+        <a href="#fe-hooks" class="fe-nav-item">
+          <div class="fe-nav-dot" style="background:var(--sky)"></div> Custom Hooks
+        </a>
+        <a href="#fe-pages" class="fe-nav-item">
+          <div class="fe-nav-dot" style="background:var(--rose)"></div> Pages & Modules
+        </a>
+        <a href="#fe-components" class="fe-nav-item">
+          <div class="fe-nav-dot" style="background:var(--amber)"></div> Shared Components
+        </a>
+        <a href="#fe-stack" class="fe-nav-item">
+          <div class="fe-nav-dot" style="background:var(--slate)"></div> Tech Stack
+        </a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="fe-sections">
+
+      <!-- BOOTSTRAP -->
+      <div class="fe-card reveal" id="fe-boot">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--violet-d)">🚀</div>
+          <div>
+            <div class="fe-card-title">App Bootstrap</div>
+            <div class="fe-card-sub">main.tsx → App.tsx</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <div class="mini-flow">
+            <div class="mini-row">
+              <div class="mn fn-slate"><div class="mn-title">index.html</div><div class="mn-code">Vite entry · #root div</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-slate"><div class="mn-title">main.tsx</div><div class="mn-code">ReactDOM.createRoot<br>StrictMode wrap</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-violet"><div class="mn-title">AuthProvider</div><div class="mn-code">wraps entire app<br>initializes session</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-cyan"><div class="mn-title">BrowserRouter</div><div class="mn-code">React Router v6<br>+ Suspense boundary</div></div>
+            </div>
+          </div>
+          <div class="code-block">
+<span class="c-dim">// App.tsx — root provider tree</span>
+&lt;<span class="c-fn">AuthProvider</span>&gt;
+  &lt;<span class="c-fn">Toaster</span> position=<span class="c-str">"top-right"</span> /&gt;
+  &lt;<span class="c-fn">BrowserRouter</span>&gt;
+    &lt;<span class="c-fn">Suspense</span> <span class="c-key">fallback</span>=<span class="c-str">{&lt;FullPageLoader /&gt;}</span>&gt;
+      &lt;<span class="c-fn">Routes</span>&gt;
+        &lt;<span class="c-fn">Route</span> path=<span class="c-str">"/"</span>        element=<span class="c-str">{&lt;Index /&gt;}</span> /&gt;
+        &lt;<span class="c-fn">Route</span> path=<span class="c-str">"/login"</span>    element=<span class="c-str">{&lt;Login /&gt;}</span> /&gt;
+        &lt;<span class="c-fn">Route</span> path=<span class="c-str">"/dashboard"</span> element=<span class="c-str">{&lt;ProtectedRoute&gt;&lt;Dashboard/&gt;&lt;/ProtectedRoute&gt;}</span> /&gt;
+        <span class="c-dim">// ... 28 more lazy-loaded protected routes</span>
+      &lt;/<span class="c-fn">Routes</span>&gt;
+    &lt;/<span class="c-fn">Suspense</span>&gt;
+  &lt;/<span class="c-fn">BrowserRouter</span>&gt;
+&lt;/<span class="c-fn">AuthProvider</span>&gt;</div>
+        </div>
+      </div>
+
+      <!-- AUTH FLOW -->
+      <div class="fe-card reveal" id="fe-auth">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--violet-d)">🔐</div>
+          <div>
+            <div class="fe-card-title">Auth Flow — Step by Step</div>
+            <div class="fe-card-sub">AuthContext.tsx · LoginForm.tsx</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <div class="mini-flow">
+            <div class="mini-row">
+              <div class="mn fn-violet"><div class="mn-title">1. User submits</div><div class="mn-code">email + password<br>or OTP token</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-violet"><div class="mn-title">2. Supabase Auth</div><div class="mn-code">signInWithPassword()<br>or edge fn verify-otp</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-violet"><div class="mn-title">3. Fetch admin profile</div><div class="mn-code">admins table lookup<br>by user_id → email fallback</div></div>
+            </div>
+            <div class="mini-row">
+              <div class="mn fn-violet"><div class="mn-title">4. Status check</div><div class="mn-code">is_active · status field<br>suspended/on_leave → block</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-violet"><div class="mn-title">5. IP Geolocation</div><div class="mn-code">ipwho.is → city, ISP<br>stored in audit_logs</div></div>
+              <div class="mn-arr">→</div>
+              <div class="mn fn-cyan"><div class="mn-title">6. AuthContext ready</div><div class="mn-code">user · session · role<br>canAccess() · hasRole()</div></div>
+            </div>
+          </div>
+          <table class="data-tbl" style="margin-top:20px;">
+            <thead><tr><th>AuthContext State</th><th>Type</th><th>Contents</th></tr></thead>
+            <tbody>
+              <tr><td>user</td><td><span class="badge b-violet">Supabase User</span></td><td>Raw Supabase auth user object with metadata</td></tr>
+              <tr><td>adminProfile</td><td><span class="badge b-violet">AdminProfile</span></td><td>admins table row — name, role, status, is_active</td></tr>
+              <tr><td>session</td><td><span class="badge b-violet">Session</span></td><td>JWT access token + refresh token pair</td></tr>
+              <tr><td>loadingState</td><td><span class="badge b-slate">AuthLoadingState</span></td><td>idle · initializing · logging-in · logging-out · refreshing</td></tr>
+              <tr><td>lastLogin</td><td><span class="badge b-slate">LastLoginInfo</span></td><td>Persisted in localStorage — timestamp, IP, location, method</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ROUTING -->
+      <div class="fe-card reveal" id="fe-routing">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--cyan-d)">🗺</div>
+          <div>
+            <div class="fe-card-title">All 31 Routes</div>
+            <div class="fe-card-sub">App.tsx · ProtectedRoute.tsx</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <table class="data-tbl">
+            <thead><tr><th>Path</th><th>Component</th><th>Guard</th><th>Domain</th></tr></thead>
+            <tbody>
+              <tr><td class="route-path">/</td><td>Index</td><td><span class="badge b-slate">public</span></td><td>—</td></tr>
+              <tr><td class="route-path">/login</td><td>Login / RoleBasedLogin</td><td><span class="badge b-slate">public</span></td><td>—</td></tr>
+              <tr><td class="route-path">/dashboard</td><td>Dashboard</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">Core</span></td></tr>
+              <tr><td class="route-path">/dashboard/overview</td><td>Overview</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">Core</span></td></tr>
+              <tr><td class="route-path">/dashboard/attendance</td><td>AttendanceTracker</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">HR</span></td></tr>
+              <tr><td class="route-path">/dashboard/employees</td><td>EmployeeManagement</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">HR</span></td></tr>
+              <tr><td class="route-path">/dashboard/leave</td><td>LeaveManagement</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">HR</span></td></tr>
+              <tr><td class="route-path">/dashboard/hr</td><td>HRDashboard</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">HR</span></td></tr>
+              <tr><td class="route-path">/dashboard/performance</td><td>PerformanceScores</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">HR</span></td></tr>
+              <tr><td class="route-path">/dashboard/internships</td><td>InternshipTracker</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-sky">HR</span></td></tr>
+              <tr><td class="route-path">/dashboard/payments</td><td>PaymentVerification</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-lime">Finance</span></td></tr>
+              <tr><td class="route-path">/dashboard/analytics</td><td>Analytics</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-lime">Finance</span></td></tr>
+              <tr><td class="route-path">/dashboard/esports/players</td><td>EsportsPlayersList</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-rose">Esports</span></td></tr>
+              <tr><td class="route-path">/dashboard/esports/add-player</td><td>EsportsAddPlayer</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-rose">Esports</span></td></tr>
+              <tr><td class="route-path">/dashboard/esports/tournaments</td><td>EsportsTournaments</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-rose">Esports</span></td></tr>
+              <tr><td class="route-path">/dashboard/work-logs/tech</td><td>TechWorkLogs</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-rose">Work</span></td></tr>
+              <tr><td class="route-path">/dashboard/work-logs/content</td><td>ContentWorkLogs</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-rose">Work</span></td></tr>
+              <tr><td class="route-path">/dashboard/chat</td><td>TeamChat</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-amber">Comms</span></td></tr>
+              <tr><td class="route-path">/dashboard/notifications</td><td>NotificationCenter</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-amber">Comms</span></td></tr>
+              <tr><td class="route-path">/dashboard/admins</td><td>AdminManagement</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Admin</span></td></tr>
+              <tr><td class="route-path">/dashboard/audit-logs</td><td>AuditLogs</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Admin</span></td></tr>
+              <tr><td class="route-path">/dashboard/bulk-upload</td><td>BulkUpload</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Admin</span></td></tr>
+              <tr><td class="route-path">/dashboard/kanban</td><td>KanbanBoard</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Ops</span></td></tr>
+              <tr><td class="route-path">/dashboard/standups</td><td>StandupLogs</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Ops</span></td></tr>
+              <tr><td class="route-path">/dashboard/events</td><td>EventManagement</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Ops</span></td></tr>
+              <tr><td class="route-path">/dashboard/polls</td><td>PollsVoting</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Ops</span></td></tr>
+              <tr><td class="route-path">/dashboard/certificates</td><td>CertificateManager</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Ops</span></td></tr>
+              <tr><td class="route-path">/dashboard/files</td><td>FileManager</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Admin</span></td></tr>
+              <tr><td class="route-path">/dashboard/social-media</td><td>SocialMediaOrders</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-amber">Comms</span></td></tr>
+              <tr><td class="route-path">/dashboard/super-admin</td><td>SuperAdminReviewPanel</td><td><span class="badge b-rose">super_admin</span></td><td><span class="badge b-slate">Admin</span></td></tr>
+              <tr><td class="route-path">/dashboard/profile</td><td>ProfileSettings</td><td><span class="badge b-violet">protected</span></td><td><span class="badge b-slate">Core</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- HOOKS -->
+      <div class="fe-card reveal" id="fe-hooks">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--sky-d)">🪝</div>
+          <div>
+            <div class="fe-card-title">Custom Hooks</div>
+            <div class="fe-card-sub">src/hooks/*</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <div class="hooks-grid">
+            <div class="hook-card">
+              <div class="hook-name">useAutoAttendance()</div>
+              <div class="hook-desc">Fires on work log submit — auto-inserts attendance record via Supabase.</div>
+              <span class="hook-tag" style="background:var(--sky-d);color:var(--sky)">HR</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">useActivityLogger()</div>
+              <div class="hook-desc">logActivity() — inserts to admin_activity_logs on every admin action.</div>
+              <span class="hook-tag" style="background:var(--slate-d);color:var(--slate)">System</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">usePermissions()</div>
+              <div class="hook-desc">Exposes hasRole(), hasMinRole(), canAccess() from AuthContext.</div>
+              <span class="hook-tag" style="background:var(--violet-d);color:var(--violet2)">Auth</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">useRealtimeChannel()</div>
+              <div class="hook-desc">Subscribes to a named Supabase channel, auto-unsubscribes on unmount.</div>
+              <span class="hook-tag" style="background:var(--lime-d);color:var(--lime)">Realtime</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">useNotifications()</div>
+              <div class="hook-desc">Listens on 3 channels — cert, payment, internship — feeds NotificationBell.</div>
+              <span class="hook-tag" style="background:var(--amber-d);color:var(--amber)">Comms</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">useAnalytics()</div>
+              <div class="hook-desc">Subscribes to analytics-realtime channel; refetches all stats on change.</div>
+              <span class="hook-tag" style="background:var(--lime-d);color:var(--lime)">Finance</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">useLocation()</div>
+              <div class="hook-desc">Calls ipwho.is + ipify on login; returns geo data for audit log storage.</div>
+              <span class="hook-tag" style="background:var(--slate-d);color:var(--slate)">Security</span>
+            </div>
+            <div class="hook-card">
+              <div class="hook-name">useKanban()</div>
+              <div class="hook-desc">Polls kanban_tasks every 5s via setInterval (not a Realtime subscription).</div>
+              <span class="hook-tag" style="background:var(--sky-d);color:var(--sky)">Ops</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGES -->
+      <div class="fe-card reveal" id="fe-pages">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--rose-d)">📄</div>
+          <div>
+            <div class="fe-card-title">Pages & Modules</div>
+            <div class="fe-card-sub">src/pages/* — grouped by domain</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+            <span class="badge b-sky">HR</span>
+            <span class="badge b-lime">Finance</span>
+            <span class="badge b-rose">Esports · Work</span>
+            <span class="badge b-amber">Comms</span>
+            <span class="badge b-slate">Admin · Ops</span>
+          </div>
+          <div class="pages-grid">
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Dashboard</span><span class="badge b-sky">Core</span></div>
+              <div class="page-route">/dashboard</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Employees</span><span class="badge b-sky">HR</span></div>
+              <div class="page-route">/dashboard/employees</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Leave</span><span class="badge b-sky">HR</span></div>
+              <div class="page-route">/dashboard/leave</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Attendance</span><span class="badge b-sky">HR</span></div>
+              <div class="page-route">/dashboard/attendance</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Performance</span><span class="badge b-sky">HR</span></div>
+              <div class="page-route">/dashboard/performance</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Internships</span><span class="badge b-sky">HR</span></div>
+              <div class="page-route">/dashboard/internships</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Payments</span><span class="badge b-lime">Finance</span></div>
+              <div class="page-route">/dashboard/payments</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Analytics</span><span class="badge b-lime">Finance</span></div>
+              <div class="page-route">/dashboard/analytics</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Esports Players</span><span class="badge b-rose">Esports</span></div>
+              <div class="page-route">/dashboard/esports/players</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Tournaments</span><span class="badge b-rose">Esports</span></div>
+              <div class="page-route">/dashboard/esports/tournaments</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Work Logs</span><span class="badge b-rose">Work</span></div>
+              <div class="page-route">/dashboard/work-logs/*</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Team Chat</span><span class="badge b-amber">Comms</span></div>
+              <div class="page-route">/dashboard/chat</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Notifications</span><span class="badge b-amber">Comms</span></div>
+              <div class="page-route">/dashboard/notifications</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Social Media</span><span class="badge b-amber">Comms</span></div>
+              <div class="page-route">/dashboard/social-media</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Admin Mgmt</span><span class="badge b-slate">Admin</span></div>
+              <div class="page-route">/dashboard/admins</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Audit Logs</span><span class="badge b-slate">Admin</span></div>
+              <div class="page-route">/dashboard/audit-logs</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Kanban Board</span><span class="badge b-slate">Ops</span></div>
+              <div class="page-route">/dashboard/kanban</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Standups</span><span class="badge b-slate">Ops</span></div>
+              <div class="page-route">/dashboard/standups</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Events</span><span class="badge b-slate">Ops</span></div>
+              <div class="page-route">/dashboard/events</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Polls</span><span class="badge b-slate">Ops</span></div>
+              <div class="page-route">/dashboard/polls</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Certificates</span><span class="badge b-slate">Ops</span></div>
+              <div class="page-route">/dashboard/certificates</div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top"><span class="page-name">Super Admin</span><span class="badge b-rose">★ Only</span></div>
+              <div class="page-route">/dashboard/super-admin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHARED COMPONENTS -->
+      <div class="fe-card reveal" id="fe-components">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--amber-d)">🧩</div>
+          <div>
+            <div class="fe-card-title">Shared Components</div>
+            <div class="fe-card-sub">src/components/*</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <table class="data-tbl">
+            <thead><tr><th>Component</th><th>Role</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Header</td><td><span class="badge b-slate">Layout</span></td><td>Logo, NotificationBell, profile avatar, mobile toggle</td></tr>
+              <tr><td>MobileBottomNav</td><td><span class="badge b-slate">Layout</span></td><td>Bottom tab bar for mobile viewports</td></tr>
+              <tr><td>ModuleLayout</td><td><span class="badge b-slate">Layout</span></td><td>Standard page chrome — title, breadcrumb, content area</td></tr>
+              <tr><td>ProtectedRoute</td><td><span class="badge b-violet">Auth</span></td><td>Redirects to /login if no session; blocks suspended users</td></tr>
+              <tr><td>NotificationBell</td><td><span class="badge b-amber">Comms</span></td><td>Subscribes to 3 RT channels; shows badge count</td></tr>
+              <tr><td>NotificationCenter</td><td><span class="badge b-amber">Comms</span></td><td>Full notification list panel with read/unread state</td></tr>
+              <tr><td>ActivitySummary</td><td><span class="badge b-slate">Admin</span></td><td>Re-renders when admin_activity_logs fires via RT</td></tr>
+              <tr><td>DataTable</td><td><span class="badge b-slate">UI</span></td><td>Reusable sortable table with pagination and search</td></tr>
+              <tr><td>FileUpload</td><td><span class="badge b-lime">Storage</span></td><td>Uploads to Supabase Storage, returns public URL</td></tr>
+              <tr><td>CertificatePDF</td><td><span class="badge b-slate">Ops</span></td><td>Generates and downloads certificate as PDF</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TECH STACK -->
+      <div class="fe-card reveal" id="fe-stack">
+        <div class="fe-card-head">
+          <div class="fe-card-icon" style="background:var(--slate-d)">⚙️</div>
+          <div>
+            <div class="fe-card-title">Tech Stack</div>
+            <div class="fe-card-sub">Dependencies · Tooling · Build</div>
+          </div>
+        </div>
+        <div class="fe-card-body">
+          <div class="stack-grid">
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#61dafb"></div>React 18</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#3178c6"></div>TypeScript</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#646cff"></div>Vite</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:var(--lime)"></div>Supabase JS v2</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#ca3433"></div>React Router v6</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#38bdf8"></div>Tailwind CSS</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#f59e0b"></div>React Hot Toast</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:#8b5cf6"></div>Lucide React</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:var(--cyan)"></div>date-fns</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:var(--rose)"></div>Recharts</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:var(--amber)"></div>jsPDF</div>
+            <div class="stack-pill"><div class="stack-pill-dot" style="background:var(--sky)"></div>Netlify CDN</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /fe-sections -->
+  </div><!-- /fe-layout -->
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 3 — BACKEND / DB ══════════════════ -->
+<section id="backend">
+  <div class="sec-eyebrow">03 · Backend &amp; Database</div>
+  <div class="sec-title">Database <em>Schema</em></div>
+  <p class="sec-sub">37 PostgreSQL tables across 7 domains. All protected by Row Level Security. Tables that participate in Realtime subscriptions are marked with a ⚡ channel indicator.</p>
+
+  <!-- Auth Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--violet2)">🔐 Auth &amp; Identity</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--violet)">
+          <span class="db-table-name">admins</span><span class="badge b-violet">Core</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">email · name · role</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">status · is_active</span><span class="db-field-type">enum/bool</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">last_login · avatar_url</span><span class="db-field-type">ts/text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">department · phone</span><span class="db-field-type">text</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--violet)">
+          <span class="db-table-name">otp_sessions</span><span class="badge b-violet">Auth</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">email · otp_hash</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">expires_at</span><span class="db-field-type">timestamptz</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">used</span><span class="db-field-type">bool</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--slate)">
+          <span class="db-table-name">audit_logs</span><span class="badge b-slate">System</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">action (LOGIN_OTP / …)</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">details → ip, location, isp</span><span class="db-field-type">jsonb</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--slate)">
+          <span class="db-table-name">admin_activity_logs</span><span class="badge b-slate">System</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">action · details</span><span class="db-field-type">text / jsonb</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HR Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--sky)">👥 HR &amp; People</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--sky)">
+          <span class="db-table-name">employees</span><span class="badge b-sky">HR</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">name · email · phone</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">role · department · status</span><span class="db-field-type">text/enum</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">join_date · salary</span><span class="db-field-type">date/num</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--sky)">
+          <span class="db-table-name">attendance</span><span class="badge b-sky">HR</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">date · status</span><span class="db-field-type">date/enum</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">check_in · check_out</span><span class="db-field-type">timestamptz</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">auto-inserted by hook</span><span class="db-field-type">—</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--sky)">
+          <span class="db-table-name">leave_requests</span><span class="badge b-sky">HR</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">type · start_date · end_date</span><span class="db-field-type">enum/date</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">status · reason</span><span class="db-field-type">enum/text</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--sky)">
+          <span class="db-table-name">performance_scores</span><span class="badge b-sky">HR</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">score · period · notes</span><span class="db-field-type">int/text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">evaluated_by</span><span class="db-field-type">uuid</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--sky)">
+          <span class="db-table-name">internships</span><span class="badge b-sky">HR</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">name · email · domain</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">start_date · end_date</span><span class="db-field-type">date</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">internship-notifications</span><span class="db-field-type">RT channel</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--violet)">
+          <span class="db-table-name">certificates</span><span class="badge b-violet">Ops</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">type · issued_at · file_url</span><span class="db-field-type">text/ts</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">certificate-notifications</span><span class="db-field-type">RT channel</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finance Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--lime)">💳 Finance &amp; Orders</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--lime)">
+          <span class="db-table-name">payment_verifications</span><span class="badge b-lime">Finance</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">tx_id · amount · status</span><span class="db-field-type">text/num</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">payment_received</span><span class="db-field-type">bool</span></div>
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">verified_by → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">payment-changes · payment-notifications</span><span class="db-field-type">2 channels</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--amber)">
+          <span class="db-table-name">social_media_orders</span><span class="badge b-amber">Comms</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">platform · service_type</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">quantity · payment_amount</span><span class="db-field-type">int/num</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">payment_received</span><span class="db-field-type">bool</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Esports Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--rose)">🎮 Esports</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--rose)">
+          <span class="db-table-name">esports_players</span><span class="badge b-rose">Esports</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">name · ign · game</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">rank · role · status</span><span class="db-field-type">text/enum</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">analytics-realtime</span><span class="db-field-type">RT channel</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--rose)">
+          <span class="db-table-name">tournaments</span><span class="badge b-rose">Esports</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">name · game · status</span><span class="db-field-type">text/enum</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">start_date · prize_pool</span><span class="db-field-type">date/num</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">max_teams · format</span><span class="db-field-type">int/text</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Work Logs Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--rose)">📋 Work Logs</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--rose)">
+          <span class="db-table-name">tech_work_logs</span><span class="badge b-rose">Work</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">task · hours · date</span><span class="db-field-type">text/num/date</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">→ triggers useAutoAttendance</span><span class="db-field-type">hook</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--rose)">
+          <span class="db-table-name">content_work_logs</span><span class="badge b-rose">Work</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">content_type · platform</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">word_count · link · date</span><span class="db-field-type">int/text/date</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comms Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--amber)">💬 Comms &amp; Notifications</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--amber)">
+          <span class="db-table-name">chat_messages</span><span class="badge b-amber">Comms</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">content · type</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon db-rt">⚡</span><span class="db-field-name">team-chat (WebSocket broadcast)</span><span class="db-field-type">RT channel</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--amber)">
+          <span class="db-table-name">notifications / admin_notifications</span><span class="badge b-amber">Comms</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">type · title · message</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">read · created_at</span><span class="db-field-type">bool/ts</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ops Group -->
+  <div class="db-group reveal">
+    <div class="db-group-label" style="color:var(--slate)">🛠 Operations</div>
+    <div class="db-grid">
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--slate)">
+          <span class="db-table-name">kanban_tasks</span><span class="badge b-slate">Ops</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">title · description · priority</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">status (todo/in_progress/…)</span><span class="db-field-type">enum</span></div>
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">assigned_to · created_by → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">due_date · polled every 5s</span><span class="db-field-type">date</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--slate)">
+          <span class="db-table-name">standup_logs</span><span class="badge b-slate">Ops</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">admin_id → admins</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">yesterday · today · blockers</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">date</span><span class="db-field-type">date</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--slate)">
+          <span class="db-table-name">polls + poll_votes</span><span class="badge b-slate">Ops</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">question · options[]</span><span class="db-field-type">text/jsonb</span></div>
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">poll_votes.poll_id → polls</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">poll_votes.admin_id → admins</span><span class="db-field-type">uuid</span></div>
+        </div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head" style="border-left:3px solid var(--slate)">
+          <span class="db-table-name">events</span><span class="badge b-slate">Ops</span>
+        </div>
+        <div class="db-card-body">
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">title · description · type</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-field-icon"></span><span class="db-field-name">date · location</span><span class="db-field-type">date/text</span></div>
+          <div class="db-field"><span class="db-field-icon db-fk">FK</span><span class="db-field-name">created_by → admins</span><span class="db-field-type">uuid</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 4 — REALTIME DATA FLOW ═══════════ -->
+<section id="realtime">
+  <div class="sec-eyebrow">04 · Data Flow</div>
+  <div class="sec-title">Realtime &amp; <em>Async</em> Flows</div>
+  <p class="sec-sub">How data moves: which pages subscribe to which channels, how mutations trigger side effects, how auto-attendance fires, and how notifications propagate.</p>
+
+  <div class="rt-layout reveal">
+    <div class="rt-col">
+      <div class="rt-col-label">Client Triggers</div>
+
+      <div class="rt-event" style="border-left:3px solid var(--sky)">
+        <div class="rt-event-title" style="color:var(--sky)">📝 Submit work log</div>
+        <div class="rt-event-detail">tech_work_logs INSERT<br>→ useAutoAttendance fires<br>→ attendance INSERT/UPDATE</div>
+      </div>
+
+      <div class="rt-event" style="border-left:3px solid var(--violet)">
+        <div class="rt-event-title" style="color:var(--violet2)">🔐 Admin login</div>
+        <div class="rt-event-detail">signInWithPassword or verifyOtp<br>→ fetchLocationData (ipwho.is)<br>→ audit_logs INSERT<br>→ admin_activity_logs INSERT<br>→ admins.last_login UPDATE</div>
+      </div>
+
+      <div class="rt-event" style="border-left:3px solid var(--amber)">
+        <div class="rt-event-title" style="color:var(--amber)">💬 Send chat message</div>
+        <div class="rt-event-detail">chat_messages INSERT<br>→ Realtime broadcasts to all<br>   subscribed clients instantly</div>
+      </div>
+
+      <div class="rt-event" style="border-left:3px solid var(--lime)">
+        <div class="rt-event-title" style="color:var(--lime)">✅ Verify payment</div>
+        <div class="rt-event-detail">payment_verifications UPDATE<br>→ postgres_changes fires<br>→ NotificationBell updates<br>→ Analytics re-fetches</div>
+      </div>
+
+      <div class="rt-event" style="border-left:3px solid var(--rose)">
+        <div class="rt-event-title" style="color:var(--rose)">🏆 Issue certificate</div>
+        <div class="rt-event-detail">certificates INSERT<br>→ Realtime channel fires<br>→ NotificationCenter updates</div>
+      </div>
+
+      <div class="rt-event" style="border-left:3px solid var(--slate)">
+        <div class="rt-event-title" style="color:var(--slate)">📊 Any admin action</div>
+        <div class="rt-event-detail">useActivityLogger.logActivity()<br>→ admin_activity_logs INSERT<br>→ ActivitySummary re-renders</div>
+      </div>
+    </div>
+
+    <div class="rt-center-col">
+      <div class="rt-spine"></div>
+      <div class="rt-bi">⇄</div>
+      <div class="rt-spine"></div>
+    </div>
+
+    <div class="rt-col">
+      <div class="rt-col-label">Supabase Channels</div>
+
+      <div class="rt-event rt-channel rt-channel-lime">
+        <div class="rt-event-title" style="color:var(--lime)">⚡ analytics-realtime</div>
+        <div class="rt-event-detail">Tables: esports_players<br>social_media_orders<br>payment_verifications<br>→ re-fetches all analytics on any change</div>
+      </div>
+
+      <div class="rt-event rt-channel rt-channel-lime">
+        <div class="rt-event-title" style="color:var(--lime)">⚡ payment-changes</div>
+        <div class="rt-event-detail">Table: payment_verifications<br>event: * (INSERT/UPDATE/DELETE)<br>→ PaymentVerification page live update</div>
+      </div>
+
+      <div class="rt-event rt-channel rt-channel-lime">
+        <div class="rt-event-title" style="color:var(--lime)">⚡ payment-notifications</div>
+        <div class="rt-event-detail">Table: payment_verifications<br>→ NotificationCenter bell badge</div>
+      </div>
+
+      <div class="rt-event rt-channel rt-channel-lime">
+        <div class="rt-event-title" style="color:var(--lime)">⚡ certificate-notifications</div>
+        <div class="rt-event-detail">Table: certificates<br>→ NotificationCenter bell badge</div>
+      </div>
+
+      <div class="rt-event rt-channel rt-channel-lime">
+        <div class="rt-event-title" style="color:var(--lime)">⚡ internship-notifications</div>
+        <div class="rt-event-detail">Table: internships<br>→ NotificationCenter bell badge</div>
+      </div>
+
+      <div class="rt-event rt-channel rt-channel-amber">
+        <div class="rt-event-title" style="color:var(--amber)">⚡ team-chat channel</div>
+        <div class="rt-event-detail">Table: chat_messages<br>WebSocket broadcast<br>→ all connected admins receive instantly</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rt-polling-note reveal">
+    <div class="rt-polling-label">⏱ Polling (non-realtime)</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+      <strong style="color:var(--text)">KanbanBoard</strong> polls <code style="font-family:var(--mono);font-size:11px;color:var(--amber)">kanban_tasks</code> every <strong style="color:var(--amber)">5 seconds</strong> via <code style="font-family:var(--mono);font-size:11px;">setInterval</code> — not a Realtime subscription.<br>
+      <strong style="color:var(--text)">Dashboard</strong> fetches stats on mount and manual refresh only — no auto-polling.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 5 — ROLES ═════════════════════════ -->
+<section id="roles">
+  <div class="sec-eyebrow">05 · Roles &amp; Permissions</div>
+  <div class="sec-title">Who Can Do <em>What</em></div>
+  <p class="sec-sub">ROLE_PERMISSIONS from AuthContext.tsx — each role's exact feature set defined as a Set&lt;string&gt;. super_admin has wildcard (*) access to everything.</p>
+
+  <div class="matrix-wrap reveal">
+    <table class="matrix-tbl">
+      <thead>
+        <tr>
+          <th>Feature / Area</th>
+          <th class="role-header-mod">moderator</th>
+          <th class="role-header-con">content</th>
+          <th class="role-header-con">design</th>
+          <th class="role-header-tch">tech</th>
+          <th class="role-header-adm">admin</th>
+          <th class="role-header-sad">super_admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Dashboard access</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>players:read</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>work-logs:write</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>tournaments:read</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>players:write</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>tournaments:write</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>analytics</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>admins:read</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>audit-logs</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td><td class="chk-yes">✓</td></tr>
+        <tr><td>Admin management</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-par">read-only</td><td class="chk-yes">✓</td></tr>
+        <tr><td>All features ( * )</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td></tr>
+        <tr><td>SuperAdminReviewPanel</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-no">—</td><td class="chk-yes">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="helpers-grid reveal">
+    <div class="helper-card">
+      <div class="helper-fn">hasRole(role)</div>
+      <div class="helper-desc">Exact role string match against adminProfile.role</div>
+    </div>
+    <div class="helper-card">
+      <div class="helper-fn">hasMinRole(minRole)</div>
+      <div class="helper-desc">Checks position in role hierarchy array — ≥ minRole</div>
+    </div>
+    <div class="helper-card">
+      <div class="helper-fn">canAccess(feature)</div>
+      <div class="helper-desc">Looks up ROLE_PERMISSIONS Set for the feature string</div>
+    </div>
+    <div class="helper-card">
+      <div class="helper-fn">usePermissions()</div>
+      <div class="helper-desc">React hook exposing all three helpers from AuthContext</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /page-wrap -->
+
+<!-- ═══ FOOTER ═══════════════════════════════════ -->
+<footer>
+  <div class="footer-left">
+    <span><strong>THRYLOS EMS</strong> · System Architecture Document</span>
+    <span>React 18 + TypeScript + Supabase · Hosted on Netlify</span>
+  </div>
+  <div class="footer-right">© 2026 Thrylos India · MSME Registered</div>
+</footer>
+
+<script>
+// ─── Active nav link on scroll ───────────────────
+const sections = document.querySelectorAll('section[id]');
+const navLinks  = document.querySelectorAll('.nav-pills a');
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav-pills a[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.25 });
+sections.forEach(s => sectionObserver.observe(s));
+
+// ─── Sidebar active state ────────────────────────
+const feCards   = document.querySelectorAll('.fe-card[id]');
+const feNavLinks = document.querySelectorAll('.fe-nav a');
+const feObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      feNavLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.fe-nav a[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.35 });
+feCards.forEach(c => feObserver.observe(c));
+
+// ─── Reveal on scroll ────────────────────────────
+const reveals = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 50);
+      revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.04 });
+reveals.forEach(r => revealObserver.observe(r));
+</script>
+</body>
+</html>
