@@ -105,18 +105,20 @@ nav {
   display: flex; align-items: center; gap: 10px;
 }
 .nav-logo-mark {
-  width: 28px; height: 28px;
-  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  width: 28px;
+  height: 28px;
   border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-weight: 700; font-size: 11px; color: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.nav-logo-text {
-  font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: 0.04em;
-  color: var(--text);
-}
-.nav-logo-text span { color: var(--text3); font-weight: 400; }
 
+.nav-logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 .nav-pills {
   display: flex; gap: 2px; list-style: none;
 }
