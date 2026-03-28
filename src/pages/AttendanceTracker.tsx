@@ -29,14 +29,21 @@ interface AttendanceRecord {
   admin_id: string;
   date: string;
   status: string;
+
   check_in_time: string | null;
   marked_at: string | null;
   reason: string | null;
+
   override_status: string | null;
   override_reason: string | null;
   overridden_by: string | null;
   overridden_at: string | null;
-  admin?: { name: string; email: string; role: string };
+
+  admin?: {
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 const AttendanceTracker: React.FC = () => {
