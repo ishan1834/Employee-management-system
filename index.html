@@ -15,7 +15,66 @@
     <meta property="og:description" content="Advanced admin dashboard for managing eSports tournaments and betting platforms" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/dist/thrylosindia.png" />
+a<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THRYLOS - Admin Dashboard</title>
 
+    <meta name="description" content="THRYLOS Admin Dashboard - Manage eSports & Betting Platforms" />
+    <meta name="author" content="THRYLOS" />
+    <meta name="keywords" content="THRYLOS, admin dashboard, eSports, betting platforms, tournament management" />
+
+    <link rel="icon" href="/dist/thrylosindia.png" />
+    <link rel="apple-touch-icon" href="/dist/thrylosindia.png" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- NEW STYLE -->
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #0f172a, #020617);
+        color: white;
+        animation: fadeIn 0.6s ease;
+      }
+
+      #loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #020617;
+        z-index: 9999;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loader -->
+    <div id="loader">Loading...</div>
+
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Remove loader -->
+    <script>
+      window.addEventListener("load", () => {
+        document.getElementById("loader").style.display = "none";
+      });
+    </script>
+  </body>
+</html>
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@THRYLOS" />
     <meta name="twitter:image" content="/dist/thrylosindia.png" />
