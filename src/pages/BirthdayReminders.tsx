@@ -50,18 +50,36 @@ const BirthdayReminders: React.FC = () => {
     const isToday = md === todayMD;
     
     // Calculate days until next birthday
-    const nextBday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
-    if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);
-    const daysUntil = Math.ceil((nextBday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
-    return { ...p, isToday, daysUntil, birthdayDate: dob };
-  }).sort((a, b) => a.daysUntil - b.daysUntil);
+const nextBday = new Date(
+  today.getFullYear(),
+  dob.getMonth(),
+  dob.getDate()
+);
 
-  const filtered = withBirthday.filter(p =>
-    p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.department?.toLowerCase().includes(search.toLowerCase())
+if (nextBday < today) {
+  nextBday.setFullYear(today.getFullYear() + 1);
+}
+
+const daysUntil = Math.ceil(
+  (nextBday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+);
+
+return {
+  ...p,
+  isToday,
+  daysUntil,
+  birthdayDate: dob,
+};
+}).sort((a, b) => a.daysUntil - b.daysUntil);
+
+const filtered = withBirthday.filter((p) => {
+  const searchTerm = search.toLowerCase();
+
+  return (
+    p.full_name?.toLowerCase().includes(searchTerm) ||
+    p.department?.toLowerCase().includes(searchTerm)
   );
-
+});
   const todayBirthdays = filtered.filter(p => p.isToday);
   const upcoming = filtered.filter(p => !p.isToday && p.daysUntil <= 30);
   const others = filtered.filter(p => !p.isToday && p.daysUntil > 30);
