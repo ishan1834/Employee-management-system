@@ -22,5 +22,47 @@ interface FileItem {
 const FileManager: React.FC = () => {
   return <div>File Manager</div>;
 };
+const { user, adminProfile } = useAuth();
+const { logActivity } = useActivityLogger();
+
+const [files, setFiles] = useState<FileItem[]>([]);
+const [stats, setStats] = useState({
+  totalFiles: 0,
+  storageUsed: 0,
+  folders: 1
+});
+const [uploading, setUploading] = useState(false);
+const [searchTerm, setSearchTerm] = useState('');
+
+useEffect(() => {
+  fetchFiles();
+}, []);
+
+const fetchFiles = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('uploaded_files')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching files:', error);
+      return;
+    }
+
+    const typedData = (data || []) as FileItem[];
+    setFiles(typedData);
+
+    const totalSize = typedData.reduce((sum, file) => sum + (file.file_size || 0), 0);
+    setStats({
+      totalFiles: typedData.length,
+      storageUsed: Math.round(totalSize / (1024 * 1024)),
+      folders: 1
+    });
+  } catch (error) {
+    console.error('Error fetching files:', error);
+  }
+};
 
 export default FileManager;
+
