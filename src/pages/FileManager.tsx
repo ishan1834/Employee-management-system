@@ -160,6 +160,13 @@ const handleDownloadFile = async (file: FileItem) => {
     toast({ title: 'Download Failed', variant: 'destructive' });
   }
 };
-
+return (
+  <ModuleLayout
+    title="File & Media Manager"
+    description="Upload tournament posters, certificates, receipts with cloud storage"
+  >
+    {/* FULL UI CODE HERE (unchanged) */}
+  </ModuleLayout>
+);
 export default FileManager;
 
