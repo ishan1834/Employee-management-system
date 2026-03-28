@@ -14,17 +14,27 @@ const BirthdayReminders: React.FC = () => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [{ data: empData }, { data: adminEmpData }] = await Promise.all([
-        supabase.from('employees').select('id, full_name, date_of_birth, department, designation, profile_image_url'),
-        supabase.from('admin_employee_data' as any).select('admin_id, full_name, date_of_birth, department, designation')
-      ]);
-      setEmployees(empData || []);
-      setAdminsData((adminEmpData as any[]) || []);
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    const [employeesRes, adminEmployeesRes] = await Promise.all([
+      supabase
+        .from('employees')
+        .select(
+          'id, full_name, date_of_birth, department, designation, profile_image_url'
+        ),
+      supabase
+        .from('admin_employee_data')
+        .select(
+          'admin_id, full_name, date_of_birth, department, designation'
+        ),
+    ]);
+
+    setEmployees(employeesRes.data ?? []);
+    setAdminsData(adminEmployeesRes.data ?? []);
+    setLoading(false);
+  };
+
+  fetchData();
+}, []);
 
   const today = new Date();
   const todayMD = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
