@@ -507,8 +507,22 @@ const HRDashboard: React.FC = () => {
           </div>
         </div>
 
+
+
+
+
+
+
+        
         {/* ── Activity + Table row ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 14 }}>
+
+
+
+
+
+
+          
 
           {/* Activity panel */}
           <div style={{
@@ -516,6 +530,14 @@ const HRDashboard: React.FC = () => {
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 16, overflow: 'hidden',
           }}>
+
+
+
+
+
+
+
+            
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               {(['leaves', 'applications'] as const).map(tab => (
@@ -605,6 +627,11 @@ const HRDashboard: React.FC = () => {
               )}
             </div>
 
+
+
+
+            
+
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '10px 14px' }}>
               <button
                 onClick={() => navigate(activeTab === 'leaves' ? '/dashboard/leave' : '/dashboard/careers')}
@@ -622,3 +649,125 @@ const HRDashboard: React.FC = () => {
             </div>
           </div>
 
+
+                    {/* Employee table */}
+
+
+
+
+
+          
+          <div style={{
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 16, overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{ padding: '16px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <h2 style={{ color: 'white', fontSize: 14, fontWeight: 600, margin: '0 0 2px' }}>Employee Overview</h2>
+                <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, margin: 0 }}>{filteredEmployees.length} of {employeeSummary.length} shown</p>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.25)' }} />
+                <input
+                  className="search-input"
+                  placeholder="Search employees…"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+
+
+
+
+
+            
+            <div style={{ flex: 1, overflow: 'auto', maxHeight: 340 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    {['Name', 'Department', 'Designation', 'Salary', 'Status'].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '10px 16px', color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEmployees.slice(0, 12).map((emp: any, i) => (
+                    <tr key={emp.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.025)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <td style={{ padding: '10px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+                            background: `hsl(${(emp.full_name?.charCodeAt(0) || 65) * 5 % 360},45%,22%)`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 600,
+                            color: `hsl(${(emp.full_name?.charCodeAt(0) || 65) * 5 % 360},70%,75%)`,
+                          }}>
+                            {(emp.full_name || 'E').slice(0, 1).toUpperCase()}
+                          </div>
+                          <span style={{ color: 'white', fontSize: 13, fontWeight: 500 }}>{emp.full_name}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px 16px', color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>{emp.department || '—'}</td>
+                      <td style={{ padding: '10px 16px', color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>{emp.designation || '—'}</td>
+                      <td style={{ padding: '10px 16px' }}>
+                        <span className="hr-mono" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                          ₹{fmt(emp.salary || 0)}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 16px' }}>
+                        <StatusPill status={emp.status || 'inactive'} />
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredEmployees.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>
+                        No employees match your search
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+
+
+
+
+            
+            <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => navigate('/dashboard/employees')}
+                style={{
+                  background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.25)',
+                  borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 12,
+                  color: '#818cf8', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.25)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.15)'; }}
+              >
+                Manage all employees <ChevronRight size={12} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+
+        
+
+        {/* footer breathing room */}
+        <div style={{ height: 48 }} />
+      </div>
+    </div>
+  );
+};
+
+export default HRDashboard;
