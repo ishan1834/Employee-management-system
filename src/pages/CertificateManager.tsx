@@ -25,21 +25,27 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
+
 interface Certificate {
   id: string;
   certificate_id: string | null;
+
   recipient_name: string;
   certificate_type: string;
   issue_date: string;
+
   issued_by: string | null;
   certificate_url: string | null;
+
   participant_name: string | null;
   participant_email: string | null;
   course_name: string | null;
-  created_at: string;
-  updated_at: string;
+
   status?: 'active' | 'revoked' | 'pending';
   rank?: string;
+
+  created_at: string;
+  updated_at: string;
 }
 
 type SortField = 'created_at' | 'participant_name' | 'certificate_id' | 'course_name';
