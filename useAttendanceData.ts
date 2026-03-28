@@ -21,3 +21,20 @@ import { AttendanceRecord } from './types';
       console.error('Error fetching attendance data:', error);
     }
   };
+  const fetchTodayAttendance = async () => {
+    if (!isSuperAdmin) return;
+
+    try {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+      const { data: attendance, error } = await supabase
+        .from('attendance')
+        .select(`*, admin:admins!admin_id(name, email, role)`)
+        .eq('date', todayStr);
+
+      if (error) throw error;
+      setTodayAttendance(attendance || []);
+    } catch (error) {
+      console.error('Error fetching today attendance:', error);
+    }
+  };
