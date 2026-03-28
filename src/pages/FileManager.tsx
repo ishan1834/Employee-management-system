@@ -63,6 +63,88 @@ const fetchFiles = async () => {
     console.error('Error fetching files:', error);
   }
 };
+const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file || !user || !adminProfile) return;
+
+  setUploading(true);
+
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${adminProfile.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('uploads')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { error: dbError } = await supabase
+      .from('uploaded_files')
+      .insert({
+        name: file.name,
+        file_path: fileName,
+        file_size: file.size,
+        mime_type: file.type,
+        uploaded_by: adminProfile.id
+      } as any);
+
+    if (dbError) throw dbError;
+
+    await logActivity('Uploaded file', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+
+    toast({
+      title: 'File Uploaded Successfully',
+      description: `${file.name} has been uploaded.`
+    });
+
+    fetchFiles();
+  } catch (error) {
+    toast({ title: 'Upload Failed', description: 'Try again.', variant: 'destructive' });
+  } finally {
+    setUploading(false);
+    if (event.target) event.target.value = '';
+  }
+};
+
+const handleDeleteFile = async (file: FileItem) => {
+  if (!confirm('Are you sure you want to delete this file?')) return;
+
+  try {
+    await supabase.storage.from('uploads').remove([file.file_path]);
+
+    const { error } = await supabase
+      .from('uploaded_files')
+      .delete()
+      .eq('id', file.id);
+
+    if (error) throw error;
+
+    toast({ title: 'File Deleted' });
+    fetchFiles();
+  } catch {
+    toast({ title: 'Delete Failed', variant: 'destructive' });
+  }
+};
+
+const handleDownloadFile = async (file: FileItem) => {
+  try {
+    const { data } = await supabase.storage.from('uploads').download(file.file_path);
+
+    const url = URL.createObjectURL(data!);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    toast({ title: 'Download Failed', variant: 'destructive' });
+  }
+};
 
 export default FileManager;
 
