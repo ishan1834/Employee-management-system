@@ -41,16 +41,21 @@ interface NotificationPref {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+type AccentColor = {
+  name: string;
+  value: string;
+  tw: string;
+};
 
-const ACCENT_COLORS = [
+export const ACCENT_COLORS: AccentColor[] = [
   { name: 'Indigo',  value: '#6366f1', tw: 'bg-indigo-500' },
   { name: 'Violet',  value: '#8b5cf6', tw: 'bg-violet-500' },
-  { name: 'Rose',    value: '#f43f5e', tw: 'bg-rose-500'   },
+  { name: 'Rose',    value: '#f43f5e', tw: 'bg-rose-500' },
   { name: 'Orange',  value: '#f97316', tw: 'bg-orange-500' },
-  { name: 'Emerald', value: '#10b981', tw: 'bg-emerald-500'},
-  { name: 'Sky',     value: '#0ea5e9', tw: 'bg-sky-500'    },
-  { name: 'Pink',    value: '#ec4899', tw: 'bg-pink-500'   },
-  { name: 'Amber',   value: '#f59e0b', tw: 'bg-amber-500'  },
+  { name: 'Emerald', value: '#10b981', tw: 'bg-emerald-500' },
+  { name: 'Sky',     value: '#0ea5e9', tw: 'bg-sky-500' },
+  { name: 'Pink',    value: '#ec4899', tw: 'bg-pink-500' },
+  { name: 'Amber',   value: '#f59e0b', tw: 'bg-amber-500' },
 ];
 
 const NOTIFICATION_PREFS: NotificationPref[] = [
