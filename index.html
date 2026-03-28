@@ -34,6 +34,31 @@ a<!DOCTYPE html>
 
     <!-- NEW STYLE -->
     <style>
+  body {
+    background: linear-gradient(-45deg, #020617, #1e293b, #020617);
+    background-size: 400% 400%;
+    animation: gradientMove 10s ease infinite;
+  }
+
+  @keyframes gradientMove {
+    0% { background-position: 0% }
+    100% { background-position: 100% }
+  }
+
+  #root {
+    animation: fadeUp 0.8s ease;
+  }
+
+  @keyframes fadeUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .spinner {
+    box-shadow: 0 0 20px rgba(59,130,246,0.6);
+  }
+</style>
+    <style>
       body {
         margin: 0;
         font-family: 'Inter', sans-serif;
