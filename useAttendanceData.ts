@@ -8,3 +8,16 @@ import { AttendanceRecord } from './types';
   const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
   const [myAttendance, setMyAttendance] = useState<any>(null);
   const [monthlyAttendance, setMonthlyAttendance] = useState<any[]>([]);
+  const fetchAdmins = async () => {
+    try {
+      const { data: admins, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setAllAdmins(admins || []);
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+    }
+  };
