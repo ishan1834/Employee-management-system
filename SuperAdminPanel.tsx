@@ -195,86 +195,198 @@ const StrategicCommandCenter: React.FC = () => {
         </Button>
       </div>
 
-      {/* TABS */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="system">System</TabsTrigger>
-        </TabsList>
+{/* ===================================================== */}
+{/* TABS SYSTEM                                           */}
+{/* ===================================================== */}
 
-        {/* OVERVIEW TAB */}
-        <TabsContent value="overview">
+<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  {/* ================= TAB HEADER ================= */}
+  <TabsList className="bg-gray-900/60 border border-gray-800 p-1 rounded-xl">
+    <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600">
+      Overview
+    </TabsTrigger>
+    <TabsTrigger value="system" className="data-[state=active]:bg-purple-600">
+      System
+    </TabsTrigger>
+    {/* NEW TAB */}
+    <TabsTrigger value="analytics" className="data-[state=active]:bg-green-600">
+      Analytics
+    </TabsTrigger>
+  </TabsList>
 
-            {/* METRIC CARD */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Total Users</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl">{metrics.totalUsers}</p>
-              </CardContent>
-            </Card>
+  {/* ===================================================== */}
+  {/* OVERVIEW TAB                                           */}
+  {/* ===================================================== */}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Today</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl">{metrics.activeToday}</p>
-              </CardContent>
-            </Card>
+  <TabsContent value="overview" className="space-y-6">
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl">{metrics.performanceScore}%</p>
-                <Badge className={getPerformanceBadge(metrics.performanceScore)}>
-                  {performanceLabel}
-                </Badge>
-                <Progress value={metrics.performanceScore} />
-              </CardContent>
-            </Card>
+    {/* ===== TOP METRICS ===== */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
+      {/* TOTAL USERS */}
+      <Card className="hover:scale-105 transition-all duration-300">
+        <CardHeader>
+          <CardTitle>Total Users</CardTitle>
+          <CardDescription>Registered admins</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold">{metrics.totalUsers}</p>
+        </CardContent>
+      </Card>
+
+      {/* ACTIVE TODAY */}
+      <Card className="hover:scale-105 transition-all duration-300">
+        <CardHeader>
+          <CardTitle>Active Today</CardTitle>
+          <CardDescription>Logged in today</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold text-green-400">
+            {metrics.activeToday}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* LATE USERS (NEW) */}
+      <Card className="hover:scale-105 transition-all duration-300">
+        <CardHeader>
+          <CardTitle>Late</CardTitle>
+          <CardDescription>Delayed attendance</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold text-yellow-400">
+            {metrics.lateCount}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* ABSENT USERS (NEW) */}
+      <Card className="hover:scale-105 transition-all duration-300">
+        <CardHeader>
+          <CardTitle>Absent</CardTitle>
+          <CardDescription>Not present today</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold text-red-400">
+            {metrics.absentCount}
+          </p>
+        </CardContent>
+      </Card>
+
+    </div>
+
+    {/* ===== PERFORMANCE CARD ===== */}
+    <Card className="bg-gray-900/50 border-gray-800">
+      <CardHeader>
+        <CardTitle>Performance Overview</CardTitle>
+        <CardDescription>Overall attendance efficiency</CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+
+        <div className="flex items-center justify-between">
+          <p className="text-lg">Score</p>
+          <Badge className={getPerformanceBadge(metrics.performanceScore)}>
+            {performanceLabel}
+          </Badge>
+        </div>
+
+        <Progress value={metrics.performanceScore} />
+
+        <p className="text-sm text-gray-400">
+          Based on attendance consistency and punctuality metrics.
+        </p>
+
+      </CardContent>
+    </Card>
+
+  </TabsContent>
+
+  {/* ===================================================== */}
+  {/* SYSTEM TAB                                             */}
+  {/* ===================================================== */}
+
+  <TabsContent value="system" className="space-y-6">
+
+    <Card className="bg-gray-900/50 border-gray-800">
+      <CardHeader>
+        <CardTitle>System Health</CardTitle>
+        <CardDescription>Real-time server metrics</CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+
+        {/* CPU */}
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span>CPU Usage</span>
+            <span>{systemHealth.cpuUsage}%</span>
           </div>
+          <Progress value={systemHealth.cpuUsage} />
+        </div>
 
-        </TabsContent>
+        {/* MEMORY */}
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span>Memory Usage</span>
+            <span>{systemHealth.memoryUsage}%</span>
+          </div>
+          <Progress value={systemHealth.memoryUsage} />
+        </div>
 
-        {/* SYSTEM TAB */}
-        <TabsContent value="system">
+        {/* UPTIME */}
+        <div className="flex justify-between items-center">
+          <span>Uptime</span>
+          <Badge className="bg-green-600">
+            {systemHealth.uptime}%
+          </Badge>
+        </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>System Health</CardTitle>
-              <CardDescription>Real-time server metrics</CardDescription>
-            </CardHeader>
+        {/* EXTRA INFO (NEW) */}
+        <div className="text-xs text-gray-500">
+          Last updated just now • Auto-refresh enabled
+        </div>
 
-            <CardContent className="space-y-4">
+      </CardContent>
+    </Card>
 
-              <div>
-                <p>CPU Usage</p>
-                <Progress value={systemHealth.cpuUsage} />
-              </div>
+  </TabsContent>
 
-              <div>
-                <p>Memory Usage</p>
-                <Progress value={systemHealth.memoryUsage} />
-              </div>
+  {/* ===================================================== */}
+  {/* ANALYTICS TAB (NEW)                                    */}
+  {/* ===================================================== */}
 
-              <div>
-                <p>Uptime</p>
-                <Badge>{systemHealth.uptime}%</Badge>
-              </div>
+  <TabsContent value="analytics" className="space-y-6">
 
-            </CardContent>
+    <Card className="bg-gray-900/50 border-gray-800">
+      <CardHeader>
+        <CardTitle>Analytics Summary</CardTitle>
+        <CardDescription>Quick insights</CardDescription>
+      </CardHeader>
 
-          </Card>
+      <CardContent className="grid grid-cols-2 gap-4">
 
-        </TabsContent>
-      </Tabs>
+        <div className="p-4 bg-gray-800 rounded-lg">
+          <p className="text-sm text-gray-400">Attendance Rate</p>
+          <p className="text-xl font-bold">
+            {metrics.performanceScore}%
+          </p>
+        </div>
+
+        <div className="p-4 bg-gray-800 rounded-lg">
+          <p className="text-sm text-gray-400">Engagement</p>
+          <p className="text-xl font-bold">
+            {Math.round((metrics.activeToday / metrics.totalUsers) * 100)}%
+          </p>
+        </div>
+
+      </CardContent>
+    </Card>
+
+  </TabsContent>
+
+</Tabs>
 
       {/* DIALOG */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
