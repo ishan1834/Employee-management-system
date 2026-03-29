@@ -1,24 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
 
-type GeoPermissionState = PermissionState | "unsupported";
-
-const getStorageKey = (adminId: string) => `location_prompted_v1:${adminId}`;
-
-const LocationPermissionPrompt: React.FC = () => {
-  const { adminProfile } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [permissionState, setPermissionState] = useState<GeoPermissionState>("prompt");
-  const [loading, setLoading] = useState(false);
-
-  const storageKey = useMemo(() => {
-    if (!adminProfile?.id) return null;
-    return getStorageKey(adminProfile.id);
-  }, [adminProfile?.id]);
 
   useEffect(() => {
     if (!adminProfile?.id || !storageKey) return;
