@@ -1,1 +1,147 @@
 
+
+
+
+# ===============================
+# 🧾 Logs & Debug Files
+# ===============================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ===============================
+# 📦 Dependency Directories
+# ===============================
+node_modules/
+jspm_packages/
+bower_components/
+
+# ===============================
+# 🏗 Build / Output Directories
+# ===============================
+dist/
+dist-ssr/
+build/
+.out/
+.next/
+.nuxt/
+.svelte-kit/
+coverage/
+storybook-static/
+
+# ===============================
+# ⚙️ Environment & Local Config
+# ===============================
+.env
+.env.*
+*.local
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# ===============================
+# 🧠 Caches & Temporary Files
+# ===============================
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+.stylelintcache
+.tmp/
+.temp/
+
+# ===============================
+# 🧪 Testing
+# ===============================
+coverage/
+.nyc_output/
+
+# ===============================
+# 🖥 OS Generated Files
+# ===============================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ===============================
+# 🧑‍💻 Editor / IDE Files
+# ===============================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+
+# ===============================
+# 🌐 Netlify / Vercel
+# ===============================
+.netlify/
+.vercel/
+
+# ===============================
+# 🐳 Docker
+# ===============================
+.dockerignore
+docker-compose.override.yml
+
+# ===============================
+# 🔐 Secrets / Keys (IMPORTANT)
+# ===============================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ===============================
+# 📦 Package Managers
+# ===============================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# (⚠️ Remove above if you WANT lock files tracked — recommended for production)
+
+# ===============================
+# 📊 Misc
+# ===============================
+*.tgz
+*.bak
+*.old
+*.orig
+
+# ===============================
+# 🧩 TypeScript
+# ===============================
+*.tsbuildinfo
+
+# ===============================
+# 🧪 Optional: Database / Local Files
+# ===============================
+*.sqlite
+*.db
+
+# ===============================
+# 🧠 Optional: AI / ML (if used)
+# ===============================
+*.h5
+*.pt
+*.pth
+*.onnx
