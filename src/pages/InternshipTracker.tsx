@@ -44,22 +44,35 @@ const InternshipTracker: React.FC = () => {
     join_date: ''
   });
 
-  useEffect(() => {
-    fetchInternships();
-    
-    // Real-time subscription
-    const channel = supabase
-      .channel('internship-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'internships' },
-        () => fetchInternships()
-      )
-      .subscribe();
+ useEffect(() => {
+  const loadData = async () => {
+    await fetchInternships();
+  };
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  loadData();
+
+  // Create realtime listener
+  const subscription = supabase
+    .channel('realtime-internships')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'internships',
+      },
+      (payload) => {
+        console.log('Change detected:', payload);
+        loadData();
+      }
+    )
+    .subscribe();
+
+  // Cleanup function
+  return () => {
+    supabase.removeChannel(subscription);
+  };
+}, []);
 
   const fetchInternships = async () => {
     try {
