@@ -1,143 +1,189 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>THRYLOS - Admin Dashboard</title>
-    <meta name="description" content="THRYLOS Admin Dashboard - Manage eSports & Betting Platforms" />
-    <meta name="author" content="THRYLOS" />
-    <meta name="keywords" content="THRYLOS, admin dashboard, eSports, betting platforms, tournament management" />
-    <link rel="icon" href="/dist/thrylosindia.png" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="/dist/thrylosindia.png" />
+<head>
+  <!-- ===================================================== -->
+  <!-- BASIC META                                             -->
+  <!-- ===================================================== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THRYLOS - Admin Dashboard</title>
 
-    <meta property="og:title" content="THRYLOS Admin Dashboard" />
-    <meta property="og:description" content="Advanced admin dashboard for managing eSports tournaments and betting platforms" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/dist/thrylosindia.png" />
-a<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>THRYLOS - Admin Dashboard</title>
+  <!-- SEO -->
+  <meta name="description" content="THRYLOS Admin Dashboard - Manage eSports & Betting Platforms" />
+  <meta name="author" content="THRYLOS" />
+  <meta name="keywords" content="THRYLOS, admin dashboard, eSports, betting, tournaments, esports admin panel" />
 
-    <meta name="description" content="THRYLOS Admin Dashboard - Manage eSports & Betting Platforms" />
-    <meta name="author" content="THRYLOS" />
-    <meta name="keywords" content="THRYLOS, admin dashboard, eSports, betting platforms, tournament management" />
+  <!-- Theme -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="color-scheme" content="dark" />
 
-    <link rel="icon" href="/dist/thrylosindia.png" />
-    <link rel="apple-touch-icon" href="/dist/thrylosindia.png" />
+  <!-- ===================================================== -->
+  <!-- ICONS                                                  -->
+  <!-- ===================================================== -->
+  <link rel="icon" href="/dist/thrylosindia.png" />
+  <link rel="apple-touch-icon" href="/dist/thrylosindia.png" />
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- ===================================================== -->
+  <!-- SOCIAL META                                            -->
+  <!-- ===================================================== -->
+  <meta property="og:title" content="THRYLOS Admin Dashboard" />
+  <meta property="og:description" content="Advanced admin dashboard for managing eSports tournaments" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/dist/thrylosindia.png" />
 
-    <!-- NEW STYLE -->
-    <style>
-  body {
-    background: linear-gradient(-45deg, #020617, #1e293b, #020617);
-    background-size: 400% 400%;
-    animation: gradientMove 10s ease infinite;
-  }
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@THRYLOS" />
+  <meta name="twitter:image" content="/dist/thrylosindia.png" />
 
-  @keyframes gradientMove {
-    0% { background-position: 0% }
-    100% { background-position: 100% }
-  }
+  <!-- ===================================================== -->
+  <!-- FONTS                                                  -->
+  <!-- ===================================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  #root {
-    animation: fadeUp 0.8s ease;
-  }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  @keyframes fadeUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
+  <!-- ===================================================== -->
+  <!-- GLOBAL STYLES                                          -->
+  <!-- ===================================================== -->
+  <style>
 
-  .spinner {
-    box-shadow: 0 0 20px rgba(59,130,246,0.6);
-  }
-</style>
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #0f172a, #020617);
-        color: white;
-        animation: fadeIn 0.6s ease;
-      }
+    /* RESET */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      #loader {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #020617;
-        z-index: 9999;
-      }
+    /* BODY */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(-45deg, #020617, #1e293b, #020617);
+      background-size: 400% 400%;
+      animation: gradientMove 12s ease infinite;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-    </style>
-  </head>
+    /* ROOT APP */
+    #root {
+      animation: fadeUp 0.8s ease;
+    }
 
-  <body>
-    <!-- Loader -->
-    <div id="loader">Loading...</div>
+    /* ===================================================== */
+    /* ANIMATIONS                                             */
+    /* ===================================================== */
 
-    <div id="root"></div>
-    <style>
-  body {
-    background: radial-gradient(circle at top, #1e293b, #020617);
-  }
+    @keyframes gradientMove {
+      0% { background-position: 0% }
+      100% { background-position: 100% }
+    }
 
-  #loader {
-    backdrop-filter: blur(10px);
-  }
+    @keyframes fadeUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
 
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255,255,255,0.2);
-    border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-</style>
+    @keyframes glowPulse {
+      0%,100% { box-shadow: 0 0 10px rgba(59,130,246,0.2); }
+      50% { box-shadow: 0 0 25px rgba(59,130,246,0.6); }
+    }
 
-<!-- replace loader -->
-<div id="loader">
-  <div class="spinner"></div>
-</div>
+    /* ===================================================== */
+    /* LOADER                                                 */
+    /* ===================================================== */
 
-    <script type="module" src="/src/main.tsx"></script>
+    #loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #020617;
+      z-index: 9999;
+      backdrop-filter: blur(10px);
+      flex-direction: column;
+      gap: 15px;
+    }
 
-    <!-- Remove loader -->
-    <script>
-      window.addEventListener("load", () => {
-        document.getElementById("loader").style.display = "none";
-      });
-    </script>
-  </body>
-</html>
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@THRYLOS" />
-    <meta name="twitter:image" content="/dist/thrylosindia.png" />
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  </head>
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255,255,255,0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite, glowPulse 2s infinite;
+    }
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    .loader-text {
+      font-size: 14px;
+      color: #94a3b8;
+      letter-spacing: 1px;
+    }
+
+    /* ===================================================== */
+    /* UTILITY CLASSES                                        */
+    /* ===================================================== */
+
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fade-in {
+      animation: fadeUp 0.6s ease;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ===================================================== -->
+  <!-- LOADER UI                                              -->
+  <!-- ===================================================== -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">Loading Dashboard...</div>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ROOT APP                                               -->
+  <!-- ===================================================== -->
+  <div id="root"></div>
+
+  <!-- ===================================================== -->
+  <!-- MAIN SCRIPT                                            -->
+  <!-- ===================================================== -->
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- ===================================================== -->
+  <!-- REMOVE LOADER                                          -->
+  <!-- ===================================================== -->
+  <script>
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("loader");
+      loader.style.opacity = "0";
+      loader.style.transition = "opacity 0.4s ease";
+
+      setTimeout(() => {
+        loader.style.display = "none";
+      }, 400);
+    });
+  </script>
+
+</body>
 </html>
