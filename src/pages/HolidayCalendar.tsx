@@ -50,5 +50,29 @@ const handleDelete = async (id: string) => {
 };
 
 const holidayDates = holidays.map(h => new Date(h.date));
+import { Loader2 } from 'lucide-react';
+
+if (isLoading) {
+  return (
+    <div className="min-h-screen bg-black">
+      <Header />
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    </div>
+  );
+}
+
+return (
+  <div className="min-h-screen bg-black">
+    <Header />
+    <div className="container mx-auto px-4 py-6">
+      <Button onClick={() => navigate('/dashboard')}>
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
+    </div>
+  </div>
+);
 
 export default HolidayCalendar;
