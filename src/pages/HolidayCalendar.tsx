@@ -25,5 +25,30 @@ const [formData, setFormData] = useState({
 const isSuperAdmin = adminProfile?.role === 'super_admin';
 const isHRAdmin = (adminProfile?.role as string) === 'hr_admin';
 const canManage = isSuperAdmin || isHRAdmin;
+import { format } from 'date-fns';
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!selectedDate || !formData.name) return;
+
+  const result = await addHoliday({
+    date: format(selectedDate, 'yyyy-MM-dd'),
+    name: formData.name,
+    description: formData.description || undefined,
+    is_recurring: formData.is_recurring
+  });
+
+  if (result) {
+    setIsDialogOpen(false);
+    setFormData({ name: '', description: '', is_recurring: false });
+  }
+};
+
+const handleDelete = async (id: string) => {
+  if (!confirm('Are you sure you want to delete this holiday?')) return;
+  await deleteHoliday(id);
+};
+
+const holidayDates = holidays.map(h => new Date(h.date));
 
 export default HolidayCalendar;
