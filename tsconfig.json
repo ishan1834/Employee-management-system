@@ -1,18 +1,34 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode is the current standard for Vite projects */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Main settings from your shared code with slight safety updates */
     "allowJs": true,
+    "strict": true, 
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+
+    /* Path mapping for Shadcn UI components */
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
       ]
-    },
-    "skipLibCheck": true,
-    "strictNullChecks": false
+    }
   },
-  "files": [],
+  "include": ["src"],
   "references": [
     {
       "path": "./tsconfig.app.json"
