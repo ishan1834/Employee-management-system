@@ -6,6 +6,13 @@ import { useHolidays } from '@/hooks/useHolidays';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import {
+  Input, Label, Textarea, Switch, Calendar,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Badge
+} from '@/components/ui/*';
+import { Plus, Trash2, Calendar as CalendarIcon } from 'lucide-react';
 
 const HolidayCalendar: React.FC = () => {
   return <div>Holiday Calendar</div>;
