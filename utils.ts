@@ -341,3 +341,139 @@ export const isWarningStatus = (status: AttendanceStatus): boolean => {
 export const isPositiveStatus = (status: AttendanceStatus): boolean => {
   return status === 'present';
 };
+// ============================================================
+// PART 4 — DATE + VALIDATION UTILITIES (Enhanced)
+// ============================================================
+
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  isSameMonth,
+  isSameDay,
+  parseISO,
+  isValid,
+} from 'date-fns';
+
+/* ============================================================ */
+/* DATE HELPERS                                                 */
+/* ============================================================ */
+
+/**
+ * Safely parse date string → Date object
+ */
+export const parseDateSafe = (date: string): Date | null => {
+  try {
+    const parsed = parseISO(date);
+    return isValid(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Format date safely
+ */
+export const formatDateSafe = (date: string, formatStr = 'dd MMM yyyy'): string => {
+  const parsed = parseDateSafe(date);
+  return parsed ? format(parsed, formatStr) : 'Invalid Date';
+};
+
+/* ============================================================ */
+/* MONTH UTILITIES                                              */
+/* ============================================================ */
+
+/**
+ * Get month start & end range
+ */
+export const getMonthRange = (date: Date) => ({
+  start: startOfMonth(date),
+  end: endOfMonth(date),
+});
+
+/**
+ * Check if date belongs to current month
+ */
+export const isCurrentMonth = (date: Date): boolean => {
+  return isSameMonth(date, new Date());
+};
+
+/**
+ * Check if date is today
+ */
+export const isToday = (date: string): boolean => {
+  const parsed = parseDateSafe(date);
+  return parsed ? isSameDay(parsed, new Date()) : false;
+};
+
+/* ============================================================ */
+/* DATE COMPARISON UTILITIES (NEW)                              */
+/* ============================================================ */
+
+/**
+ * Check if two dates are same day
+ */
+export const isSameDaySafe = (date1: string, date2: string): boolean => {
+  const d1 = parseDateSafe(date1);
+  const d2 = parseDateSafe(date2);
+
+  if (!d1 || !d2) return false;
+  return isSameDay(d1, d2);
+};
+
+/**
+ * Check if date is within a range
+ */
+export const isDateInRange = (date: string, start: Date, end: Date): boolean => {
+  const parsed = parseDateSafe(date);
+  if (!parsed) return false;
+
+  return parsed >= start && parsed <= end;
+};
+
+/* ============================================================ */
+/* VALIDATION UTILITIES                                         */
+/* ============================================================ */
+
+/**
+ * Validate attendance record (strong version)
+ */
+export const isValidAttendanceRecord = (record: any): record is AttendanceRecord => {
+  return (
+    record &&
+    typeof record.date === 'string' &&
+    record.status &&
+    ['present', 'late', 'absent'].includes(record.status)
+  );
+};
+
+/**
+ * Validate admin object
+ */
+export const isValidAdmin = (admin: any): admin is Admin => {
+  return (
+    admin &&
+    typeof admin.id === 'string' &&
+    typeof admin.name === 'string' &&
+    typeof admin.email === 'string'
+  );
+};
+
+/* ============================================================ */
+/* SANITIZATION HELPERS (NEW)                                   */
+/* ============================================================ */
+
+/**
+ * Clean string input
+ */
+export const sanitizeString = (value: any): string => {
+  return String(value || '').trim();
+};
+
+/**
+ * Normalize date format
+ */
+export const normalizeDate = (date: string): string => {
+  const parsed = parseDateSafe(date);
+  return parsed ? format(parsed, 'yyyy-MM-dd') : '';
+};
