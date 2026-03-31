@@ -9,3 +9,15 @@ interface UseAttendanceDataProps {
   selectedDate: Date;
   selectedMonth: Date;
 }
+export const useAttendanceData = ({
+  adminProfile,
+  isSuperAdmin,
+  selectedDate,
+  selectedMonth,
+}: UseAttendanceDataProps) => {
+
+  const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
+  const [allAdmins, setAllAdmins] = useState<any[]>([]);
+  const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
+  const [myAttendance, setMyAttendance] = useState<any>(null);
+  const [monthlyAttendance, setMonthlyAttendance] = useState<any[]>([]);
