@@ -132,3 +132,136 @@ const useExportHandler = () => {
 
   return { isExporting, triggerExport };
 };
+// ============================================================
+// PART 2 — UI COMPONENTS (Enhanced)
+// ============================================================
+
+/* ============================================================ */
+/* TYPES FOR COMPONENTS                                         */
+/* ============================================================ */
+
+interface TrendBadgeProps {
+  value: number;
+}
+
+interface StatBoxProps {
+  label: string;
+  value: string | number;
+  colorClass: string;
+  icon?: React.ElementType;
+  trend?: number;
+}
+
+/* ============================================================ */
+/* TREND BADGE (IMPROVED)                                       */
+/* ============================================================ */
+
+/**
+ * Professional trend indicator
+ * - supports positive / negative / neutral
+ */
+const TrendBadge: React.FC<TrendBadgeProps> = ({ value }) => {
+  const isPositive = value > 0;
+  const isNeutral = value === 0;
+
+  return (
+    <div
+      className={`
+        flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold
+        transition-all duration-300
+        ${isNeutral 
+          ? 'bg-gray-500/10 text-gray-400'
+          : isPositive
+            ? 'bg-emerald-500/10 text-emerald-400'
+            : 'bg-rose-500/10 text-rose-400'}
+      `}
+    >
+      {isPositive && <ArrowUpRight className="h-3 w-3" />}
+      {!isPositive && !isNeutral && (
+        <TrendingUp className="h-3 w-3 rotate-180" />
+      )}
+
+      {isNeutral ? '0%' : `${Math.abs(value)}%`} vs last month
+    </div>
+  );
+};
+
+/* ============================================================ */
+/* STAT BOX (MAJOR UPGRADE)                                     */
+/* ============================================================ */
+
+/**
+ * Premium stat card with:
+ * - hover glow
+ * - background icon layer
+ * - animated transitions
+ */
+const StatBox: React.FC<StatBoxProps> = ({
+  label,
+  value,
+  colorClass,
+  icon: Icon,
+  trend,
+}) => {
+  return (
+    <div
+      className={`
+        group relative overflow-hidden p-5 rounded-2xl border
+        transition-all duration-500 ease-out
+        hover:-translate-y-1.5 hover:scale-[1.02]
+        hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.35)]
+        ${colorClass}
+      `}
+    >
+      {/* CONTENT */}
+      <div className="flex justify-between items-start relative z-10">
+
+        {/* LEFT SIDE */}
+        <div className="space-y-1">
+          <p className="text-3xl font-black tracking-tight">
+            {value}
+          </p>
+
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] opacity-60 font-bold uppercase tracking-widest">
+              {label}
+            </p>
+
+            {typeof trend === 'number' && (
+              <TrendBadge value={trend} />
+            )}
+          </div>
+        </div>
+
+        {/* ICON */}
+        <div className="
+          p-2.5 rounded-xl bg-white/5 border border-white/10
+          transition-transform duration-300
+          group-hover:scale-110 group-hover:rotate-6
+        ">
+          {Icon && <Icon className="h-5 w-5" />}
+        </div>
+      </div>
+
+      {/* BACKGROUND ICON (DECORATIVE LAYER) */}
+      {Icon && (
+        <div className="
+          absolute -right-4 -bottom-4 opacity-[0.04]
+          group-hover:opacity-[0.08]
+          transition-opacity duration-500
+        ">
+          <Icon className="h-28 w-28" />
+        </div>
+      )}
+
+      {/* GLOW EFFECT */}
+      <div className="
+        absolute inset-0 rounded-2xl
+        opacity-0 group-hover:opacity-100
+        transition-opacity duration-500
+        bg-gradient-to-br from-blue-500/10 to-transparent
+        pointer-events-none
+      " />
+    </div>
+  );
+};
