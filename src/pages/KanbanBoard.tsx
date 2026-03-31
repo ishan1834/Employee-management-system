@@ -18,6 +18,20 @@ const columns = [
   { key: 'review', label: 'Review', color: 'border-t-purple-500' },
   { key: 'done', label: 'Done', color: 'border-t-green-500' }
 
+  const KanbanBoard: React.FC = () => {
+  const { adminProfile } = useAuth();
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState('medium');
+  const [assignedTo, setAssignedTo] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const isSuperAdmin = adminProfile?.role === 'super_admin';
+
   const fetchData = async () => {
     const [{ data: tasksData }, { data: adminsData }] = await Promise.all([
       supabase.from('kanban_tasks' as any).select('*, assigned:admins!kanban_tasks_assigned_to_fkey(name, role), creator:admins!kanban_tasks_created_by_fkey(name)').order('created_at', { ascending: false }),
