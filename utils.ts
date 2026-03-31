@@ -225,3 +225,119 @@ export const getMinutesUntilOpen = (): number => {
 
   return ATTENDANCE_TIME_WINDOWS.present.start - minutes;
 };
+// ============================================================
+// PART 3 — STATUS + UI UTILITIES (Enhanced)
+// ============================================================
+
+/* ============================================================ */
+/* STATUS STYLE CONFIG (NEW — CENTRALIZED DESIGN SYSTEM)         */
+/* ============================================================ */
+
+/**
+ * Central mapping for all status UI styles
+ */
+export const STATUS_UI_CONFIG = {
+  present: {
+    label: 'Present',
+    color: 'text-white',
+    bg: 'bg-blue-500',
+    border: 'border-blue-500',
+    dot: 'bg-blue-400',
+  },
+  late: {
+    label: 'Late',
+    color: 'text-black',
+    bg: 'bg-yellow-500',
+    border: 'border-yellow-500',
+    dot: 'bg-yellow-400',
+  },
+  absent: {
+    label: 'Absent',
+    color: 'text-white',
+    bg: 'bg-red-500',
+    border: 'border-red-500',
+    dot: 'bg-red-400',
+  },
+};
+
+/* ============================================================ */
+/* BADGE CLASS GENERATOR                                        */
+/* ============================================================ */
+
+/**
+ * Returns Tailwind class for badge
+ */
+export const getStatusBadgeClass = (status: AttendanceStatus): string => {
+  const base = 'px-3 py-1 rounded-full text-sm font-medium border flex items-center gap-1';
+
+  const config = STATUS_UI_CONFIG[status];
+
+  if (!config) {
+    return `${base} bg-gray-500 text-white border-gray-500`;
+  }
+
+  return `${base} ${config.bg} ${config.color} ${config.border}`;
+};
+
+/* ============================================================ */
+/* LABEL + DISPLAY UTILITIES                                    */
+/* ============================================================ */
+
+/**
+ * Get readable label (centralized)
+ */
+export const getStatusLabel = (status: AttendanceStatus): string => {
+  return STATUS_UI_CONFIG[status]?.label || 'Unknown';
+};
+
+/**
+ * Get color class only
+ */
+export const getStatusColor = (status: AttendanceStatus): string => {
+  return STATUS_UI_CONFIG[status]?.bg || 'bg-gray-500';
+};
+
+/**
+ * Get dot indicator class (for UI badges / lists)
+ */
+export const getStatusDot = (status: AttendanceStatus): string => {
+  return STATUS_UI_CONFIG[status]?.dot || 'bg-gray-400';
+};
+
+/* ============================================================ */
+/* ADVANCED UI HELPERS (NEW)                                    */
+/* ============================================================ */
+
+/**
+ * Get full UI object (useful for components)
+ */
+export const getStatusUI = (status: AttendanceStatus) => {
+  return STATUS_UI_CONFIG[status] || {
+    label: 'Unknown',
+    color: 'text-white',
+    bg: 'bg-gray-500',
+    border: 'border-gray-500',
+    dot: 'bg-gray-400',
+  };
+};
+
+/**
+ * Check if status is critical (for alerts)
+ */
+export const isCriticalStatus = (status: AttendanceStatus): boolean => {
+  return status === 'absent';
+};
+
+/**
+ * Check if status is warning level
+ */
+export const isWarningStatus = (status: AttendanceStatus): boolean => {
+  return status === 'late';
+};
+
+/**
+ * Check if status is good
+ */
+export const isPositiveStatus = (status: AttendanceStatus): boolean => {
+  return status === 'present';
+};
