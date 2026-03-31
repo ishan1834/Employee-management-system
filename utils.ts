@@ -477,3 +477,227 @@ export const normalizeDate = (date: string): string => {
   const parsed = parseDateSafe(date);
   return parsed ? format(parsed, 'yyyy-MM-dd') : '';
 };
+// ============================================================
+// PART 5 — STATS + CSV + PERFORMANCE UTILITIES (Enhanced)
+// ============================================================
+
+import { format, endOfMonth, isSameMonth } from 'date-fns';
+
+/* ============================================================ */
+/* STATISTICS UTILITIES                                         */
+/* ============================================================ */
+
+/**
+ * Aggregate attendance counts (reusable)
+ */
+export const countAttendance = (records: AttendanceRecord[]) => {
+  const counts = {
+    present: 0,
+    late: 0,
+    absent: 0,
+  };
+
+  for (const record of records) {
+    if (counts[record.status] !== undefined) {
+      counts[record.status]++;
+    }
+  }
+
+  return counts;
+};
+
+/**
+ * Compute monthly stats
+ */
+export const computeMonthlyStats = (
+  monthlyAttendance: AttendanceRecord[],
+  selectedMonth: Date,
+  adminId?: string
+): MonthlyStats => {
+
+  const filtered = adminId
+    ? monthlyAttendance.filter(a => a.admin_id === adminId)
+    : monthlyAttendance;
+
+  const { present, late } = countAttendance(filtered);
+
+  const today = new Date();
+
+  const totalDays = isSameMonth(today, selectedMonth)
+    ? today.getDate()
+    : endOfMonth(selectedMonth).getDate();
+
+  const absent = Math.max(totalDays - (present + late), 0);
+
+  const score = present + late * 0.5;
+
+  const percentage =
+    totalDays > 0
+      ? Math.round((score / totalDays) * 100)
+      : 0;
+
+  return { present, late, absent, totalDays, score, percentage };
+};
+
+/**
+ * Compute today's attendance stats
+ */
+export const computeAttendanceStats = (
+  allAdmins: Admin[],
+  todayAttendance: AttendanceRecord[]
+) => {
+
+  const total = allAdmins.length;
+
+  const counts = countAttendance(todayAttendance);
+
+  const notMarked = Math.max(total - todayAttendance.length, 0);
+
+  const percentage =
+    total > 0
+      ? Math.round((counts.present / total) * 100)
+      : 0;
+
+  return {
+    total,
+    ...counts,
+    notMarked,
+    percentage,
+  };
+};
+
+/* ============================================================ */
+/* CSV UTILITIES                                                */
+/* ============================================================ */
+
+/**
+ * Escape CSV values safely
+ */
+export const escapeCSV = (value: any): string => {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`;
+};
+
+/**
+ * Convert attendance data → CSV
+ */
+export const convertToCSV = (data: AttendanceRecord[]): string => {
+
+  const headers = [
+    'Date',
+    'Name',
+    'Email',
+    'Role',
+    'Status',
+    'Time',
+    'Reason',
+  ];
+
+  const rows = data.map(record => [
+    record.date,
+    record.admin?.name || 'Unknown',
+    record.admin?.email || '',
+    record.admin?.role || '',
+    record.status,
+    record.marked_at
+      ? format(new Date(record.marked_at), 'HH:mm:ss')
+      : '',
+    record.reason || '',
+  ]);
+
+  return [
+    headers.join(','),
+    ...rows.map(row => row.map(escapeCSV).join(',')),
+  ].join('\n');
+};
+
+/**
+ * Download CSV file
+ */
+export const downloadCSV = (content: string, filename: string) => {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  URL.revokeObjectURL(url);
+};
+
+/**
+ * Build + download CSV (main function)
+ */
+export const buildAndDownloadCSV = (
+  data: AttendanceRecord[],
+  allAdmins: Admin[],
+  adminId: string | undefined,
+  selectedMonth: Date
+) => {
+
+  const csv = convertToCSV(data);
+
+  const adminName = adminId
+    ? allAdmins.find(a => a.id === adminId)?.name || 'admin'
+    : 'all-admins';
+
+  const filename = `attendance-${adminName}-${format(selectedMonth, 'yyyy-MM')}.csv`;
+
+  downloadCSV(csv, filename);
+};
+
+/* ============================================================ */
+/* LOGGING UTILITIES                                            */
+/* ============================================================ */
+
+/**
+ * Structured logging (better debugging)
+ */
+export const logInfo = (message: string, data?: any) => {
+  console.log(`[INFO]: ${message}`, data ?? '');
+};
+
+export const logError = (message: string, error?: any) => {
+  console.error(`[ERROR]: ${message}`, error ?? '');
+};
+
+/* ============================================================ */
+/* PERFORMANCE UTILITIES                                        */
+/* ============================================================ */
+
+/**
+ * Debounce function (optimized)
+ */
+export const debounce = <T extends (...args: any[]) => void>(
+  func: T,
+  delay: number
+) => {
+  let timeout: ReturnType<typeof setTimeout>;
+
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
+
+/**
+ * Throttle function (NEW — ADVANCED)
+ */
+export const throttle = <T extends (...args: any[]) => void>(
+  func: T,
+  limit: number
+) => {
+  let inThrottle = false;
+
+  return (...args: Parameters<T>) => {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+
+      setTimeout(() => {
+        inThrottle = false;
+      }, limit);
+    }
+  };
+};
