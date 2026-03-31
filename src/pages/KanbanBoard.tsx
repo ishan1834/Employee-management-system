@@ -17,8 +17,9 @@ const columns = [
   { key: 'in_progress', label: 'In Progress', color: 'border-t-yellow-500' },
   { key: 'review', label: 'Review', color: 'border-t-purple-500' },
   { key: 'done', label: 'Done', color: 'border-t-green-500' }
+];
 
-  const KanbanBoard: React.FC = () => {
+const KanbanBoard: React.FC = () => {
   const { adminProfile } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
   const [admins, setAdmins] = useState<any[]>([]);
@@ -76,7 +77,7 @@ const columns = [
     low: 'bg-gray-500/20 text-gray-400', medium: 'bg-blue-500/20 text-blue-400',
     high: 'bg-orange-500/20 text-orange-400', urgent: 'bg-red-500/20 text-red-400'
   };
-  
+
   return (
     <div className="min-h-screen bg-black">
       <Header />
@@ -149,4 +150,3 @@ const columns = [
 };
 
 export default KanbanBoard;
-
