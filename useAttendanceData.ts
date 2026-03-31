@@ -1,3 +1,6 @@
+// useAttendanceData.ts
+// Custom React hook — handles all Supabase data fetching for AttendanceTracker
+
 import { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +19,6 @@ export const useAttendanceData = ({
   selectedDate,
   selectedMonth,
 }: UseAttendanceDataProps) => {
-
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
   const [allAdmins, setAllAdmins] = useState<any[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
@@ -51,7 +53,8 @@ export const useAttendanceData = ({
       console.error('Error fetching attendance data:', error);
     }
   };
-    const fetchTodayAttendance = async () => {
+
+  const fetchTodayAttendance = async () => {
     if (!isSuperAdmin) return;
     try {
       const todayStr = format(new Date(), 'yyyy-MM-dd');
