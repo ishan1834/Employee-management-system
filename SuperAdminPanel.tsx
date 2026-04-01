@@ -483,9 +483,14 @@ const SuperAdminDashboard: React.FC<any> = (props) => {
   }, []);
 
   /* --- DERIVED ANALYTICS --- */
-  const filteredData = attendanceData.filter((r: any) => 
-    r.admin?.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredData = attendanceData.filter((r: any) => {
+  const q = globalSearch.toLowerCase();
+
+  return (
+    r.admin?.name?.toLowerCase().includes(q) ||
+    r.status?.toLowerCase().includes(q)
   );
+});
 
   const systemHealth = useMemo(() => {
     if (loadLevel > 85) return { label: "CRITICAL", color: "text-rose-500" };
