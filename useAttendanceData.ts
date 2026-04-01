@@ -90,3 +90,28 @@ const fetchMyAttendance = async () => {
     setError(err.message);
   }
 };
+const fetchMonthlyAttendance = async () => {
+  if (!adminProfile) return;
+
+  try {
+    const start = format(startOfMonth(selectedMonth), 'yyyy-MM-dd');
+    const end = format(endOfMonth(selectedMonth), 'yyyy-MM-dd');
+
+    let query = supabase
+      .from('attendance')
+      .select('*')
+      .gte('date', start)
+      .lte('date', end);
+
+    if (!isSuperAdmin) {
+      query = query.eq('admin_id', adminProfile.id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    setMonthlyAttendance(data || []);
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
