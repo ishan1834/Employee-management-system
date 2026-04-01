@@ -156,7 +156,47 @@ const reviewLeaveRequest = async (id: string, action: 'approved' | 'rejected') =
       console.log("Component mounted");
     }
   }, [adminProfile]);
+// Commit 5: Add filters, stats, and CSV export
 
+const [filterStatus, setFilterStatus] = useState('all');
+
+// Filter logic
+const filteredRequests = leaveRequests.filter(r => {
+  if (filterStatus === 'all') return true;
+  return r.status === filterStatus;
+});
+
+// Stats
+const pendingCount = leaveRequests.filter(r => r.status === 'pending').length;
+const approvedCount = leaveRequests.filter(r => r.status === 'approved').length;
+
+// Export CSV
+const exportToCSV = () => {
+  const headers = ['Date', 'Subject', 'Status'];
+  const rows = leaveRequests.map(r => [
+    r.leave_date,
+    r.subject,
+    r.status
+  ]);
+
+  const csv = [
+    headers.join(','),
+    ...rows.map(r => r.join(','))
+  ].join('\n');
+
+  const blob = new Blob([csv]);
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'leave-data.csv';
+  link.click();
+};
+
+// UI additions
+<Button onClick={exportToCSV}>
+  Export CSV
+</Button>
   return (
     <ModuleLayout title="Leave Management" description="Manage leave requests">
       <Card>
