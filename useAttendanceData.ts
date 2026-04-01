@@ -115,3 +115,10 @@ const fetchMonthlyAttendance = async () => {
     setError(err.message);
   }
 };
+const refetchAll = () => {
+  fetchAdmins();
+  fetchAttendanceData();
+  fetchTodayAttendance();
+  fetchMyAttendance();
+  fetchMonthlyAttendance();
+};
