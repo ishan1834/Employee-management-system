@@ -1,14 +1,15 @@
+# Major Search Engine Access
 User-agent: Googlebot
-Allow: /
-
 User-agent: Bingbot
 Allow: /
 
+# Social Media Preview Crawlers
 User-agent: Twitterbot
-Allow: /
-
 User-agent: facebookexternalhit
 Allow: /
 
+# General Access for All Other Bots
 User-agent: *
 Allow: /
+
+# Sitemap: https://www.yourdomain.com/sitemap.xml
