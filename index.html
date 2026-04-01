@@ -57,14 +57,39 @@
 
     /* BODY */
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(-45deg, #020617, #1e293b, #020617);
-      background-size: 400% 400%;
-      animation: gradientMove 12s ease infinite;
-      color: #fff;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: all 0.4s ease;
+}
+
+/* THEMES */
+:root {
+  --bg: linear-gradient(-45deg, #020617, #1e293b, #020617);
+  --text: #ffffff;
+}
+
+.light-theme {
+  --bg: #f8fafc;
+  --text: #020617;
+}
+    <button id="themeToggle" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+">
+  Toggle Theme
+</button>
 
     /* ROOT APP */
     #root {
@@ -183,6 +208,23 @@
         loader.style.display = "none";
       }, 400);
     });
+    <script>
+  const btn = document.getElementById("themeToggle");
+
+  // Load saved theme
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "light") {
+    document.body.classList.add("light-theme");
+  }
+
+  btn.addEventListener("click", () => {
+    document.body.classList.toggle("light-theme");
+
+    const isLight = document.body.classList.contains("light-theme");
+
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+  });
+</script>
   </script>
 
 </body>
