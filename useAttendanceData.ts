@@ -16,3 +16,19 @@ const [monthlyAttendance, setMonthlyAttendance] = useState<any[]>([]);
 
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState<string | null>(null);
+const fetchAdmins = async () => {
+  setLoading(true);
+  try {
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('is_active', true);
+
+    if (error) throw error;
+    setAllAdmins(data || []);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
