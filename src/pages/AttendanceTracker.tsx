@@ -210,13 +210,15 @@ const AttendanceTracker: React.FC = () => {
     }
   };
 
-  const fetchAttendanceData = async () => {
-  if (!isSuperAdmin) return;
+const fetchAttendanceData = async () => {
+  if (!isSuperAdmin) {
+    return;
+  }
 
   try {
     const dateStr = formatDateForDB(selectedDate);
 
-    const { data, error } = await supabase
+    const query = supabase
       .from('attendance')
       .select(`
         *,
@@ -225,13 +227,18 @@ const AttendanceTracker: React.FC = () => {
       .eq('date', dateStr)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
 
     setAttendanceData(data ?? []);
   } catch (err) {
     console.error('Error fetching attendance data:', err);
   }
 };
+
 
   const fetchTodayAttendance = async () => {
     if (!isSuperAdmin) return;
