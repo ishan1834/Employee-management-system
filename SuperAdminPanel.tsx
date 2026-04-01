@@ -194,6 +194,20 @@ const StrategicCommandCenter: React.FC = () => {
           Refresh
         </Button>
       </div>
+      <div className="relative">
+  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-600" />
+  <input
+    value={globalSearch}
+    onChange={(e) => setGlobalSearch(e.target.value)}
+    placeholder="Search everything..."
+    className="
+      bg-black border border-gray-800 rounded-lg 
+      py-2 pl-10 pr-4 text-xs w-64 
+      focus:outline-none focus:border-blue-500 
+      transition-all
+    "
+  />
+</div>
 
 {/* ===================================================== */}
 {/* TABS SYSTEM                                           */}
