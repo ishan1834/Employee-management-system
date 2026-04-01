@@ -70,3 +70,23 @@ const fetchTodayAttendance = async () => {
     setError(err.message);
   }
 };
+const fetchMyAttendance = async () => {
+  if (!adminProfile) return;
+
+  try {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .eq('admin_id', adminProfile.id)
+      .eq('date', todayStr)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+
+    setMyAttendance(data);
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
