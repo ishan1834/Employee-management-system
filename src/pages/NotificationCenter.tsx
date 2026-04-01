@@ -76,6 +76,30 @@ const fetchNotifications = async () => {
     console.error('Error fetching notifications:', error);
   }
 };
+  useEffect(() => {
+  fetchNotifications();
+
+  const paymentChannel = supabase
+    .channel('payment-notifications')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'payment_verifications' },
+      () => fetchNotifications()
+    )
+    .subscribe();
+
+  const chatChannel = supabase
+    .channel('chat-notifications')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'chat_messages' },
+      () => fetchNotifications()
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(paymentChannel);
+    supabase.removeChannel(chatChannel);
+  };
+}, []);
   return (
     <ModuleLayout
       title="Notification Center"
