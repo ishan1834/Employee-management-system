@@ -24,7 +24,58 @@ const NotificationCenter: React.FC = () => {
     unread: 0,
     today: 0
   });
+useEffect(() => {
+  fetchNotifications();
+}, []);
 
+const fetchNotifications = async () => {
+  try {
+    const notifications: Notification[] = [];
+
+    const { data: payments } = await supabase
+      .from('payment_verifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    payments?.forEach((payment: any) => {
+      notifications.push({
+        id: `payment-${payment.id}`,
+        type: 'payment',
+        title: payment.payment_received ? 'Payment Verified' : 'New Payment Record',
+        message: `${payment.user_name} - ₹${payment.amount || 0}`,
+        timestamp: payment.created_at,
+        read: false
+      });
+    });
+
+    const { data: certificates } = await supabase
+      .from('certificates')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    certificates?.forEach((cert: any) => {
+      notifications.push({
+        id: `cert-${cert.id}`,
+        type: 'certificate',
+        title: 'Certificate Issued',
+        message: `${cert.recipient_name}`,
+        timestamp: cert.created_at,
+        read: false
+      });
+    });
+
+    notifications.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    setNotifications(notifications);
+
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+  }
+};
   return (
     <ModuleLayout
       title="Notification Center"
