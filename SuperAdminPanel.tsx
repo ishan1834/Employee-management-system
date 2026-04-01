@@ -114,6 +114,13 @@ const StrategicCommandCenter: React.FC = () => {
     absentCount: 0,
     performanceScore: 0,
   });
+  interface SystemAlert {
+  id: string;
+  message: string;
+  severity: 'info' | 'warning' | 'critical';
+}
+
+const [alerts, setAlerts] = useState<SystemAlert[]>([]);
 
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
     cpuUsage: 0,
@@ -139,6 +146,35 @@ const StrategicCommandCenter: React.FC = () => {
         absentCount: 15,
         performanceScore: 82,
       });
+      useEffect(() => {
+  const newAlerts: SystemAlert[] = [];
+
+  if (loadLevel > 80) {
+    newAlerts.push({
+      id: 'cpu',
+      message: 'High CPU usage detected',
+      severity: 'warning',
+    });
+  }
+
+  if (loadLevel > 90) {
+    newAlerts.push({
+      id: 'critical',
+      message: 'System nearing critical overload',
+      severity: 'critical',
+    });
+  }
+
+  if (stats.present < stats.total * 0.5) {
+    newAlerts.push({
+      id: 'attendance',
+      message: 'Low attendance detected',
+      severity: 'info',
+    });
+  }
+
+  setAlerts(newAlerts);
+}, [loadLevel, stats]);
 
       setSystemHealth({
         cpuUsage: 45,
@@ -330,6 +366,39 @@ const StrategicCommandCenter: React.FC = () => {
       </CardHeader>
 
       <CardContent className="space-y-6">
+        <Card className="bg-gray-900 border-gray-800">
+  <CardHeader>
+    <CardTitle className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+      <Bell className="h-4 w-4" /> Alerts
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent className="space-y-3">
+
+    {alerts.length === 0 && (
+      <p className="text-xs text-gray-500">No alerts detected</p>
+    )}
+
+    {alerts.map((alert) => (
+      <div
+        key={alert.id}
+        className={`
+          p-3 rounded-lg border text-xs font-bold
+          ${
+            alert.severity === 'critical'
+              ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+              : alert.severity === 'warning'
+              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+              : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+          }
+        `}
+      >
+        {alert.message}
+      </div>
+    ))}
+
+  </CardContent>
+</Card>
 
         {/* CPU */}
         <div>
