@@ -53,3 +53,20 @@ const fetchAttendanceData = async () => {
     setLoading(false);
   }
 };
+const fetchTodayAttendance = async () => {
+  if (!isSuperAdmin) return;
+
+  try {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+    const { data, error } = await supabase
+      .from('attendance')
+      .select(`*, admin:admins!admin_id(name,email,role)`)
+      .eq('date', todayStr);
+
+    if (error) throw error;
+    setTodayAttendance(data || []);
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
