@@ -122,3 +122,20 @@ const refetchAll = () => {
   fetchMyAttendance();
   fetchMonthlyAttendance();
 };
+
+useEffect(() => {
+  if (adminProfile) {
+    refetchAll();
+  }
+}, [selectedDate, selectedMonth, adminProfile]);
+
+return {
+  attendanceData,
+  allAdmins,
+  todayAttendance,
+  myAttendance,
+  monthlyAttendance,
+  loading,
+  error,
+  refetchAll
+};
