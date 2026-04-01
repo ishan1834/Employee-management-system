@@ -49,9 +49,13 @@ const InternshipTracker: React.FC = () => {
     await fetchInternships();
   };
 
+  const handleChange = (payload: unknown) => {
+    console.log('Change detected:', payload);
+    loadData();
+  };
+
   loadData();
 
-  // Create realtime listener
   const subscription = supabase
     .channel('realtime-internships')
     .on(
@@ -61,14 +65,10 @@ const InternshipTracker: React.FC = () => {
         schema: 'public',
         table: 'internships',
       },
-      (payload) => {
-        console.log('Change detected:', payload);
-        loadData();
-      }
+      handleChange
     )
     .subscribe();
 
-  // Cleanup function
   return () => {
     supabase.removeChannel(subscription);
   };
