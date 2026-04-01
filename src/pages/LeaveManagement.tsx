@@ -32,6 +32,51 @@ const LeaveManagement: React.FC = () => {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
 
+  // Commit 2: Fetch leave requests and leave balance from Supabase
+
+useEffect(() => {
+  if (adminProfile) {
+    fetchLeaveRequests();
+    fetchLeaveBalance();
+  }
+}, [adminProfile]);
+
+// Fetch leave requests
+const fetchLeaveRequests = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('leave_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    setLeaveRequests(data || []);
+  } catch (err) {
+    console.error("Error fetching requests:", err);
+  }
+};
+
+// Fetch leave balance
+const fetchLeaveBalance = async () => {
+  const currentYear = new Date().getFullYear();
+
+  try {
+    const { data, error } = await supabase
+      .from('leave_balances')
+      .select('*')
+      .eq('admin_id', adminProfile.id)
+      .eq('year', currentYear)
+      .single();
+
+    if (!error) {
+      setLeaveBalance(data);
+    }
+  } catch (err) {
+    console.error("Error fetching balance:", err);
+  }
+};
+
   // Basic effect hook
   useEffect(() => {
     if (adminProfile) {
