@@ -112,7 +112,40 @@ const submitLeaveRequest = async () => {
     console.error("Submit error:", err);
   }
 };
+// Commit 4: Add review system for approving/rejecting leave
 
+const reviewLeaveRequest = async (id: string, action: 'approved' | 'rejected') => {
+  try {
+    const { error } = await supabase
+      .from('leave_requests')
+      .update({
+        status: action,
+        reviewed_by: adminProfile.id,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    // Update leave balance if approved
+    if (action === 'approved') {
+      await supabase.rpc('increment_leave_used', { request_id: id });
+    }
+
+    fetchLeaveRequests();
+  } catch (err) {
+    console.error("Review error:", err);
+  }
+};
+
+// Example buttons
+<Button onClick={() => reviewLeaveRequest(request.id, 'approved')}>
+  Approve
+</Button>
+
+<Button onClick={() => reviewLeaveRequest(request.id, 'rejected')}>
+  Reject
+</Button>
 // UI Button
 <Button onClick={submitLeaveRequest}>
   Submit Leave
