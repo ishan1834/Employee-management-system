@@ -8,3 +8,11 @@ interface UseAttendanceDataProps {
   selectedDate: Date;
   selectedMonth: Date;
 }
+const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
+const [allAdmins, setAllAdmins] = useState<any[]>([]);
+const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
+const [myAttendance, setMyAttendance] = useState<any>(null);
+const [monthlyAttendance, setMonthlyAttendance] = useState<any[]>([]);
+
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
