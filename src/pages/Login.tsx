@@ -6,14 +6,21 @@ import RoleBasedLogin from './RoleBasedLogin';
 const Login: React.FC = () => {
   const { user, session } = useAuth();
 
-  console.log('Login page - user:', !!user, 'session:', !!session);
+  const isAuthenticated = Boolean(user && session);
 
-  // If user is authenticated, redirect to dashboard
-  if (user && session) {
+  // Debug (remove in production if needed)
+  console.log('[Login] Auth status:', {
+    user: !!user,
+    session: !!session,
+    isAuthenticated,
+  });
+
+  // Redirect authenticated users
+  if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Otherwise show the role-based login
+  // Render login UI
   return <RoleBasedLogin />;
 };
 
