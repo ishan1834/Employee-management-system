@@ -77,6 +77,46 @@ const fetchLeaveBalance = async () => {
   }
 };
 
+  // Commit 3: Add leave request form and submission logic
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+const [formData, setFormData] = useState({
+  subject: '',
+  leave_date: new Date(),
+  leave_type: 'full_day',
+  leave_category: 'casual',
+});
+
+// Submit leave request
+const submitLeaveRequest = async () => {
+  if (!formData.subject.trim()) return;
+
+  try {
+    const { error } = await supabase
+      .from('leave_requests')
+      .insert({
+        admin_id: adminProfile.id,
+        subject: formData.subject,
+        leave_date: formData.leave_date.toISOString(),
+        leave_type: formData.leave_type,
+        leave_category: formData.leave_category,
+        status: 'pending',
+      });
+
+    if (error) throw error;
+
+    fetchLeaveRequests();
+  } catch (err) {
+    console.error("Submit error:", err);
+  }
+};
+
+// UI Button
+<Button onClick={submitLeaveRequest}>
+  Submit Leave
+</Button>
   // Basic effect hook
   useEffect(() => {
     if (adminProfile) {
