@@ -241,23 +241,31 @@ const fetchAttendanceData = async () => {
 
 
   const fetchTodayAttendance = async () => {
-    if (!isSuperAdmin) return;
-    
-    try {
-      const { data: attendance, error } = await supabase
-        .from('attendance')
-        .select(`
-          *,
-          admin:admins!admin_id(name, email, role)
-        `)
-        .eq('date', todayStr);
-      
-      if (error) throw error;
-      setTodayAttendance(attendance || []);
-    } catch (error) {
-      console.error('Error fetching today attendance:', error);
+  if (!isSuperAdmin) {
+    return;
+  }
+
+  try {
+    const query = supabase
+      .from('attendance')
+      .select(`
+        *,
+        admin:admins!admin_id(name, email, role)
+      `)
+      .eq('date', todayStr);
+
+    const { data: attendance, error } = await query;
+
+    if (error) {
+      throw error;
     }
-  };
+
+    setTodayAttendance(attendance ?? []);
+  } catch (error) {
+    console.error('Error fetching today attendance:', error);
+  }
+};
+
 
   const fetchMyAttendance = async () => {
     if (!adminProfile) return;
