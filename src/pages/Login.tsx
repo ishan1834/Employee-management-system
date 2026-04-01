@@ -7,7 +7,6 @@ const Login: React.FC = () => {
   const { user, session } = useAuth();
 
   const isAuthenticated = Boolean(user && session);
-
   // Debug (remove in production if needed)
   console.log('[Login] Auth status:', {
     user: !!user,
