@@ -32,3 +32,24 @@ const fetchAdmins = async () => {
     setLoading(false);
   }
 };
+const fetchAttendanceData = async () => {
+  if (!isSuperAdmin) return;
+
+  setLoading(true);
+  try {
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+    const { data, error } = await supabase
+      .from('attendance')
+      .select(`*, admin:admins!admin_id(name,email,role)`)
+      .eq('date', dateStr)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    setAttendanceData(data || []);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
