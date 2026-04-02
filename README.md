@@ -43,6 +43,8 @@
 **[🌍 Alt Domain](https://thrylosindia.in)** &nbsp;·&nbsp;
 **[📧 Support](mailto:support@thrylos.in)**
 
+Internal use only. Authorized admins should access the portal using their registered company email.
+
 </div>
 
 ---
@@ -105,7 +107,7 @@ This is not a template. This is a **live, operational platform** running India's
 |---|---|
 | **Admin Portal URL** | https://admin.thrylos.in |
 | **Type** | Internal Web-based Admin Management Portal |
-| **Audience** | Admins Only (Super Admin · HR Admin · Role-based) |
+| **Audience** | Admins Only (Super Admin · HR Admin · Role-based Admins) |
 | **Hosting** | Netlify (CI/CD, edge deployment) |
 | **Domain Registrar** | GoDaddy |
 | **Auth Domain** | https://thrylosauth.in |
