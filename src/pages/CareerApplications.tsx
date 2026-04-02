@@ -197,7 +197,6 @@ const CareerApplications: React.FC = () => {
   const [selectedApplication, setSelectedApplication] = useState<CareerApplication | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // ===================== FETCH =====================
   const fetchApplications = async () => {
     try {
       const { data, error } = await supabase
