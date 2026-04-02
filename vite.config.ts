@@ -2,9 +2,9 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig(({ mode }) => {
-
   const isDev = mode === "development";
 
   /* ===================================================== */
@@ -37,6 +37,17 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       isDev && componentTagger(),
+
+      /* ===================================================== */
+      /* FEATURE 5 — BUNDLE ANALYZER                          */
+      /* ===================================================== */
+      !isDev &&
+        visualizer({
+          open: true,
+          gzipSize: true,
+          brotliSize: true,
+          filename: "dist/stats.html",
+        }),
     ].filter(Boolean),
 
     resolve: {
@@ -62,7 +73,7 @@ export default defineConfig(({ mode }) => {
     },
 
     /* ===================================================== */
-    /* EXTRA — DEFINE GLOBALS                                */
+    /* EXTRA — GLOBAL VARIABLES                              */
     /* ===================================================== */
     define: {
       __APP_ENV__: JSON.stringify(mode),
