@@ -60,5 +60,75 @@ useEffect(() => {
     supabase.removeChannel(channel);
   };
 }, []);
+// feat: add handleAddPayment and handleVerifyPayment action handlers
+
+const [dialogOpen, setDialogOpen] = useState(false);
+const [formData, setFormData] = useState({
+  user_name: '',
+  user_email: '',
+  transaction_id: '',
+  amount: ''
+});
+
+const handleAddPayment = async () => {
+  if (!formData.user_name || !formData.transaction_id) {
+    toast({
+      title: "Error",
+      description: "Please fill in all required fields",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('payment_verifications')
+      .insert({
+        user_name: formData.user_name,
+        transaction_id: formData.transaction_id,
+        amount: parseFloat(formData.amount) || null
+      } as any);
+
+    if (error) throw error;
+
+    toast({ title: "Success", description: "Payment record added successfully" });
+    setDialogOpen(false);
+    setFormData({ user_name: '', user_email: '', transaction_id: '', amount: '' });
+    fetchPayments();
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.message || "Failed to add payment record",
+      variant: "destructive"
+    });
+  }
+};
+
+const handleVerifyPayment = async (paymentId: string, verified: boolean) => {
+  if (!adminProfile) return;
+
+  try {
+    const updateData: any = {
+      payment_received: verified,
+      verified_by: adminProfile.id,
+      verified_at: verified ? new Date().toISOString() : null
+    };
+
+    const { error } = await supabase
+      .from('payment_verifications')
+      .update(updateData)
+      .eq('id', paymentId);
+
+    if (error) throw error;
+
+    toast({
+      title: "Success",
+      description: `Payment ${verified ? 'verified' : 'unverified'} successfully`
+    });
+    fetchPayments();
+  } catch (error: any) {
+    toast({ title: "Error", description: "Failed to update payment status", variant: "destructive" });
+  }
+};
 
 export default PaymentVerification;
