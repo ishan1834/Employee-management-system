@@ -42,5 +42,23 @@ const PaymentVerification: React.FC = () => {
     fetchPayments();
   }, []);
 };
+// feat: add real-time Supabase subscription for payment changes
+
+useEffect(() => {
+  fetchPayments();
+
+  const channel = supabase
+    .channel('payment-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'payment_verifications' },
+      () => fetchPayments()
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
 
 export default PaymentVerification;
