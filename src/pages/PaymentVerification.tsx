@@ -130,5 +130,47 @@ const handleVerifyPayment = async (paymentId: string, verified: boolean) => {
     toast({ title: "Error", description: "Failed to update payment status", variant: "destructive" });
   }
 };
+// feat: add summary stats cards (total, pending, verified, amount)
 
+import { Card, CardContent } from '@/components/ui/card';
+
+const pendingPayments  = payments.filter(p => !p.payment_received).length;
+const verifiedPayments = payments.filter(p =>  p.payment_received).length;
+const totalAmount      = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+// JSX:
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+  <Card className="gradient-card border-white/10">
+    <CardContent className="p-4">
+      <div className="text-center">
+        <p className="text-2xl font-bold text-gradient">{payments.length}</p>
+        <p className="text-sm text-muted-foreground">Total Payments</p>
+      </div>
+    </CardContent>
+  </Card>
+  <Card className="gradient-card border-white/10">
+    <CardContent className="p-4">
+      <div className="text-center">
+        <p className="text-2xl font-bold text-yellow-400">{pendingPayments}</p>
+        <p className="text-sm text-muted-foreground">Pending</p>
+      </div>
+    </CardContent>
+  </Card>
+  <Card className="gradient-card border-white/10">
+    <CardContent className="p-4">
+      <div className="text-center">
+        <p className="text-2xl font-bold text-green-400">{verifiedPayments}</p>
+        <p className="text-sm text-muted-foreground">Verified</p>
+      </div>
+    </CardContent>
+  </Card>
+  <Card className="gradient-card border-white/10">
+    <CardContent className="p-4">
+      <div className="text-center">
+        <p className="text-2xl font-bold text-gradient">₹{totalAmount.toLocaleString()}</p>
+        <p className="text-sm text-muted-foreground">Total Amount</p>
+      </div>
+    </CardContent>
+  </Card>
+</div>
 export default PaymentVerification;
