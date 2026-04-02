@@ -108,7 +108,7 @@ This is not a template. This is a **live, operational platform** running India's
 | **Admin Portal URL** | https://admin.thrylos.in |
 | **Type** | Internal Web-based Admin Management Portal |
 | **Audience** | Admins Only (Super Admin · HR Admin · Role-based Admins) |
-| **Hosting** | Netlify (CI/CD, edge deployment) |
+| **Hosting** | Netlify (CI/CD and edge deployment) |
 | **Domain Registrar** | GoDaddy |
 | **Auth Domain** | https://thrylosauth.in |
 | **Main Website** | https://thrylos.in · https://thrylosindia.in |
