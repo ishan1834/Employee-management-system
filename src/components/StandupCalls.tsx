@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+
+
 import {
   Video,
   Mic,
@@ -28,6 +30,8 @@ import {
   ExternalLink,
   AlertTriangle
 } from 'lucide-react';
+
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -48,15 +52,24 @@ import {
 } from '@/integrations/supabase/standupCallsService';
 import { checkStandupCallsMigration, getMigrationHelpMessage } from '@/integrations/supabase/migrationCheck';
 
+
+
+
 const StandupCalls: React.FC = () => {
   const { user, adminProfile } = useAuth();
   const navigate = useNavigate();
+
+
+
+
   
   const [activeCalls, setActiveCalls] = useState<any[]>([]);
   const [selectedCall, setSelectedCall] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [messageInput, setMessageInput] = useState('');
+
+
   
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -66,6 +79,8 @@ const StandupCalls: React.FC = () => {
   const [isPresenting, setIsPresenting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [migrationStatus, setMigrationStatus] = useState<{ isMigrated: boolean; missingTables: string[] } | null>(null);
+
+
   
   const [createForm, setCreateForm] = useState({
     title: 'Daily Standup',
@@ -74,6 +89,8 @@ const StandupCalls: React.FC = () => {
   });
 
   // Check migration status on mount
+
+  
   useEffect(() => {
     const checkMigration = async () => {
       const status = await checkStandupCallsMigration();
@@ -84,6 +101,9 @@ const StandupCalls: React.FC = () => {
   }, []);
 
   // Fetch active calls
+
+
+  
   useEffect(() => {
     const fetchCalls = async () => {
       try {
@@ -102,6 +122,9 @@ const StandupCalls: React.FC = () => {
     fetchCalls();
 
     // Subscribe to real-time updates
+
+
+    
     const subscription = subscribeToStandupCalls((payload: any) => {
       fetchCalls();
     });
@@ -111,7 +134,14 @@ const StandupCalls: React.FC = () => {
     };
   }, []);
 
+
+
+  
   // Fetch selected call details
+
+
+
+  
   useEffect(() => {
     if (!selectedCall) return;
 
@@ -132,12 +162,24 @@ const StandupCalls: React.FC = () => {
 
     fetchCallDetails();
 
+
+
+    
     // Subscribe to participant updates
+
+
+    
     const participantSub = subscribeToParticipantUpdates(selectedCall.id, () => {
       fetchCallDetails();
     });
 
+
+    
+
     // Subscribe to message updates
+
+
+    
     const messageSub = subscribeToCallMessages(selectedCall.id, () => {
       fetchCallDetails();
     });
@@ -176,12 +218,27 @@ const StandupCalls: React.FC = () => {
       );
 
       console.log('Call created successfully:', newCall);
+
+
+
       
       // Start the call immediately
+
+
+      
+
+      
       const startedCall = await startStandupCall(newCall.id);
       console.log('Call started:', startedCall);
+
+
+
+      
       
       // Fetch updated calls
+
+
+      
       const calls = await getActiveStandupCalls();
       console.log('Active calls after creation:', calls);
       
@@ -219,6 +276,9 @@ const StandupCalls: React.FC = () => {
     }
   };
 
+
+
+  
   const handleJoinCall = async (callId: string) => {
     if (!adminProfile) return;
     
@@ -362,7 +422,14 @@ const StandupCalls: React.FC = () => {
           </Alert>
         )}
 
+
+
+        
         {/* Header */}
+
+
+
+        
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Daily Standup Calls</h1>
@@ -379,7 +446,13 @@ const StandupCalls: React.FC = () => {
           </Button>
         </div>
 
+
+        
+
         {/* Create Modal */}
+
+
+        
         {showCreateModal && (
           <Card className="mb-8 border-primary/50 bg-black/60">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -444,7 +517,15 @@ const StandupCalls: React.FC = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+
+
+          
           {/* Active Calls List */}
+
+
+
+          
           <div>
             <Card className="bg-black/40 border-white/10">
               <CardHeader>
@@ -489,6 +570,308 @@ const StandupCalls: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+
+          
+          {/* Main Call View */}
+
+
+
+          
+          <div className="lg:col-span-2">
+            {selectedCall ? (
+              <div className="space-y-6">
+                {/* Video Area */}
+                <Card className="bg-black/60 border-white/10">
+                  <CardContent className="p-0">
+                    <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center relative overflow-hidden">
+                      <div className="text-center">
+                        <Video className="h-16 w-16 mx-auto mb-4 text-primary/50" />
+                        <p className="text-white font-semibold mb-4">Google Meet Integration</p>
+                        <Button
+                          onClick={() => window.open(selectedCall.google_meet_url, '_blank')}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          Open in Google Meet
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-4">
+                          Full meet controls available in Google Meet tab
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+
+
+                
+                {/* Call Info */}
+
+
+
+                
+                <Card className="bg-black/40 border-white/10">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{selectedCall.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      <span className="font-mono text-xs">{selectedCall.google_meet_id}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={copyMeetLink}
+                        className="ml-auto"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span>
+                        {new Date(selectedCall.scheduled_start_time).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    {selectedCall.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {selectedCall.description}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+
+
+                
+                {/* Controls */}
+
+
+
+                
+                <Card className="bg-black/40 border-white/10">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Meeting Controls</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        onClick={handleToggleMute}
+                        variant={isMuted ? 'outline' : 'default'}
+                        className={isMuted ? 'bg-red-500/20 border-red-500/50' : 'bg-primary/20'}
+                      >
+                        {isMuted ? (
+                          <>
+                            <MicOff className="mr-2 h-4 w-4" />
+                            Unmute
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="mr-2 h-4 w-4" />
+                            Mute
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleToggleVideo}
+                        variant={isVideoOn ? 'default' : 'outline'}
+                        className={isVideoOn ? 'bg-primary/20' : 'bg-red-500/20 border-red-500/50'}
+                      >
+                        {isVideoOn ? (
+                          <>
+                            <Video className="mr-2 h-4 w-4" />
+                            Camera On
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff className="mr-2 h-4 w-4" />
+                            Camera Off
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleToggleScreenShare}
+                        variant={isScreenSharing ? 'default' : 'outline'}
+                        className={isScreenSharing ? 'bg-primary/20' : 'bg-black/20 border-white/20'}
+                      >
+                        {isScreenSharing ? (
+                          <>
+                            <Monitor className="mr-2 h-4 w-4" />
+                            Stop Share
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            Share Screen
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleTogglePresentMode}
+                        variant={isPresenting ? 'default' : 'outline'}
+                        className={isPresenting ? 'bg-primary/20' : 'bg-black/20 border-white/20'}
+                      >
+                        {isPresenting ? (
+                          <>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Presenting
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Present
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        onClick={handleLeaveCall}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Phone className="mr-2 h-4 w-4" />
+                        Leave Call
+                      </Button>
+                      {selectedCall.initiated_by === adminProfile?.id && (
+                        <Button
+                          onClick={handleEndCall}
+                          variant="destructive"
+                          className="flex-1"
+                        >
+                          End for Everyone
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Card className="bg-black/40 border-white/10">
+                <CardContent className="py-12 text-center">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">
+                    Select a call to view details and join
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+
+
+
+        
+        {/* Participants & Chat */}
+
+
+
+
+        
+        {selectedCall && (
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+
+            
+            {/* Participants */}
+
+
+            
+            <Card className="lg:col-span-1 bg-black/40 border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Participants ({participants.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {participants.map((participant) => (
+                    <div
+                      key={participant.id}
+                      className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/10"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {participant.admin?.name}
+                        </p>
+                        <div className="flex gap-2 mt-1">
+                          {participant.is_muted && (
+                            <MicOff className="h-3 w-3 text-red-400" />
+                          )}
+                          {participant.is_video_on && (
+                            <Video className="h-3 w-3 text-green-400" />
+                          )}
+                          {participant.is_screen_sharing && (
+                            <Monitor className="h-3 w-3 text-blue-400" />
+                          )}
+                          {participant.is_presenting && (
+                            <Eye className="h-3 w-3 text-yellow-400" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+
+
+            
+            {/* Chat */}
+
+
+
+            
+            <Card className="lg:col-span-2 bg-black/40 border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Chat
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col h-80">
+                <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+                  {messages.map((message) => (
+                    <div key={message.id} className="p-3 bg-black/30 rounded-lg border border-white/10">
+                      <p className="text-sm font-medium text-primary">
+                        {message.admin?.name}
+                      </p>
+                      <p className="text-sm text-white mt-1">{message.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(message.created_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Type a message..."
+                    className="bg-black/50 border-white/20"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!messageInput.trim()}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Send
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
 
 
 export default StandupCalls;
