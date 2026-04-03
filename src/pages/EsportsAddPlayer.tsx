@@ -17,13 +17,13 @@ const EsportsAddPlayer: React.FC = () => {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    player_name: '',
-    game_uid: '',
-    email: '',
-    tournament_name: '',
-    entry_fees: '',
-    payment_received: false
-  });
+  playerName: '',
+  gameUid: '',
+  email: '',
+  tournamentName: '',
+  entryFees: 0,
+  paymentReceived: false,
+});
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
