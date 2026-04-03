@@ -24,10 +24,24 @@ const Tasks: React.FC = () => {
   const isSuperAdmin = adminProfile?.role === 'super_admin';
 
   const fetchTasks = async () => {
-    const { data } = await supabase
+    setLoading(true);
+
+    const { data, error } = await supabase
       .from('tasks' as any)
       .select('*, admins!tasks_assigned_by_fkey(name)')
       .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({
+        title: 'Unable to load tasks',
+        description: error.message,
+        variant: 'destructive'
+      });
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
     setTasks((data as any[]) || []);
     setLoading(false);
   };
