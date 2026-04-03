@@ -24,3 +24,39 @@ const SocialMediaOrdersList: React.FC<SocialMediaOrdersListProps> = ({ onEditOrd
 
   const itemsPerPage = 50;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
+    useEffect(() => {
+    fetchOrders();
+  }, [refreshTrigger, currentPage]);
+
+  useEffect(() => {
+    filterOrders();
+  }, [orders, searchTerm]);
+
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const { count } = await supabase
+        .from('social_media_orders')
+        .select('*', { count: 'exact', head: true });
+
+      setTotalCount(count || 0);
+
+      const { data, error } = await supabase
+        .from('social_media_orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch orders data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
