@@ -12,6 +12,74 @@ interface SocialMediaOrdersListProps {
   onEditOrder: (order: any) => void;
   refreshTrigger: number;
 }
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Social Media Orders ({totalCount} total)</span>
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            <Input
+              placeholder="Search orders..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+          </div>
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+          </div>
+        ) : (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service Type</TableHead>
+                  <TableHead>Order Type</TableHead>
+                  <TableHead>Account Link</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Payment Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.service_type}</TableCell>
+                    <TableCell>{order.order_type}</TableCell>
+                    <TableCell>{order.post_account_link}</TableCell>
+                    <TableCell>{order.quantity}</TableCell>
+                    <TableCell>₹{order.payment_amount}</TableCell>
+                    <TableCell>
+                      {order.payment_received ? 'Paid' : 'Pending'}
+                    </TableCell>
+                    <TableCell>
+                      <Button onClick={() => onEditOrder(order)}>
+                        <Edit />
+                      </Button>
+                      <Button onClick={() => handleDelete(order.id)}>
+                        <Trash2 />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default SocialMediaOrdersList;
 
 const SocialMediaOrdersList: React.FC<SocialMediaOrdersListProps> = ({ onEditOrder, refreshTrigger }) => {
   const [orders, setOrders] = useState<any[]>([]);
