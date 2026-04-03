@@ -921,6 +921,13 @@ const TeamChat: React.FC = () => {
     <>
       <style>{STYLES}</style>
 
+
+
+
+
+
+      
+
       {/* Notification toast */}
       {notif && (
         <div className="tc-notif">
@@ -934,6 +941,11 @@ const TeamChat: React.FC = () => {
         </div>
       )}
 
+
+
+
+
+      
       {/* Context menu */}
       {ctx && (
         <CtxMenuEl
@@ -963,7 +975,21 @@ const TeamChat: React.FC = () => {
         <ModuleLayout title="Team Chat" description="Real-time team communication">
           <div className="tc-shell">
 
+
+
+
+
+
+            
+
             {/* ── Search overlay ── */}
+
+
+
+
+
+
+            
             {searchOpen && (
               <div className="tc-search-overlay">
                 <div style={{ padding: '13px 16px', borderBottom: '1px solid rgba(255,255,255,.05)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -1008,16 +1034,33 @@ const TeamChat: React.FC = () => {
             )}
 
             {/* ── Inner layout ── */}
+
+            
             <div className="tc-inner">
 
+
+              
               {/* Desktop sidebar */}
               <div className="tc-sidebar-panel hidden lg:flex">
                 <MembersPanel admins={admins} meId={adminProfile?.id ?? ''} onlineCount={onlineCount} />
               </div>
 
+
+
+
+              
+
               {/* Chat column */}
+
+
+
+              
               <div className="tc-chat-col">
 
+
+
+
+                
                 {/* Header */}
                 <div className="tc-header">
                   {/* Mobile members sheet trigger */}
@@ -1034,6 +1077,13 @@ const TeamChat: React.FC = () => {
                     </SheetContent>
                   </Sheet>
 
+
+
+
+
+
+
+                  
                   {/* Channel icon */}
                   <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(0,245,255,0.08)', border: '1px solid rgba(0,245,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Hash style={{ width: 16, height: 16, color: '#00f5ff', opacity: .85 }} />
@@ -1050,6 +1100,214 @@ const TeamChat: React.FC = () => {
                       <span style={{ color: 'rgba(255,255,255,.28)' }}>{admins.length} members</span>
                     </p>
                   </div>
+
+
+
+                  
+
+                  
+                  {/* Header actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                    <div className="tc-live" style={{ marginRight: 6 }}>
+                      <span className="tc-live-dot" />
+                      LIVE
+                    </div>
+                    <button className="tc-ib" style={{ width: 34, height: 34 }} onClick={() => setSearchOpen(true)} title="Search messages">
+                      <Search style={{ width: 15, height: 15 }} />
+                    </button>
+                    <button className="tc-ib" style={{ width: 34, height: 34 }}
+                      onClick={() => { setMuted(m => !m); toast({ title: muted ? 'Notifications on' : 'Notifications muted' }); }}
+                      title={muted ? 'Unmute' : 'Mute notifications'}>
+                      {muted ? <BellOff style={{ width: 15, height: 15, color: '#fbbf24' }} /> : <Bell style={{ width: 15, height: 15 }} />}
+                    </button>
+                    <button className="tc-ib" style={{ width: 34, height: 34 }}
+                      onClick={() => { setLoading(true); fetchMessages(); fetchAdmins(); }}
+                      title="Refresh">
+                      <RefreshCw style={{ width: 14, height: 14 }} />
+                    </button>
+                  </div>
+                </div>
+
+
+
+
+
+                
+
+                {/* Pinned banner */}
+                <div className="tc-pinned">
+                  <Pin style={{ width: 11, height: 11, color: '#00f5ff', opacity: .7, flexShrink: 0 }} />
+                  <span style={{ fontSize: 9.5, fontWeight: 700, color: '#00f5ff', opacity: .75, letterSpacing: '.06em', textTransform: 'uppercase', marginRight: 7, fontFamily: "'Syne',sans-serif" }}>Pinned</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{PINNED_MSG}</span>
+                </div>
+
+
+
+
+
+                
+
+                {/* Messages */}
+                <div ref={msgsEl} className="tc-messages" onScroll={handleScroll} style={{ position: 'relative' }}>
+                  {loading ? (
+                    <Skeletons />
+                  ) : messages.length === 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, padding: '40px 20px', textAlign: 'center' }}>
+                      <div style={{ width: 60, height: 60, borderRadius: 20, background: 'var(--tc-cyan-dim)', border: '1px solid rgba(0,245,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <MessageCircle style={{ width: 26, height: 26, color: 'rgba(0,245,255,0.6)' }} />
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '0 0 4px', fontFamily: "'Syne',sans-serif" }}>No messages yet</p>
+                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,.22)', margin: 0 }}>Be the first to say something 👋</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {grouped.map(({ date, msgs }) => (
+                        <div key={date}>
+                          <DateDivider label={date} />
+                          {msgs.map(msg => (
+                            <Bubble
+                              key={msg.id} msg={msg}
+                              isOwn={msg.sender_id === adminProfile?.id}
+                              meProfile={adminProfile as AdminProfile | null}
+                              onImg={setLightbox}
+                              onCtx={(e, m, o) => setCtx({ x: e.clientX, y: e.clientY, msg: m, isOwn: o })}
+                              onReply={setReplyMsg}
+                              onReact={handleReact}
+                            />
+                          ))}
+                        </div>
+                      ))}
+
+
+
+
+
+                      
+
+                      {/* Typing indicator */}
+                      {typingUsers.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, padding: '2px 14px 8px' }}>
+                          <div style={{ width: 32, flexShrink: 0 }} />
+                          <div>
+                            <div className="tc-typing-bubble">
+                              <div className="tc-t-dot" /><div className="tc-t-dot" /><div className="tc-t-dot" />
+                              <span style={{ fontSize: 11, color: 'rgba(255,255,255,.28)', marginLeft: 4 }}>{typingUsers.join(', ')} typing…</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div ref={endRef} style={{ height: 4 }} />
+                    </div>
+                  )}
+                </div>
+
+
+
+
+
+
+                
+
+                {/* Scroll to bottom */}
+                {!atBottom && (
+                  <button className="tc-stb" onClick={() => { scrollDown(true); setUnread(0); }}>
+                    <ChevronDown style={{ width: 13, height: 13 }} />
+                    {unread > 0 && (
+                      <span style={{ background: 'var(--tc-cyan)', color: '#000', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 99 }}>{unread} new</span>
+                    )}
+                  </button>
+                )}
+
+
+
+
+
+                
+                {/* Input zone */}
+                <div className="tc-input-zone">
+                  {/* Reply bar */}
+                  {replyMsg && (
+                    <div className="tc-reply-bar">
+                      <Reply style={{ width: 13, height: 13, color: 'rgba(0,245,255,.75)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,245,255,.85)', margin: '0 0 1px', fontFamily: "'Syne',sans-serif" }}>Replying to {replyMsg.sender?.name ?? 'Unknown'}</p>
+                        <p style={{ fontSize: 11, color: 'rgba(255,255,255,.35)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {isImg(replyMsg.message) ? '📷 Photo' : replyMsg.message.replace(/↩REPLY:[^\n]*\n/, '').slice(0, 80)}
+                        </p>
+                      </div>
+                      <button className="tc-ib" style={{ width: 24, height: 24 }} onClick={() => setReplyMsg(null)}>
+                        <X style={{ width: 12, height: 12 }} />
+                      </button>
+                    </div>
+                  )}
+
+
+
+
+
+
+
+
+                  
+                  {/* Input bar */}
+                  <div className="tc-bar">
+                    <button className="tc-ib" style={{ width: 36, height: 36 }} onClick={() => fileRef.current?.click()} disabled={uploading} title="Attach image">
+                      {uploading
+                        ? <Loader2 style={{ width: 16, height: 16, color: '#00f5ff', animation: 'spin 1s linear infinite' }} />
+                        : <Paperclip style={{ width: 16, height: 16 }} />
+                      }
+                    </button>
+                    <button className="tc-ib" style={{ width: 36, height: 36 }} onClick={() => fileRef.current?.click()} disabled={uploading} title="Camera">
+                      <Camera style={{ width: 16, height: 16 }} />
+                    </button>
+
+                    <textarea
+                      ref={taRef}
+                      className="tc-ta"
+                      placeholder="Message THRYLOS Team…"
+                      value={text}
+                      rows={1}
+                      onChange={e => { setText(e.target.value); autoGrow(); }}
+                      onKeyDown={onKey}
+                    />
+
+                    <button className="tc-ib" style={{ width: 34, height: 34, alignSelf: 'flex-end' }} title="Emoji">
+                      <Smile style={{ width: 16, height: 16 }} />
+                    </button>
+
+                    <button
+                      className={`tc-send ${text.trim() ? 'tc-send-on' : 'tc-send-off'}`}
+                      onClick={send}
+                      disabled={!text.trim() || sending}
+                    >
+                      {sending
+                        ? <Loader2 style={{ width: 15, height: 15, animation: 'spin 1s linear infinite' }} />
+                        : <Send style={{ width: 15, height: 15, marginLeft: 1 }} />
+                      }
+                    </button>
+                  </div>
+
+                  <p style={{ fontSize: 9.5, color: 'rgba(255,255,255,.1)', marginTop: 5, textAlign: 'right', margin: '5px 2px 0' }}>
+                    <kbd className="tc-kbd">Enter</kbd> send · <kbd className="tc-kbd">Shift+Enter</kbd> new line · right-click for options
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+
+            
+
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadImg} />
+          </div>
+        </ModuleLayout>
+      </div>
+    </>
+  );
+};
 
 
 export default TeamChat;
