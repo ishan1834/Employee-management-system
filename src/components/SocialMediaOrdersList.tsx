@@ -60,3 +60,17 @@ const SocialMediaOrdersList: React.FC<SocialMediaOrdersListProps> = ({ onEditOrd
       setIsLoading(false);
     }
   };
+    const filterOrders = () => {
+    if (!searchTerm) {
+      setFilteredOrders(orders);
+      return;
+    }
+
+    const filtered = orders.filter(order =>
+      order.service_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.order_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.post_account_link.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    setFilteredOrders(filtered);
+  };
