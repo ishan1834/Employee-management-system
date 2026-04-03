@@ -65,6 +65,31 @@ const SocialMediaOrdersList: React.FC<SocialMediaOrdersListProps> = ({ onEditOrd
       setFilteredOrders(orders);
       return;
     }
+        const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this order?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('social_media_orders')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Order deleted successfully!",
+      });
+
+      fetchOrders();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete order",
+        variant: "destructive",
+      });
+    }
+  };
 
     const filtered = orders.filter(order =>
       order.service_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
