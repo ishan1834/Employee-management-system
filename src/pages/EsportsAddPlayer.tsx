@@ -29,10 +29,10 @@ const EsportsAddPlayer: React.FC = () => {
 
   // Fetch player data if editing
   useEffect(() => {
-    if (editId) {
-      fetchPlayerData();
-    }
-  }, [editId]);
+  if (!editId) return;
+
+  fetchPlayerData(editId);
+}, [editId]);
 
   const fetchPlayerData = async () => {
     setIsFetching(true);
