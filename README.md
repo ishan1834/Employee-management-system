@@ -11,37 +11,62 @@
      ██║   ██╔══██║██╔══██╗  ╚██╔╝  ██║     ██║   ██║╚════██║
      ██║   ██║  ██║██║  ██║   ██║   ███████╗╚██████╔╝███████║
      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝ ╚═════╝ ╚══════╝
-                             I  N  D  I  A
+                         I  N  D  I  A
 ```
 
 <br/>
 
+
 ![Status](https://img.shields.io/badge/STATUS-LIVE-00ff88?style=for-the-badge&labelColor=0d0d0d)
+
 ![Portal](https://img.shields.io/badge/PORTAL-ADMIN_ONLY-e0a800?style=for-the-badge&labelColor=0d0d0d)
+
 ![Stack](https://img.shields.io/badge/STACK-REACT_·_SUPABASE_·_BREVO-61dafb?style=for-the-badge&labelColor=0d0d0d)
+
 ![Country](https://img.shields.io/badge/INDIA_🇮🇳-MSME_REGISTERED-ff9933?style=for-the-badge&labelColor=0d0d0d)
+
+
 
 <br/>
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white&labelColor=0d0d0d)
+
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=0d0d0d)
+
+
 ![Supabase](https://img.shields.io/badge/Supabase-Edge_Functions-3ECF8E?style=flat-square&logo=supabase&logoColor=white&labelColor=0d0d0d)
+
+
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white&labelColor=0d0d0d)
+
+
 ![Framer](https://img.shields.io/badge/Framer_Motion-11-FF0055?style=flat-square&logo=framer&logoColor=white&labelColor=0d0d0d)
+
+
 ![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=flat-square&logo=netlify&logoColor=white&labelColor=0d0d0d)
+
+
 ![Brevo](https://img.shields.io/badge/Brevo-Email_API-0B996E?style=flat-square&labelColor=0d0d0d)
+
+
 
 <br/>
 
 > ### *"Where Champions Are Made, Managed & Recognised."*
+>
+> 
 
 <br/>
+
+
 
 **[🌐 Admin Portal](https://admin.thrylos.in)** &nbsp;·&nbsp;
 **[🏠 Main Site](https://thrylos.in)** &nbsp;·&nbsp;
 **[🔐 Auth Portal](https://thrylosauth.in)** &nbsp;·&nbsp;
 **[🌍 Alt Domain](https://thrylosindia.in)** &nbsp;·&nbsp;
 **[📧 Support](mailto:support@thrylos.in)**
+
+
 
 Internal use only. Authorized admins should access the portal using their registered company email.
 
@@ -53,27 +78,55 @@ Internal use only. Authorized admins should access the portal using their regist
 
 ## 📌 Table of Contents
 
+
+
 - [What is THRYLOS?](#-what-is-thrylos)
+
+  
 - [Live Platform](#-live-platform)
+
+  
 - [Authentication System](#-authentication-system)
+
+  
 - [Dashboard Overview](#-dashboard-overview)
+
+  
 - [Data Management Modules](#-data-management-modules)
+
+  
 - [System Modules — Full Map](#-system-modules--full-map)
+
+  
 - [Email Infrastructure](#-email-infrastructure)
+
+  
 - [Tech Stack](#-tech-stack)
+
+  
 - [Project Structure](#-project-structure)
+
+  
 - [Legal & Compliance](#-legal--compliance)
+
+  
 - [Company Info](#-company)
 
 <br/>
 
 ---
 
+
+
 ## ⚔️ What is THRYLOS?
 
 **THRYLOS INDIA** is a purpose-built, production-grade **internal admin management portal** for operating a full-scale esports and digital operations platform in India. Every single module in this portal is **manually administered** — there is no public self-service. Admins manage everything: tournaments, team attendance, HR records, payroll documents, intern tracking, payments, certificates, audit logs, and real-time team communications — all from a single authenticated command center.
 
+
+
 This is not a template. This is a **live, operational platform** running India's esports administration stack.
+
+
 
 > ⚠️ **Skill-Games Only** — THRYLOS operates exclusively with **skill-based competitive games**. No gambling, no betting, no chance-based mechanics. Fully compliant with Indian gaming law and MSME regulations.
 
@@ -83,17 +136,17 @@ This is not a template. This is a **live, operational platform** running India's
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                        THRYLOS ADMIN ECOSYSTEM                               │
 │                                                                              │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌─────────────┐  │
-│  │  TOURNAMENT  │   │   EMPLOYEE   │   │    ESPORTS   │   │  ANALYTICS  │  │
-│  │  MANAGEMENT  │   │  OPERATIONS  │   │   PLATFORM   │   │  & REPORTS  │  │
-│  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘   └──────┬──────┘  │
-│         │                  │                  │                   │         │
-│         └──────────────────┴──────────┬───────┴───────────────────┘         │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌─────────────┐    │
+│  │  TOURNAMENT  │   │   EMPLOYEE   │   │    ESPORTS   │   │  ANALYTICS  │    │
+│  │  MANAGEMENT  │   │  OPERATIONS  │   │   PLATFORM   │   │  & REPORTS  │    │
+│  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘   └──────┬──────┘    │
+│         │                  │                  │                   │          │
+│         └──────────────────┴──────────┬───────┴───────────────────┘          │
 │                                       │                                      │
-│                          ┌────────────▼────────────┐                        │
-│                          │   SUPER ADMIN DASHBOARD  │                        │
-│                          │     admin.thrylos.in     │                        │
-│                          └─────────────────────────┘                        │
+│                          ┌────────────▼────────────┐                         │
+│                          │   SUPER ADMIN DASHBOAR  │                         │
+│                          │     admin.thrylos.in    │                         │
+│                          └─────────────────────────┘                         │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -130,41 +183,41 @@ Admin opens admin.thrylos.in
             │
             ▼
 ┌───────────────────────────┐
-│  1. Email Input            │
-│  Enter registered email    │
+│  1. Email Input           │
+│  Enter registered email   │
 └───────────┬───────────────┘
             │
             ▼
-┌───────────────────────────┐
-│  2. Location Capture       │
-│  Browser Geolocation API   │
-│  → Lat, Long, City, IP     │
-│    stored per login session│
-└───────────┬───────────────┘
+┌─────────────────────────────┐
+│  2. Location Capture        │
+│  Browser Geolocation API    │
+│  → Lat, Long, City, IP      │
+│    stored per login session │
+└───────────┬─────────────────┘
             │
             ▼
-┌───────────────────────────┐
-│  3. OTP Dispatch           │
-│  Supabase Edge Function    │
-│  calls Brevo REST API      │
-│  → 6-digit OTP via email   │
-│  → Expires in 5 minutes    │
-└───────────┬───────────────┘
+┌─────────────────────────────┐
+│  3. OTP Dispatch            │
+│  Supabase Edge Function     │
+│  calls Brevo REST API       │
+│  → 6-digit OTP via email    │
+│  → Expires in 5 minutes     │
+└───────────┬─────────────────┘
             │
             ▼
-┌───────────────────────────┐
-│  4. OTP Verification       │
-│  Single-use, server-side   │
-│  Validated by Edge Function│
-└───────────┬───────────────┘
+┌─────────────────────────────┐
+│  4. OTP Verification        │
+│  Single-use, server-side    │
+│  Validated by Edge Function │
+└───────────┬─────────────────┘
             │
             ▼
-┌───────────────────────────┐
-│  5. Session Established    │
-│  Role assigned from DB     │
-│  Supabase JWT issued       │
-│  Admin lands on Dashboard  │
-└───────────────────────────┘
+┌─────────────────────────────┐
+│  5. Session Established     │
+│  Role assigned from DB      │
+│  Supabase JWT issued        │
+│  Admin lands on Dashboard   │
+└─────────────────────────────┘
 ```
 
 ### Auth Architecture
@@ -178,6 +231,8 @@ Admin opens admin.thrylos.in
 | **Role Enforcement** | Row-Level Security (RLS) on all Supabase tables |
 | **Access Roles** | Super Admin · HR Admin · All Users · Module-specific |
 
+
+
 > **No password is ever stored or required.** Every login is verified by a time-limited OTP delivered to the admin's email.
 
 <br/>
@@ -186,19 +241,29 @@ Admin opens admin.thrylos.in
 
 ## 📊 Dashboard Overview
 
+
+
 Upon login, the Super Admin lands on a **live, data-rich command dashboard** with real-time metrics, personal task management, and team-wide visibility.
+
+
 
 ### 🗓️ Today's Tasks
 - Embedded personal task manager with progress tracking
 - Add, complete, and review daily tasks with visual progress bar
 - Synced with work logs for accountability and reporting
 
+
+
 ### 📈 Activity Summary
 - Live feed of all admin actions — attendance marks, module interactions, data changes
 - Filterable by **date** and **activity type**
 - Exportable as **CSV** or rendered as **Charts**
 
+
+
 ### 👑 Super Admin Panel
+
+
 
 Three collapsible insight panels for top-level operations:
 
@@ -385,12 +450,12 @@ All outbound email is powered by **Brevo API** invoked through **Supabase Edge F
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │
 │   Each Admin Account                                    │
-│   ├─ Daily Limit  : 15 emails / day                    │
-│   ├─ Sender       : @admin.thrylos.in                  │
-│   ├─ Engine       : Brevo Transactional REST API       │
-│   ├─ Trigger      : Supabase Edge Function             │
-│   ├─ Tracking     : Open rate, delivery, send count    │
-│   └─ Reset        : Midnight IST daily                 │
+│   ├─ Daily Limit  : 15 emails / day                     │
+│   ├─ Sender       : @admin.thrylos.in                   │
+│   ├─ Engine       : Brevo Transactional REST API        │
+│   ├─ Trigger      : Supabase Edge Function              │
+│   ├─ Tracking     : Open rate, delivery, send count     │
+│   └─ Reset        : Midnight IST daily                  │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
