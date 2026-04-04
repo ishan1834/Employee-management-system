@@ -20,6 +20,9 @@ const CERTIFICATE_FEE = 300;
 const DOMAIN = "thryntern.in";
 const WHATSAPP_COMMUNITY_LINK = "https://chat.whatsapp.com/JkxY2oRrpf83iYT0OM91t4?mode=gi_t";
 
+
+
+
 const ALL_SIDEBAR_ITEMS = [
   { icon: LayoutDashboard, label: "Overview", key: "dashboard" },
   { icon: FolderGit2, label: "My Projects", key: "projects" },
@@ -41,6 +44,9 @@ const bottomNavItems = [
   { icon: Bell, label: "Alerts", key: "notifications" },
   { icon: User, label: "Profile", key: "profile" },
 ];
+
+
+
 
 const toIST = (d: string) => new Date(d).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const toISTDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" });
@@ -81,6 +87,10 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+
+
+  
+
   useEffect(() => {
     if (!loading && !user) navigate("/login");
     if (!loading && profile && (!profile.phone || !profile.college || !profile.track)) navigate("/onboarding");
@@ -117,6 +127,9 @@ const Dashboard = () => {
     await refreshProfile();
   };
 
+
+
+  
   // Fetch existing coupon discount from profile
   useEffect(() => {
     const fetchDiscount = async () => {
@@ -140,6 +153,10 @@ const Dashboard = () => {
     });
   }, []);
 
+
+
+
+  
   const fetchAll = useCallback(async () => {
     if (!user) return;
     const [projRes, subRes, annRes, notRes, profilesRes, allSubsRes, resRes, badgeRes, ubRes, payRes, tcRes, wtRes] = await Promise.all([
@@ -181,6 +198,9 @@ const Dashboard = () => {
     }
   }, [user, profile?.track]);
 
+
+
+  
   useEffect(() => { if (user) fetchAll(); }, [user, fetchAll]);
   useEffect(() => { if (!user) return; const i = setInterval(fetchAll, 5000); return () => clearInterval(i); }, [user, fetchAll]);
 
@@ -205,6 +225,10 @@ const Dashboard = () => {
     else { toast({ title: "Project Submitted! 🎉" }); setExpandedProject(null); fetchAll(); }
   };
 
+
+
+
+  
   const actualCertFee = Math.max(0, CERTIFICATE_FEE - referralDiscount);
   const hasReferral = referralDiscount > 0;
 
@@ -230,6 +254,9 @@ const Dashboard = () => {
     toast({ title: "Avatar updated! ✨" });
   };
 
+
+
+  
   const saveProfile = async () => {
     if (!user) return;
     await supabase.from("profiles").update({ full_name: profileForm.full_name, phone: profileForm.phone, college: profileForm.college, branch: profileForm.branch, year: profileForm.year, linkedin_url: profileForm.linkedin, github_url: profileForm.github, bio: profileForm.bio, portfolio_url: profileForm.portfolio_url }).eq("id", user.id);
@@ -258,6 +285,9 @@ const Dashboard = () => {
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (!user || !profile) return null;
 
+
+  
+
   // Suspension check
   if ((profile as any).is_suspended) {
     return (
@@ -281,6 +311,9 @@ const Dashboard = () => {
     );
   }
 
+
+
+  
   // Approval gate - show pending approval screen with WhatsApp community link
   if (!(profile as any).is_approved) {
     return (
@@ -318,6 +351,9 @@ const Dashboard = () => {
     );
   }
 
+
+
+  
   const visibleTabs: string[] = (profile as any).visible_tabs || ALL_SIDEBAR_ITEMS.map(i => i.key);
   const sidebarItems = ALL_SIDEBAR_ITEMS.filter(i => visibleTabs.includes(i.key));
 
@@ -360,6 +396,9 @@ const Dashboard = () => {
     return url;
   };
 
+
+
+  
   const renderTab = () => {
     switch (activeTab) {
       case "dashboard": return (
@@ -394,6 +433,11 @@ const Dashboard = () => {
             </div>
           </div>
 
+
+
+
+          
+
           {/* Gamification */}
           <div className="glass-card-static p-5 rounded-2xl border border-border/40 bg-gradient-to-r from-primary/5 to-accent/5">
             <div className="flex items-center justify-between mb-3">
@@ -406,6 +450,11 @@ const Dashboard = () => {
             <div className="h-2.5 bg-secondary/50 rounded-full overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: `${levelProgress}%` }} transition={{ duration: 1 }} className="h-full rounded-full bg-gradient-to-r from-primary to-accent" /></div>
           </div>
 
+
+
+
+
+          
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
@@ -422,6 +471,12 @@ const Dashboard = () => {
             ))}
           </div>
 
+
+
+
+
+          
+
           {/* Badges */}
           {userBadges.length > 0 && (
             <div className="glass-card-static p-5 rounded-2xl border border-border/40">
@@ -431,6 +486,12 @@ const Dashboard = () => {
               ))}</div>
             </div>
           )}
+
+
+
+
+
+          
 
           {/* Progress */}
           <div className="glass-card-static p-5 rounded-2xl border border-border/40">
@@ -663,6 +724,209 @@ const Dashboard = () => {
           )}
         </div>
       );
+
+
+
+              case "offer-letter": return (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Offer Letter</h2>
+          {(() => {
+            const olStatus = (profile as any).offer_letter_status;
+            const olUrl = getOfferLetterUrl();
+            if (olStatus === "unlocked" && olUrl) {
+              return (
+                <div className="glass-card-static p-8 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/30 text-center space-y-4">
+                  <FileText className="w-12 h-12 text-blue-500 mx-auto" />
+                  <h3 className="text-xl font-bold text-foreground">Offer Letter Ready! 🎉</h3>
+                  <p className="text-sm text-muted-foreground">Your official offer letter is available for download.</p>
+                  <a href={olUrl} target="_blank" rel="noopener noreferrer" className="gradient-button px-6 py-3 rounded-lg text-sm font-bold text-primary-foreground inline-flex items-center gap-2"><Download className="w-4 h-4" /> Download Offer Letter</a>
+                </div>
+              );
+            }
+            return (
+              <div className="glass-card-static p-8 rounded-2xl border border-border/50 text-center space-y-4">
+                <FileText className="w-12 h-12 text-primary mx-auto" />
+                <h3 className="text-xl font-bold text-foreground">Offer Letter</h3>
+                <p className="text-sm text-muted-foreground">Your offer letter will be issued Shortly.</p>
+                {olStatus === "locked" && <p className="text-xs text-yellow-500 font-semibold">⏳ Awaiting Projects Approval</p>}
+              </div>
+            );
+          })()}
+        </div>
+      );
+
+      case "certificate": return (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Certificates</h2>
+          {(profile.certificate_status === "unlocked" || profile.certificate_status === "approved") && profile.certificate_url ? (
+            <div className="glass-card-static p-8 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border border-yellow-500/30 text-center space-y-4">
+              <Award className="w-12 h-12 text-yellow-500 mx-auto" />
+              <h3 className="text-xl font-bold text-foreground">Certificate Ready! 🎉</h3>
+              <p className="text-sm text-muted-foreground">Download your internship completion certificate.</p>
+              <a href={getCertificateUrl()} target="_blank" rel="noopener noreferrer" className="gradient-button px-6 py-3 rounded-lg text-sm font-bold text-primary-foreground inline-flex items-center gap-2"><Download className="w-4 h-4" /> Download Certificate</a>
+            </div>
+          ) : (
+            <div className="glass-card-static p-8 rounded-2xl border border-border/50 text-center space-y-3">
+              <Lock className="w-12 h-12 text-muted-foreground/60 mx-auto" />
+              <p className="text-lg font-bold text-foreground">Certificate Locked</p>
+              <p className="text-sm text-muted-foreground">Complete all projects and verify certificate payment to unlock.</p>
+              <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/30">
+                <div className="p-3 rounded-lg bg-secondary/30"><p className="text-xl font-bold text-primary">{approvedProjects}/{totalProjects}</p><p className="text-[10px] text-muted-foreground">Projects Approved</p></div>
+                <div className="p-3 rounded-lg bg-secondary/30"><p className="text-xl font-bold text-primary">{profile.payment_status === "paid" ? "✓" : "✗"}</p><p className="text-[10px] text-muted-foreground">Payment</p></div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+
+      case "announcements": return (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Announcements</h2>
+          {announcements.length === 0 ? <div className="glass-card-static p-12 rounded-2xl text-center"><p className="text-muted-foreground">No announcements</p></div> : (
+            <div className="space-y-3">{announcements.map(a => (
+              <div key={a.id} className={`glass-card-static p-4 rounded-xl border ${a.priority === "urgent" ? "border-red-500/40 bg-red-500/5" : a.priority === "important" ? "border-yellow-500/40 bg-yellow-500/5" : "border-border/50"}`}>
+                <p className="text-sm font-bold text-foreground">{a.priority === "urgent" ? "🚨 " : a.priority === "important" ? "⚠️ " : "ℹ️ "}{a.title}</p>
+                <p className="text-xs text-muted-foreground mt-1.5">{a.message}</p>
+                <p className="text-[10px] text-muted-foreground mt-2">{toISTDate(a.created_at)}</p>
+              </div>
+            ))}</div>
+          )}
+        </div>
+      );
+
+      case "notifications": return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">Notifications</h2>
+            {unreadCount > 0 && <button onClick={markAllRead} className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold">Mark all read</button>}
+          </div>
+          {notifications.length === 0 ? <div className="glass-card-static p-12 rounded-2xl text-center"><p className="text-muted-foreground">No notifications</p></div> : (
+            <div className="space-y-2">{notifications.map(n => (
+              <button key={n.id} onClick={() => markNotifRead(n.id)} className={`w-full glass-card-static p-4 rounded-xl text-left transition-all border ${!n.is_read ? "border-primary/50 bg-primary/5" : "border-border/50"}`}>
+                <div className="flex items-start gap-2">
+                  <div className={`w-2.5 h-2.5 rounded-full mt-1 ${!n.is_read ? "bg-primary" : "bg-muted-foreground/30"}`} />
+                  <div className="flex-1"><p className="font-bold text-foreground text-sm">{n.title}</p><p className="text-xs text-muted-foreground mt-0.5">{n.message}</p><p className="text-[10px] text-muted-foreground mt-1">{toIST(n.created_at)}</p></div>
+                </div>
+              </button>
+            ))}</div>
+          )}
+        </div>
+      );
+
+      case "profile": return (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">My Profile</h2>
+          <div className="glass-card-static p-5 rounded-2xl border border-border/50 space-y-5">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                {profile.avatar_url ? <img src={profile.avatar_url} className="w-20 h-20 rounded-2xl object-cover border-2 border-primary/20" /> : <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-3xl font-bold text-primary">{profile.full_name?.[0]}</div>}
+                <button onClick={() => fileInputRef.current?.click()} className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full gradient-button flex items-center justify-center shadow-lg"><Camera className="w-4 h-4 text-primary-foreground" /></button>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
+              </div>
+              <div>
+                <p className="font-bold text-foreground text-xl">{profile.full_name}</p>
+                <p className="text-xs text-muted-foreground">{profile.email}</p>
+                <p className="text-xs text-primary font-semibold mt-1">{profile.intern_id}</p>
+                <div className="flex gap-1.5 mt-1.5">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-primary font-semibold">{profile.track}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary border border-border text-foreground font-semibold">{profile.batch}</span>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-border/30 pt-4 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">Full Name</label><input value={profileForm.full_name} onChange={e => setProfileForm(p => ({...p, full_name: e.target.value}))} className={inputCls} /></div>
+                <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">Phone</label><input value={profileForm.phone} onChange={e => setProfileForm(p => ({...p, phone: e.target.value}))} className={inputCls} /></div>
+                <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">College</label><input value={profileForm.college} onChange={e => setProfileForm(p => ({...p, college: e.target.value}))} className={inputCls} /></div>
+                <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">Branch</label><input value={profileForm.branch} onChange={e => setProfileForm(p => ({...p, branch: e.target.value}))} className={inputCls} /></div>
+                <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">LinkedIn</label><input value={profileForm.linkedin} onChange={e => setProfileForm(p => ({...p, linkedin: e.target.value}))} className={inputCls} /></div>
+                <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">GitHub</label><input value={profileForm.github} onChange={e => setProfileForm(p => ({...p, github: e.target.value}))} className={inputCls} /></div>
+                <div className="sm:col-span-2"><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">Portfolio</label><input value={profileForm.portfolio_url} onChange={e => setProfileForm(p => ({...p, portfolio_url: e.target.value}))} className={inputCls} /></div>
+              </div>
+              <div><label className="text-[10px] text-muted-foreground mb-1 block font-semibold uppercase">Bio</label><textarea value={profileForm.bio} onChange={e => setProfileForm(p => ({...p, bio: e.target.value}))} className={`${inputCls} min-h-[80px]`} /></div>
+              <button onClick={saveProfile} className="gradient-button px-6 py-2.5 rounded-lg text-sm font-bold text-primary-foreground w-full">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      );
+
+      case "support": return (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Support</h2>
+          <div className="glass-card-static p-5 rounded-2xl border border-border/50 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-center"><p className="text-xs font-semibold text-foreground">Email</p><p className="text-[10px] text-muted-foreground mt-0.5">support@{DOMAIN}</p></div>
+              <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-center"><p className="text-xs font-semibold text-foreground">Live Chat</p><p className="text-[10px] text-muted-foreground mt-0.5">Mon-Fri 10am-6pm IST</p></div>
+              <a href={whatsappLink} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center hover:bg-green-500/15 transition-colors"><p className="text-xs font-semibold text-foreground">WhatsApp</p><p className="text-[10px] text-muted-foreground mt-0.5">Join Community</p></a>
+            </div>
+            <div className="border-t border-border/30 pt-4 space-y-3">
+              <textarea placeholder="Describe your issue..." value={supportMsg} onChange={e => setSupportMsg(e.target.value)} className={`${inputCls} min-h-[100px]`} />
+              <button onClick={sendSupport} disabled={!supportMsg.trim()} className="gradient-button px-6 py-2.5 rounded-lg text-sm font-bold text-primary-foreground disabled:opacity-50 w-full flex items-center justify-center gap-2"><Send className="w-4 h-4" /> Send</button>
+            </div>
+          </div>
+        </div>
+      );
+
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
+      <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-gradient-to-b from-card to-card/80 border-r border-border/50 p-5 sticky top-0">
+        <div className="mb-8"><div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/30 mb-3"><span className="gradient-text text-2xl font-black tracking-wider block">THRYNTERN</span><p className="text-[10px] text-muted-foreground font-medium">Internship Platform</p></div></div>
+        <nav className="flex-1 space-y-1">{sidebarItems.map(item => (
+          <button key={item.key} onClick={() => setActiveTab(item.key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === item.key ? "bg-gradient-to-r from-primary/25 to-accent/10 text-primary border border-primary/40" : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"}`}>
+            <item.icon className="w-4 h-4 flex-shrink-0" /><span className="flex-1 text-left text-xs">{item.label}</span>
+            {item.key === "notifications" && unreadCount > 0 && <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">{Math.min(unreadCount, 9)}</span>}
+          </button>
+        ))}</nav>
+        <div className="border-t border-border/50 pt-4 mt-4"><button onClick={() => { signOut(); navigate("/"); }} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-destructive hover:bg-destructive/10 w-full"><LogOut className="w-4 h-4" /> Logout</button></div>
+      </aside>
+
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 nav-glass h-14 flex items-center justify-between px-4 border-b border-border/30 backdrop-blur-xl">
+        <span className="gradient-text text-lg font-black tracking-wider">THRYNTERN</span>
+        <div className="flex items-center gap-1.5">
+          {unreadCount > 0 && <button onClick={() => setActiveTab("notifications")} className="relative p-1.5 rounded-lg"><Bell className="w-5 h-5 text-foreground" /><span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-destructive text-[8px] font-bold text-destructive-foreground flex items-center justify-center">{Math.min(unreadCount, 9)}</span></button>}
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 rounded-lg"><Menu className="w-5 h-5 text-foreground" /></button>
+        </div>
+      </div>
+
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 pt-14">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <motion.div initial={{ x: -300 }} animate={{ x: 0 }} className="absolute top-14 left-0 right-0 bg-card border-b border-border/50 max-h-[calc(100vh-3.5rem-5rem)] overflow-y-auto">
+            <nav className="p-2 space-y-0.5">{sidebarItems.map(item => (
+              <button key={item.key} onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }} className={`w-full flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${activeTab === item.key ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>
+                <item.icon className="w-4 h-4" /><span>{item.label}</span>
+                {item.key === "notifications" && unreadCount > 0 && <span className="ml-auto w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">{unreadCount}</span>}
+              </button>
+            ))}</nav>
+            <div className="border-t border-border/50 p-2"><button onClick={() => { signOut(); navigate("/"); setSidebarOpen(false); }} className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-semibold text-destructive w-full"><LogOut className="w-4 h-4" /> Logout</button></div>
+          </motion.div>
+        </div>
+      )}
+
+      <main className="flex-1 overflow-y-auto pt-18 lg:pt-6 pb-24 lg:pb-6">
+        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-4 lg:py-6">{renderTab()}</div>
+      </main>
+
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 nav-glass border-t border-border/30 backdrop-blur-xl">
+        <div className="flex items-center justify-around py-1.5 px-1">{bottomNavItems.map(item => (
+          <button key={item.key} onClick={() => setActiveTab(item.key)} className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 ${activeTab === item.key ? "text-primary" : "text-muted-foreground"}`}>
+            {item.isCenter ? (
+              <div className="w-11 h-11 -mt-5 rounded-2xl gradient-button flex items-center justify-center shadow-xl border-4 border-background"><item.icon className="w-5 h-5 text-primary-foreground" /></div>
+            ) : (
+              <item.icon className={`w-5 h-5 ${activeTab === item.key ? "scale-110" : ""}`} />
+            )}
+            <span className="text-[9px] font-bold">{item.label}</span>
+          </button>
+        ))}</div>
+      </div>
+    </div>
+  );
+};
+
 
 
 
