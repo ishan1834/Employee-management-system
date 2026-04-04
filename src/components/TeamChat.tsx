@@ -762,13 +762,38 @@ const MembersPanel = memo(({ admins, meId, onlineCount }: { admins: AdminProfile
 });
 
 // ── Date divider ──
-const DateDivider = memo(({ label }: { label: string }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 16px 8px' }}>
-    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.05))' }} />
-    <span className="tc-datepill">{label}</span>
-    <div style={{ flex: 1, height: 1, background: 'linear-gradient(270deg,transparent,rgba(255,255,255,.05))' }} />
-  </div>
-));
+const DateDivider = memo(
+  ({ label }: { label: string }) => {
+    const containerStyle: React.CSSProperties = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      margin: '16px 16px 8px',
+    };
+
+    const lineStyleLeft: React.CSSProperties = {
+      flex: 1,
+      height: 1,
+      background:
+        'linear-gradient(90deg,transparent,rgba(255,255,255,.05))',
+    };
+
+    const lineStyleRight: React.CSSProperties = {
+      flex: 1,
+      height: 1,
+      background:
+        'linear-gradient(270deg,transparent,rgba(255,255,255,.05))',
+    };
+
+    return (
+      <div style={containerStyle}>
+        <div style={lineStyleLeft} />
+        <span className="tc-datepill">{label}</span>
+        <div style={lineStyleRight} />
+      </div>
+    );
+  }
+);
 
 // ── Message types ──
 type MsgWithMeta = ChatMessage & {
