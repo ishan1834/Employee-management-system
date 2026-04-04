@@ -26,6 +26,51 @@ const PerformanceScores: React.FC = () => {
     </div>
   );
 };
+const calculateScores = (adminsData, attendanceData, techLogs, contentLogs) => {
+  const activeAdmins = adminsData?.filter(a => a.is_active) || [];
+  const workingDaysInMonth = getWorkingDays();
+
+  return activeAdmins.map(admin => {
+    const adminAttendance = attendanceData?.filter(a => a.admin_id === admin.id) || [];
+    const presentDays = adminAttendance.filter(a => a.status === 'present').length;
+    const lateDays = adminAttendance.filter(a => a.status === 'late').length;
+    const absentDays = adminAttendance.filter(a => a.status === 'absent').length;
+
+    const adminTechLogs = techLogs?.filter(l => l.admin_id === admin.id) || [];
+    const adminContentLogs = contentLogs?.filter(l => l.admin_id === admin.id) || [];
+    const totalLogs = adminTechLogs.length + adminContentLogs.length;
+
+    const attendanceScore = workingDaysInMonth > 0
+      ? Math.min(100, Math.round(((presentDays + lateDays * 0.5) / workingDaysInMonth) * 100))
+      : 0;
+
+    const punctualityScore = (presentDays + lateDays) > 0
+      ? Math.round((presentDays / (presentDays + lateDays)) * 100)
+      : 0;
+
+    const workLogScore = Math.min(100, totalLogs * 5);
+
+    const overall = Math.round(
+      attendanceScore * 0.4 +
+      punctualityScore * 0.3 +
+      workLogScore * 0.3
+    );
+
+    return {
+      admin_id: admin.id,
+      name: admin.name,
+      role: admin.role,
+      attendance_score: attendanceScore,
+      punctuality_score: punctualityScore,
+      work_log_score: workLogScore,
+      overall_score: overall,
+      present_days: presentDays,
+      late_days: lateDays,
+      absent_days: absentDays,
+      total_logs: totalLogs
+    };
+  });
+};
 import { supabase } from '@/integrations/supabase/client';
 
 const fetchData = async () => {
