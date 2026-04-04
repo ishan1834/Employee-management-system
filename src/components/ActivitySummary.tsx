@@ -48,19 +48,12 @@ import { toast } from '@/hooks/use-toast';
 // TYPES & INTERFACES
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface ActivityLog {
-  id: string;
-  admin_id: string;
-  action: string;
-  details: any;
-  created_at: string;
-  ip_address?: string;
-  user_agent?: string;
-  session_id?: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  category?: string;
-  admin?: { name: string; role: string; avatar_url?: string };
-}
+type Severity = 'low' | 'medium' | 'high' | 'critical';
+type DateRange = 'today' | 'yesterday' | 'week' | 'month' | 'custom';
+
+/* =========================
+   Core Entities
+========================= */
 
 interface Admin {
   id: string;
@@ -70,6 +63,27 @@ interface Admin {
   is_active?: boolean;
   last_activity?: string;
 }
+
+interface ActivityLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  details: any;
+  created_at: string;
+
+  ip_address?: string;
+  user_agent?: string;
+  session_id?: string;
+
+  severity?: Severity;
+  category?: string;
+
+  admin?: Pick<Admin, 'name' | 'role' | 'avatar_url'>;
+}
+
+/* =========================
+   Analytics & Metrics
+========================= */
 
 interface DailyActivity {
   date: string;
@@ -96,31 +110,40 @@ interface ActivityMetrics {
   today: number;
   thisWeek: number;
   thisMonth: number;
+
   avgPerDay: number;
+  growthRate: number;
+
   mostActiveHour: number;
   mostActiveDay: string;
-  topAction: string;
-  growthRate: number;
-  uniqueAdmins: number;
   peakDay: string;
+
+  topAction: string;
   criticalActions: number;
+  uniqueAdmins: number;
 }
 
 interface AdminStats {
   id: string;
   name: string;
   role: string;
+
   activityCount: number;
   lastActive: string;
   topAction: string;
   activityTrend: number;
 }
 
+/* =========================
+   UI & Filters
+========================= */
+
 interface FilterState {
   search: string;
   category: string;
-  severity: string;
-  dateRange: 'today' | 'yesterday' | 'week' | 'month' | 'custom';
+  severity: Severity | '';
+
+  dateRange: DateRange;
   startDate: Date;
   endDate: Date;
 }
@@ -131,7 +154,6 @@ interface RealTimeStats {
   actionsLastMinute: number;
   onlineAdmins: string[];
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
