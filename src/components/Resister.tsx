@@ -11,6 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 const isUrl = (s: string) => typeof s === "string" && (s.startsWith("http") || s.startsWith("/"));
 
+
+
+
 // Fallback icons per track name
 const TRACK_FALLBACK: Record<string, string> = {
   "Web Development": "🌐",
@@ -20,6 +23,9 @@ const TRACK_FALLBACK: Record<string, string> = {
   "Digital Marketing": "📣",
   "Cloud & DevOps": "☁️",
 };
+
+
+
 
 const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 const FEE = 300;
@@ -38,6 +44,9 @@ const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+
+
+  
   useEffect(() => {
     supabase.from("tracks").select("*").eq("status", "active").order("display_order").then(({ data }) => {
       if (data) setTracks(data);
@@ -58,6 +67,9 @@ const Register = () => {
     setReferralMsg(`Code applied — you save ₹${discount}`);
   };
 
+
+
+  
   const clearReferral = () => { update("referral", ""); setReferralStatus("idle"); setReferralDiscount(0); setReferralMsg(""); };
 
   const strength = () => {
@@ -104,12 +116,30 @@ const Register = () => {
     }
   };
 
+
+
+
+  
   // Section label
+
+
+
+  
   const SectionLabel = ({ children }: { children: React.ReactNode }) => (
     <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground/70 mb-3">{children}</p>
   );
 
+
+
+  
+
   // Shared input class
+
+
+
+
+
+  
   const inputCls = [
     "w-full px-4 py-3 rounded-xl",
     "bg-white/[0.04] border border-white/10",
@@ -118,6 +148,11 @@ const Register = () => {
     "transition-all duration-200",
   ].join(" ");
 
+
+
+
+
+  
   return (
     <div className="min-h-screen bg-background flex items-start justify-center px-4 py-14">
       {/* Subtle ambient bg blobs — no motion, pure CSS */}
@@ -148,6 +183,13 @@ const Register = () => {
 
           <form onSubmit={handleRegister} className="p-7 space-y-7">
 
+
+
+
+
+
+
+            
             {/* ── Personal Info ── */}
             <div className="space-y-3">
               <SectionLabel>Personal Info</SectionLabel>
@@ -180,9 +222,23 @@ const Register = () => {
               </div>
             </div>
 
+
+
+
+
+
+
+            
+
             {/* Divider */}
             <div className="h-px bg-white/[0.07]" />
 
+
+
+
+
+
+            
             {/* ── Year of Study ── */}
             <div className="space-y-3">
               <SectionLabel>Year of Study</SectionLabel>
@@ -208,6 +264,14 @@ const Register = () => {
             {/* Divider */}
             <div className="h-px bg-white/[0.07]" />
 
+
+
+
+
+
+
+            
+
             {/* ── Internship Track ── */}
             <div className="space-y-3">
               <SectionLabel>Choose Your Track</SectionLabel>
@@ -227,6 +291,13 @@ const Register = () => {
                           : "bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.05]",
                       ].join(" ")}
                     >
+
+
+
+
+
+
+                      
                       {/* Glow on selected */}
                       {selected && (
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/8 to-transparent pointer-events-none" />
@@ -260,6 +331,12 @@ const Register = () => {
                       </div>
 
                       {/* Text */}
+
+
+
+
+
+                      
                       <div className="min-w-0 flex-1">
                         <p className={`text-sm font-semibold truncate transition-colors ${selected ? "text-primary" : "text-foreground"}`}>
                           {t.name}
@@ -279,5 +356,153 @@ const Register = () => {
               </div>
             </div>
 
+
+
+            
+            {/* Divider */}
+            <div className="h-px bg-white/[0.07]" />
+
+            {/* ── Referral Code ── */}
+            <div className="space-y-3">
+              <SectionLabel>Referral Code <span className="normal-case font-normal text-muted-foreground/50">(optional)</span></SectionLabel>
+              <div className="relative">
+                <input
+                  value={form.referral}
+                  onChange={(e) => { update("referral", e.target.value); checkReferral(e.target.value); }}
+                  className={`${inputCls} pr-10 uppercase tracking-widest placeholder:normal-case placeholder:tracking-normal`}
+                  placeholder="e.g., THRY2025"
+                />
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                  {referralStatus === "checking" && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground/50" />}
+                  {referralStatus === "valid" && <Check className="w-4 h-4 text-emerald-400" />}
+                  {referralStatus === "invalid" && <XIcon className="w-4 h-4 text-red-400" />}
+                </div>
+              </div>
+              {referralMsg && (
+                <p className={`text-xs ${referralStatus === "valid" ? "text-emerald-400" : "text-red-400"}`}>
+                  {referralMsg}
+                </p>
+              )}
+              {referralStatus === "valid" && (
+                <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-2">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Original fee</span><span>₹{FEE}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-emerald-400">
+                    <span>Referral discount</span><span>−₹{referralDiscount}</span>
+                  </div>
+                  <div className="pt-2 border-t border-white/10 flex justify-between text-sm font-bold text-foreground">
+                    <span>Total payable</span><span>₹{FEE - referralDiscount}</span>
+                  </div>
+                  <button type="button" onClick={clearReferral}
+                    className="text-[11px] text-red-400/80 hover:text-red-400 transition-colors underline underline-offset-2 mt-1">
+                    Remove code
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+
+            
+            <div className="h-px bg-white/[0.07]" />
+
+
+
+
+            
+            {/* ── Password ── */}
+
+
+
+
+
+            
+            <div className="space-y-3">
+              <SectionLabel>Secure Your Account</SectionLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground/80">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPass ? "text" : "password"} required
+                      value={form.password} onChange={(e) => update("password", e.target.value)}
+                      className={`${inputCls} pr-11`} placeholder="••••••••"
+                    />
+                    <button type="button" onClick={() => setShowPass(!showPass)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {form.password && (
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all duration-300 ${strengthColor()}`} style={{ width: `${(strength() / 5) * 100}%` }} />
+                      </div>
+                      <span className={`text-[11px] font-medium ${strength() <= 1 ? "text-red-400" : strength() <= 3 ? "text-amber-400" : "text-emerald-400"}`}>
+                        {strengthLabel()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground/80">Confirm Password</label>
+                  <input
+                    type={showPass ? "text" : "password"} required
+                    value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)}
+                    className={`${inputCls} ${form.confirmPassword && form.confirmPassword !== form.password ? "border-red-500/50 focus:border-red-500/70" : ""}`}
+                    placeholder="••••••••"
+                  />
+                  {form.confirmPassword && form.confirmPassword !== form.password && (
+                    <p className="text-[11px] text-red-400 mt-1">Passwords don't match</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+
+
+
+            
+
+            {/* ── Submit ── */}
+            <button
+              type="submit" disabled={loading}
+              className="gradient-button relative w-full py-3.5 rounded-xl text-sm font-bold text-primary-foreground
+                flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed
+                transition-all duration-200 hover:opacity-90 active:scale-[0.99] mt-1 overflow-hidden group"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Creating Account…</>
+              ) : (
+                <><UserPlus className="w-4 h-4" /> Create Account <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></>
+              )}
+            </button>
+
+
+            
+          </form>
+
+
+
+
+
+          
+
+          {/* Footer */}
+          <div className="px-7 pb-6 text-center">
+            <p className="text-sm text-muted-foreground/60">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary font-semibold hover:underline underline-offset-2">
+                Sign In
+              </Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 export default Register;
