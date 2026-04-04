@@ -428,38 +428,160 @@ interface CtxMenu {
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-const ROLE_CFG: Record<string, { grad: string; color: string; dot: string; pillBg: string; pillColor: string; pillBorder: string }> = {
-  super_admin: { grad: 'linear-gradient(135deg,#f43f5e,#fb923c)', color: '#fb923c', dot: '#f43f5e', pillBg: 'rgba(244,63,94,0.1)', pillColor: '#fda4af', pillBorder: 'rgba(244,63,94,0.2)' },
-  admin:       { grad: 'linear-gradient(135deg,#8b5cf6,#6366f1)', color: '#a78bfa', dot: '#8b5cf6', pillBg: 'rgba(139,92,246,0.1)', pillColor: '#c4b5fd', pillBorder: 'rgba(139,92,246,0.2)' },
-  tech:        { grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', color: '#38bdf8', dot: '#3b82f6', pillBg: 'rgba(59,130,246,0.1)', pillColor: '#93c5fd', pillBorder: 'rgba(59,130,246,0.2)' },
-  content:     { grad: 'linear-gradient(135deg,#10b981,#14b8a6)', color: '#34d399', dot: '#10b981', pillBg: 'rgba(16,185,129,0.1)', pillColor: '#6ee7b7', pillBorder: 'rgba(16,185,129,0.2)' },
-  design:      { grad: 'linear-gradient(135deg,#ec4899,#d946ef)', color: '#f472b6', dot: '#ec4899', pillBg: 'rgba(236,72,153,0.1)', pillColor: '#f9a8d4', pillBorder: 'rgba(236,72,153,0.2)' },
-  moderator:   { grad: 'linear-gradient(135deg,#f59e0b,#fbbf24)', color: '#fbbf24', dot: '#f59e0b', pillBg: 'rgba(245,158,11,0.1)', pillColor: '#fcd34d', pillBorder: 'rgba(245,158,11,0.2)' },
-  hr:          { grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fbbf24', dot: '#f59e0b', pillBg: 'rgba(245,158,11,0.1)', pillColor: '#fcd34d', pillBorder: 'rgba(245,158,11,0.2)' },
-};
-const rCfg = (r: string) => ROLE_CFG[r] ?? { grad: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#a78bfa', dot: '#6366f1', pillBg: 'rgba(99,102,241,0.1)', pillColor: '#c4b5fd', pillBorder: 'rgba(99,102,241,0.2)' };
+type UserRole = string;
 
-const inits = (n: string) => n.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
-const fmtTime = (d: string) => new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-const fmtDate = (d: string) => {
-  const dd = new Date(d), now = new Date(), y = new Date(now);
-  y.setDate(now.getDate() - 1);
-  if (dd.toDateString() === now.toDateString()) return 'Today';
-  if (dd.toDateString() === y.toDateString()) return 'Yesterday';
-  return dd.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+type RoleConfig = {
+  grad: string;
+  color: string;
+  dot: string;
+  pillBg: string;
+  pillColor: string;
+  pillBorder: string;
 };
-const onlineSt = (last: string | null, isMe: boolean): 'online' | 'away' | 'offline' => {
+
+type Status = 'online' | 'away' | 'offline';
+
+/* =========================
+   Role Config
+========================= */
+
+const ROLE_CFG: Record<UserRole, RoleConfig> = {
+  super_admin: {
+    grad: 'linear-gradient(135deg,#f43f5e,#fb923c)',
+    color: '#fb923c',
+    dot: '#f43f5e',
+    pillBg: 'rgba(244,63,94,0.1)',
+    pillColor: '#fda4af',
+    pillBorder: 'rgba(244,63,94,0.2)',
+  },
+  admin: {
+    grad: 'linear-gradient(135deg,#8b5cf6,#6366f1)',
+    color: '#a78bfa',
+    dot: '#8b5cf6',
+    pillBg: 'rgba(139,92,246,0.1)',
+    pillColor: '#c4b5fd',
+    pillBorder: 'rgba(139,92,246,0.2)',
+  },
+  tech: {
+    grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)',
+    color: '#38bdf8',
+    dot: '#3b82f6',
+    pillBg: 'rgba(59,130,246,0.1)',
+    pillColor: '#93c5fd',
+    pillBorder: 'rgba(59,130,246,0.2)',
+  },
+  content: {
+    grad: 'linear-gradient(135deg,#10b981,#14b8a6)',
+    color: '#34d399',
+    dot: '#10b981',
+    pillBg: 'rgba(16,185,129,0.1)',
+    pillColor: '#6ee7b7',
+    pillBorder: 'rgba(16,185,129,0.2)',
+  },
+  design: {
+    grad: 'linear-gradient(135deg,#ec4899,#d946ef)',
+    color: '#f472b6',
+    dot: '#ec4899',
+    pillBg: 'rgba(236,72,153,0.1)',
+    pillColor: '#f9a8d4',
+    pillBorder: 'rgba(236,72,153,0.2)',
+  },
+  moderator: {
+    grad: 'linear-gradient(135deg,#f59e0b,#fbbf24)',
+    color: '#fbbf24',
+    dot: '#f59e0b',
+    pillBg: 'rgba(245,158,11,0.1)',
+    pillColor: '#fcd34d',
+    pillBorder: 'rgba(245,158,11,0.2)',
+  },
+  hr: {
+    grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+    color: '#fbbf24',
+    dot: '#f59e0b',
+    pillBg: 'rgba(245,158,11,0.1)',
+    pillColor: '#fcd34d',
+    pillBorder: 'rgba(245,158,11,0.2)',
+  },
+};
+
+const DEFAULT_ROLE_CFG: RoleConfig = {
+  grad: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+  color: '#a78bfa',
+  dot: '#6366f1',
+  pillBg: 'rgba(99,102,241,0.1)',
+  pillColor: '#c4b5fd',
+  pillBorder: 'rgba(99,102,241,0.2)',
+};
+
+const rCfg = (r: string): RoleConfig => ROLE_CFG[r] ?? DEFAULT_ROLE_CFG;
+
+/* =========================
+   Utils
+========================= */
+
+const inits = (n: string) =>
+  n
+    .split(' ')
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+const fmtTime = (d: string) =>
+  new Date(d).toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+const fmtDate = (d: string) => {
+  const dd = new Date(d);
+  const now = new Date();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  if (dd.toDateString() === now.toDateString()) return 'Today';
+  if (dd.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+  return dd.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+};
+
+const onlineSt = (last: string | null, isMe: boolean): Status => {
   if (isMe) return 'online';
   if (!last) return 'offline';
-  const m = (Date.now() - new Date(last).getTime()) / 60000;
-  return m < 10 ? 'online' : m < 60 ? 'away' : 'offline';
+
+  const minutes = (Date.now() - new Date(last).getTime()) / 60000;
+
+  if (minutes < 10) return 'online';
+  if (minutes < 60) return 'away';
+  return 'offline';
 };
-const ST = { online: '#22c55e', away: '#f59e0b', offline: '#2d2d44' };
+
+const ST: Record<Status, string> = {
+  online: '#22c55e',
+  away: '#f59e0b',
+  offline: '#2d2d44',
+};
+
 const isImg = (m: string) => m.startsWith('📷 Shared an image:');
-const getUrl = (m: string) => m.replace('📷 Shared an image: ', '');
+
+const getUrl = (m: string) =>
+  m.replace('📷 Shared an image: ', '');
+
 const REPLY_PREFIX = '↩REPLY:';
-const PINNED_MSG = 'Sprint retro tomorrow 11 AM — all hands required 📌';
-const EMOJIS = ['👍', '🔥', '🚀', '💯', '✅', '❤️', '😂', '👀', '🎯', '⚡', '🙌', '💬'];
+
+const PINNED_MSG =
+  'Sprint retro tomorrow 11 AM — all hands required 📌';
+
+const EMOJIS = [
+  '👍', '🔥', '🚀', '💯', '✅', '❤️',
+  '😂', '👀', '🎯', '⚡', '🙌', '💬',
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
