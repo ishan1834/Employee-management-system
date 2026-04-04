@@ -588,14 +588,35 @@ const EMOJIS = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Online dot ──
-const OnlineDot = memo(({ status }: { status: 'online' | 'away' | 'offline' }) => (
-  <span style={{ position: 'absolute', bottom: -2, right: -2, width: 11, height: 11, borderRadius: '50%', border: '2px solid #000', background: ST[status], zIndex: 1 }}>
-    {status === 'online' && (
-      <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: ST.online, animation: 'tc-ping 2.4s cubic-bezier(0,0,.2,1) infinite' }} />
-    )}
-  </span>
-));
+const OnlineDot = memo(
+  ({ status }: { status: 'online' | 'away' | 'offline' }) => {
+    const baseStyle: React.CSSProperties = {
+      position: 'absolute',
+      bottom: -2,
+      right: -2,
+      width: 11,
+      height: 11,
+      borderRadius: '50%',
+      border: '2px solid #000',
+      background: ST[status],
+      zIndex: 1,
+    };
 
+    const pingStyle: React.CSSProperties = {
+      position: 'absolute',
+      inset: 0,
+      borderRadius: '50%',
+      background: ST.online,
+      animation: 'tc-ping 2.4s cubic-bezier(0,0,.2,1) infinite',
+    };
+
+    return (
+      <span style={baseStyle}>
+        {status === 'online' && <span style={pingStyle} />}
+      </span>
+    );
+  }
+);
 // ── Avatar block ──
 const AdminAv = memo(({ admin, size = 34 }: { admin: Partial<AdminProfile> & { name: string; role: string }; size?: number }) => {
   const cfg = rCfg(admin.role);
