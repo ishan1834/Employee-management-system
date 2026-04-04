@@ -88,5 +88,22 @@ const fetchData = async () => {
 useEffect(() => {
   fetchData();
 }, []);
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+
+const filtered = scores.filter(s =>
+  s.name?.toLowerCase().includes(search.toLowerCase()) ||
+  s.role?.toLowerCase().includes(search.toLowerCase())
+);
+
+<div className="mb-4 relative">
+  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+  <Input
+    placeholder="Search by name or role..."
+    value={search}
+    onChange={e => setSearch(e.target.value)}
+    className="pl-10 bg-white/5 border-white/10"
+  />
+</div>
 
 export default PerformanceScores;
