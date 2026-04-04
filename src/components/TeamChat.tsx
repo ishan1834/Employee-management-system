@@ -376,20 +376,55 @@ const STYLES = `
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
+type UserRole = string;
+
+/* =========================
+   Chat
+========================= */
+
 interface ChatMessage {
   id: string;
   sender_id: string;
   message: string;
   created_at: string;
-  sender?: { name: string; role: string; avatar?: string };
-}
-interface AdminProfile {
-  id: string; user_id: string | null; name: string; email: string;
-  role: string; avatar: string | null; is_active: boolean;
-  last_login: string | null; created_at: string; updated_at: string;
-}
-interface CtxMenu { x: number; y: number; msg: ChatMessage; isOwn: boolean; }
 
+  sender?: {
+    name: string;
+    role: UserRole;
+    avatar?: string;
+  };
+}
+
+/* =========================
+   Admin
+========================= */
+
+interface AdminProfile {
+  id: string;
+  user_id: string | null;
+
+  name: string;
+  email: string;
+  role: UserRole;
+
+  avatar: string | null;
+  is_active: boolean;
+
+  last_login: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/* =========================
+   UI State
+========================= */
+
+interface CtxMenu {
+  x: number;
+  y: number;
+  msg: ChatMessage;
+  isOwn: boolean;
+}
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
