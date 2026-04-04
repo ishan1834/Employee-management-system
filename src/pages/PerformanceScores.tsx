@@ -105,5 +105,38 @@ const filtered = scores.filter(s =>
     className="pl-10 bg-white/5 border-white/10"
   />
 </div>
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+
+const getRank = (index: number) => {
+  if (index === 0) return '🥇';
+  if (index === 1) return '🥈';
+  if (index === 2) return '🥉';
+  return `#${index + 1}`;
+};
+
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'text-green-400';
+  if (score >= 60) return 'text-blue-400';
+  if (score >= 40) return 'text-yellow-400';
+  return 'text-red-400';
+};
+
+{filtered.map((score, i) => (
+  <Card key={score.admin_id}>
+    <CardContent>
+      <div className="flex justify-between">
+        <span>{getRank(i)}</span>
+        <span className={getScoreColor(score.overall_score)}>
+          {score.overall_score}%
+        </span>
+      </div>
+
+      <Progress value={score.attendance_score} />
+      <Progress value={score.punctuality_score} />
+      <Progress value={score.work_log_score} />
+    </CardContent>
+  </Card>
+))}
 
 export default PerformanceScores;
