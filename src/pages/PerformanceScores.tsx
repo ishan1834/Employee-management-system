@@ -94,7 +94,6 @@ const PerformanceScores: React.FC = () => {
     s.name?.toLowerCase().includes(search.toLowerCase()) ||
     s.role?.toLowerCase().includes(search.toLowerCase())
   );
-
   return (
     <div className="min-h-screen bg-black">
       <Header />
