@@ -631,30 +631,90 @@ const AdminAv = memo(({ admin, size = 34 }: { admin: Partial<AdminProfile> & { n
 });
 
 // ── Member row in sidebar ──
-const MemberRow = memo(({ admin, isMe }: { admin: AdminProfile; isMe: boolean }) => {
-  const st = onlineSt(admin.last_login, isMe);
-  const cfg = rCfg(admin.role);
-  const roleLabel = (roleNames[admin.role as keyof typeof roleNames] ?? admin.role).split(' ')[0];
-  return (
-    <div className="tc-mrow">
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        <AdminAv admin={admin} size={32} />
-        <OnlineDot status={st} />
+const MemberRow = memo(
+  ({ admin, isMe }: { admin: AdminProfile; isMe: boolean }) => {
+    const st = onlineSt(admin.last_login, isMe);
+    const cfg = rCfg(admin.role);
+
+    const roleLabel = (
+      roleNames[admin.role as keyof typeof roleNames] ?? admin.role
+    )
+      .split(' ')[0];
+
+    const nameStyle: React.CSSProperties = {
+      fontSize: 12.5,
+      fontWeight: 600,
+      color: 'rgba(255,255,255,.88)',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      lineHeight: 1.3,
+      margin: 0,
+    };
+
+    const youStyle: React.CSSProperties = {
+      color: 'rgba(255,255,255,.25)',
+      fontWeight: 400,
+      fontSize: 10.5,
+      marginLeft: 4,
+    };
+
+    const statusStyle: React.CSSProperties = {
+      fontSize: 10.5,
+      color:
+        st === 'online'
+          ? '#4ade80'
+          : st === 'away'
+          ? '#fbbf24'
+          : 'rgba(255,255,255,.2)',
+      lineHeight: 1.3,
+      margin: 0,
+    };
+
+    const roleStyle: React.CSSProperties = {
+      fontSize: 8.5,
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: '.07em',
+      padding: '2px 6px',
+      borderRadius: 5,
+      background: cfg.pillBg,
+      color: cfg.pillColor,
+      border: `1px solid ${cfg.pillBorder}`,
+      flexShrink: 0,
+      fontFamily: "'Syne',sans-serif",
+    };
+
+    return (
+      <div className="tc-mrow">
+        {/* Avatar + Status */}
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <AdminAv admin={admin} size={32} />
+          <OnlineDot status={st} />
+        </div>
+
+        {/* Name + Status */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={nameStyle}>
+            {admin.name}
+            {isMe && <span style={youStyle}>(you)</span>}
+          </p>
+
+          <p style={statusStyle}>
+            {st === 'online'
+              ? 'Active now'
+              : st === 'away'
+              ? 'Away'
+              : 'Offline'}
+          </p>
+        </div>
+
+        {/* Role Badge */}
+        <span style={roleStyle}>{roleLabel}</span>
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(255,255,255,.88)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3, margin: 0 }}>
-          {admin.name}{isMe && <span style={{ color: 'rgba(255,255,255,.25)', fontWeight: 400, fontSize: 10.5, marginLeft: 4 }}>(you)</span>}
-        </p>
-        <p style={{ fontSize: 10.5, color: st === 'online' ? '#4ade80' : st === 'away' ? '#fbbf24' : 'rgba(255,255,255,.2)', lineHeight: 1.3, margin: 0 }}>
-          {st === 'online' ? 'Active now' : st === 'away' ? 'Away' : 'Offline'}
-        </p>
-      </div>
-      <span style={{ fontSize: 8.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', padding: '2px 6px', borderRadius: 5, background: cfg.pillBg, color: cfg.pillColor, border: `1px solid ${cfg.pillBorder}`, flexShrink: 0, fontFamily: "'Syne',sans-serif" }}>
-        {roleLabel}
-      </span>
-    </div>
-  );
-});
+    );
+  }
+);
 
 // ── Members panel ──
 const MembersPanel = memo(({ admins, meId, onlineCount }: { admins: AdminProfile[]; meId: string; onlineCount: number }) => {
