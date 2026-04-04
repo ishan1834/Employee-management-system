@@ -26,5 +26,22 @@ const PerformanceScores: React.FC = () => {
     </div>
   );
 };
+import { supabase } from '@/integrations/supabase/client';
+
+const fetchData = async () => {
+  const [{ data: adminsData }, { data: attendanceData }, { data: techLogs }, { data: contentLogs }] = await Promise.all([
+    supabase.from('admins').select('id, name, role, is_active'),
+    supabase.from('attendance').select('*').gte('date', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`),
+    supabase.from('tech_work_logs').select('*').gte('created_at', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`),
+    supabase.from('content_work_logs').select('*').gte('created_at', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`)
+  ]);
+
+  setAdmins(adminsData || []);
+  setLoading(false);
+};
+
+useEffect(() => {
+  fetchData();
+}, []);
 
 export default PerformanceScores;
