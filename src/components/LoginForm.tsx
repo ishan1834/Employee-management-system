@@ -131,7 +131,7 @@ const LoginForm: React.FC = () => {
   };
 
   // Sub-components for cleaner render
-  const MotionWrapper = ({ children }: { children: React.ReactNode }) => (
+  const MotionWrapper = ({ children, key }: { children: React.ReactNode; key?: string }) => (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -202,9 +202,55 @@ const LoginForm: React.FC = () => {
                         placeholder="name@thrylos.com"
                         className="bg-zinc-900/50 border-zinc-800 h-12 pl-10 focus:ring-orange-500"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                       />
                       <Mail className="absolute left-3 top-3.5 w-4 h-4 text-zinc-500" />
                       <button
                         type="button"
-                        className="absolute right-3 top-3.5 text-zinc-500 hover:text-zinc-3
+                        className="absolute right-3 top-3.5 text-zinc-500 hover:text-zinc-300"
+                        onClick={() => setShowEmailPreview(!showEmailPreview)}
+                      >
+                        {showEmailPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <Button className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold h-12" onClick={handleSendOTP} disabled={isLoading || !email}>
+                    {isLoading ? <Loader2 className="animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
+                    Send Secure Code
+                  </Button>
+                </div>
+              </MotionWrapper>
+            )}
+
+            {step === 'otp' && (
+              <MotionWrapper key="otp">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-widest text-zinc-500">Enter 6-Digit Code</Label>
+                    <p className="text-xs text-zinc-400">Sent to {otpSentTo}</p>
+                  </div>
+                  <InputOTP value={otp} onChange={setOtp} maxLength={6}>
+                    <InputOTPGroup className="flex justify-between gap-2">
+                      {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <InputOTPSlot key={i} index={i} className="h-12 text-2xl font-bold bg-zinc-900/50 border-zinc-800" />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <Button className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold h-12" onClick={handleVerifyOTP} disabled={isLoading || otp.length !== 6}>
+                    {isLoading ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                    Verify & Access
+                  </Button>
+                  <Button variant="ghost" className="w-full text-zinc-400 hover:text-white" onClick={handleSendOTP} disabled={resendCooldown > 0}>
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
+                  </Button>
+                </div>
+              </MotionWrapper>
+            )}
+                                </AnimatePresence>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        );
+                      };
+                      
+                      export default LoginForm;
