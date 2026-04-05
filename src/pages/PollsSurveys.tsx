@@ -39,7 +39,31 @@ useEffect(() => {
   const [loading, setLoading] = useState(true);
 
   const isSuperAdmin = adminProfile?.role === 'super_admin';
+const handleCreate = async () => {
+  const validOptions = options.filter(o => o.trim());
 
+  if (!question.trim() || validOptions.length < 2) {
+    toast({ title: 'Need question and at least 2 options', variant: 'destructive' });
+    return;
+  }
+
+  const { error } = await supabase.from('polls' as any).insert({
+    question,
+    options: validOptions.map(o => ({ text: o })),
+    created_by: adminProfile?.id
+  } as any);
+
+  if (error) {
+    toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    return;
+  }
+
+  toast({ title: 'Poll created!' });
+  setQuestion('');
+  setOptions(['', '']);
+  setShowForm(false);
+  fetchData();
+};
   return (
     <div className="min-h-screen bg-black">
       <Header />
