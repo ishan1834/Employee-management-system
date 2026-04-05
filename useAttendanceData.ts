@@ -1,8 +1,4 @@
-// ============================================================
-// useAttendanceData.ts — Version 3 (Enterprise Level)
-// ============================================================
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { AttendanceRecord } from './types';
@@ -13,6 +9,7 @@ import { AttendanceRecord } from './types';
 
 interface AdminProfile {
   id: string;
+  role?: string;
 }
 
 interface UseAttendanceDataProps {
@@ -41,46 +38,42 @@ export const useAttendanceData = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* ================= PAGINATION ================= */
+  /* ================= CACHE KEY ================= */
 
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
-
-  /* ================= FILTERS ================= */
-
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  /* ================= ABORT CONTROLLER ================= */
-
-  const abortRef = useRef<AbortController | null>(null);
+  const cacheKey = `attendance-${format(selectedDate, 'yyyy-MM-dd')}`;
+  const monthlyKey = `attendance-month-${format(selectedMonth, 'yyyy-MM')}`;
 
   /* ============================================================ */
-  /* RETRY SYSTEM (NEW)                                           */
+  /* LOAD FROM CACHE (NEW FEATURE)                                */
   /* ============================================================ */
 
-  const retryFetch = async (fn: Function, retries = 2) => {
+  const loadFromCache = () => {
     try {
-      await fn();
+      const cached = localStorage.getItem(cacheKey);
+      const cachedMonth = localStorage.getItem(monthlyKey);
+
+      if (cached) setAttendanceData(JSON.parse(cached));
+      if (cachedMonth) setMonthlyAttendance(JSON.parse(cachedMonth));
     } catch (err) {
-      if (retries > 0) {
-        console.warn('Retrying...', retries);
-        return retryFetch(fn, retries - 1);
-      } else {
-        throw err;
-      }
+      console.warn('Cache error', err);
     }
   };
 
   /* ============================================================ */
-  /* FETCH FUNCTIONS                                              */
+  /* SAVE TO CACHE                                                */
+  /* ============================================================ */
+
+  const saveToCache = (data: AttendanceRecord[], isMonthly = false) => {
+    const key = isMonthly ? monthlyKey : cacheKey;
+    localStorage.setItem(key, JSON.stringify(data));
+  };
+
+  /* ============================================================ */
+  /* FETCH                                                        */
   /* ============================================================ */
 
   const fetchAttendanceData = useCallback(async () => {
-    if (!isSuperAdmin) return;
-
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
+    if (!adminProfile) return;
 
     setLoading(true);
     setError(null);
@@ -88,126 +81,110 @@ export const useAttendanceData = ({
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
-      await retryFetch(async () => {
-        const { data, error } = await supabase
-          .from('attendance')
-          .select(`*, admin:admins!admin_id(name)`)
-          .eq('date', dateStr)
-          .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      let query = supabase
+        .from('attendance')
+        .select(`*, admin:admins!admin_id(name, role)`)
+        .eq('date', dateStr);
 
-        if (error) throw error;
+      // Role-based control
+      if (!isSuperAdmin) {
+        query = query.eq('admin_id', adminProfile.id);
+      }
 
-        setAttendanceData(data || []);
-      });
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      setAttendanceData(data || []);
+      saveToCache(data || []);
 
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, page, isSuperAdmin]);
+  }, [selectedDate, adminProfile, isSuperAdmin]);
 
   const fetchMonthlyAttendance = useCallback(async () => {
     if (!adminProfile) return;
-
-    setLoading(true);
 
     try {
       const start = format(startOfMonth(selectedMonth), 'yyyy-MM-dd');
       const end = format(endOfMonth(selectedMonth), 'yyyy-MM-dd');
 
-      await retryFetch(async () => {
-        const { data, error } = await supabase
-          .from('attendance')
-          .select('*')
-          .gte('date', start)
-          .lte('date', end);
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .gte('date', start)
+        .lte('date', end);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setMonthlyAttendance(data || []);
-      });
+      setMonthlyAttendance(data || []);
+      saveToCache(data || [], true);
 
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   }, [selectedMonth, adminProfile]);
 
   /* ============================================================ */
-  /* OPTIMISTIC UPDATE (NEW)                                      */
+  /* BACKGROUND SYNC (NEW FEATURE)                                */
   /* ============================================================ */
 
-  const markAttendanceOptimistic = async (newRecord: AttendanceRecord) => {
-    // optimistic update
-    setAttendanceData(prev => [newRecord, ...prev]);
+  const intervalRef = useRef<any>(null);
 
-    try {
-      const { error } = await supabase
-        .from('attendance')
-        .insert([newRecord]);
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      fetchAttendanceData();
+    }, 15000); // every 15 sec
 
-      if (error) throw error;
-
-    } catch (err) {
-      console.error(err);
-
-      // rollback if failed
-      setAttendanceData(prev =>
-        prev.filter(r => r.id !== newRecord.id)
-      );
-    }
-  };
+    return () => clearInterval(intervalRef.current);
+  }, [fetchAttendanceData]);
 
   /* ============================================================ */
-  /* FILTERED DATA (NEW)                                          */
+  /* DERIVED ANALYTICS (NEW)                                      */
   /* ============================================================ */
 
-  const filteredData = attendanceData.filter(record => {
-    const matchStatus =
-      statusFilter === 'all' || record.status === statusFilter;
+  const stats = useMemo(() => {
+    const present = attendanceData.filter(a => a.status === 'present').length;
+    const late = attendanceData.filter(a => a.status === 'late').length;
+    const absent = attendanceData.filter(a => a.status === 'absent').length;
 
-    const matchSearch =
-      record.admin?.name
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase());
+    const total = present + late + absent;
 
-    return matchStatus && matchSearch;
-  });
+    return {
+      present,
+      late,
+      absent,
+      total,
+      percentage: total ? Math.round((present / total) * 100) : 0,
+    };
+  }, [attendanceData]);
 
   /* ============================================================ */
-  /* EFFECT                                                       */
+  /* INIT                                                         */
   /* ============================================================ */
 
   useEffect(() => {
+    loadFromCache();
     fetchAttendanceData();
     fetchMonthlyAttendance();
-  }, [selectedDate, selectedMonth, page]);
+  }, [selectedDate, selectedMonth]);
 
   /* ============================================================ */
   /* RETURN                                                       */
   /* ============================================================ */
 
   return {
-    attendanceData: filteredData,
+    attendanceData,
     monthlyAttendance,
 
     loading,
     error,
 
-    // pagination
-    page,
-    setPage,
+    stats,
 
-    // filters
-    statusFilter,
-    setStatusFilter,
-    searchQuery,
-    setSearchQuery,
-
-    // actions
     refetch: fetchAttendanceData,
-    markAttendanceOptimistic,
   };
 };
