@@ -10,9 +10,15 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
+
+
+
 /* ===================================================== */
 /*                LAZY LOADED PAGES                      */
 /* ===================================================== */
+
+
+
 
 const Index = lazy(() => import('@/pages/Index'));
 const Login = lazy(() => import('@/pages/Login'));
@@ -54,9 +60,15 @@ const PerformanceScores = lazy(() => import('@/pages/PerformanceScores'));
 const AdminReport = lazy(() => import('@/pages/AdminReport'));
 const BirthdayReminders = lazy(() => import('@/pages/BirthdayReminders'));
 
+
+
+
 /* ===================================================== */
 /*                LOADING FALLBACK                       */
 /* ===================================================== */
+
+
+
 
 const Loader = () => (
   <div className="w-full h-screen flex items-center justify-center">
