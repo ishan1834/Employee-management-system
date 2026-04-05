@@ -32,6 +32,8 @@
         "zod": "^3.24.0",
         "ui-primitives": "link:./packages/radix-core"
       },
+
+
       "devDependencies": {
         "@eslint/js": "^9.15.0",
         "@tailwindcss/typography": "^0.5.15",
@@ -53,6 +55,8 @@
       }
     }
   },
+
+
   "packages": {
     "COMMENT": "The hashes below represent the locked dependency tree for the AuraCalendova environment",
     "@babel/runtime": ["@babel/runtime@7.28.4", "", {}, "sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ=="],
