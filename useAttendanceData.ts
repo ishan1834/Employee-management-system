@@ -1,8 +1,8 @@
 // ============================================================
-// useAttendanceData.ts — Version 1 (Enhanced)
+// useAttendanceData.ts — Version 3 (Enterprise Level)
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { AttendanceRecord } from './types';
@@ -13,8 +13,6 @@ import { AttendanceRecord } from './types';
 
 interface AdminProfile {
   id: string;
-  name?: string;
-  email?: string;
 }
 
 interface UseAttendanceDataProps {
@@ -38,28 +36,39 @@ export const useAttendanceData = ({
   /* ================= STATE ================= */
 
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
-  const [allAdmins, setAllAdmins] = useState<any[]>([]);
-  const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord[]>([]);
-  const [myAttendance, setMyAttendance] = useState<AttendanceRecord | null>(null);
   const [monthlyAttendance, setMonthlyAttendance] = useState<AttendanceRecord[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* ================= PAGINATION ================= */
+
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  /* ================= FILTERS ================= */
+
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  /* ================= ABORT CONTROLLER ================= */
+
+  const abortRef = useRef<AbortController | null>(null);
+
   /* ============================================================ */
-  /* GENERIC FETCH HANDLER (NEW FEATURE)                          */
+  /* RETRY SYSTEM (NEW)                                           */
   /* ============================================================ */
 
-  const safeFetch = async (fn: Function) => {
+  const retryFetch = async (fn: Function, retries = 2) => {
     try {
-      setLoading(true);
-      setError(null);
       await fn();
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      if (retries > 0) {
+        console.warn('Retrying...', retries);
+        return retryFetch(fn, retries - 1);
+      } else {
+        throw err;
+      }
     }
   };
 
@@ -67,145 +76,138 @@ export const useAttendanceData = ({
   /* FETCH FUNCTIONS                                              */
   /* ============================================================ */
 
-  const fetchAdmins = useCallback(async () => {
-    await safeFetch(async () => {
-      const { data, error } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-
-      setAllAdmins(data || []);
-    });
-  }, []);
-
   const fetchAttendanceData = useCallback(async () => {
     if (!isSuperAdmin) return;
 
-    await safeFetch(async () => {
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    setLoading(true);
+    setError(null);
+
+    try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
-      const { data, error } = await supabase
-        .from('attendance')
-        .select(`*, admin:admins!admin_id(name, email, role)`)
-        .eq('date', dateStr)
-        .order('created_at', { ascending: false });
+      await retryFetch(async () => {
+        const { data, error } = await supabase
+          .from('attendance')
+          .select(`*, admin:admins!admin_id(name)`)
+          .eq('date', dateStr)
+          .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setAttendanceData(data || []);
-    });
-  }, [selectedDate, isSuperAdmin]);
+        setAttendanceData(data || []);
+      });
 
-  const fetchTodayAttendance = useCallback(async () => {
-    if (!isSuperAdmin) return;
-
-    await safeFetch(async () => {
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
-
-      const { data, error } = await supabase
-        .from('attendance')
-        .select(`*, admin:admins!admin_id(name, email, role)`)
-        .eq('date', todayStr);
-
-      if (error) throw error;
-
-      setTodayAttendance(data || []);
-    });
-  }, [isSuperAdmin]);
-
-  const fetchMyAttendance = useCallback(async () => {
-    if (!adminProfile) return;
-
-    await safeFetch(async () => {
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
-
-      const { data, error } = await supabase
-        .from('attendance')
-        .select('*')
-        .eq('admin_id', adminProfile.id)
-        .eq('date', todayStr)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      setMyAttendance(data);
-    });
-  }, [adminProfile]);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate, page, isSuperAdmin]);
 
   const fetchMonthlyAttendance = useCallback(async () => {
     if (!adminProfile) return;
 
-    await safeFetch(async () => {
-      const monthStart = format(startOfMonth(selectedMonth), 'yyyy-MM-dd');
-      const monthEnd = format(endOfMonth(selectedMonth), 'yyyy-MM-dd');
+    setLoading(true);
 
-      let query = supabase
+    try {
+      const start = format(startOfMonth(selectedMonth), 'yyyy-MM-dd');
+      const end = format(endOfMonth(selectedMonth), 'yyyy-MM-dd');
+
+      await retryFetch(async () => {
+        const { data, error } = await supabase
+          .from('attendance')
+          .select('*')
+          .gte('date', start)
+          .lte('date', end);
+
+        if (error) throw error;
+
+        setMonthlyAttendance(data || []);
+      });
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedMonth, adminProfile]);
+
+  /* ============================================================ */
+  /* OPTIMISTIC UPDATE (NEW)                                      */
+  /* ============================================================ */
+
+  const markAttendanceOptimistic = async (newRecord: AttendanceRecord) => {
+    // optimistic update
+    setAttendanceData(prev => [newRecord, ...prev]);
+
+    try {
+      const { error } = await supabase
         .from('attendance')
-        .select('*')
-        .gte('date', monthStart)
-        .lte('date', monthEnd);
-
-      if (!isSuperAdmin) {
-        query = query.eq('admin_id', adminProfile.id);
-      }
-
-      const { data, error } = await query;
+        .insert([newRecord]);
 
       if (error) throw error;
 
-      setMonthlyAttendance(data || []);
-    });
-  }, [selectedMonth, adminProfile, isSuperAdmin]);
+    } catch (err) {
+      console.error(err);
+
+      // rollback if failed
+      setAttendanceData(prev =>
+        prev.filter(r => r.id !== newRecord.id)
+      );
+    }
+  };
 
   /* ============================================================ */
-  /* REFETCH ALL (IMPROVED)                                       */
+  /* FILTERED DATA (NEW)                                          */
   /* ============================================================ */
 
-  const refetchAll = useCallback(() => {
-    fetchAdmins();
-    fetchAttendanceData();
-    fetchTodayAttendance();
-    fetchMyAttendance();
-    fetchMonthlyAttendance();
-  }, [
-    fetchAdmins,
-    fetchAttendanceData,
-    fetchTodayAttendance,
-    fetchMyAttendance,
-    fetchMonthlyAttendance,
-  ]);
+  const filteredData = attendanceData.filter(record => {
+    const matchStatus =
+      statusFilter === 'all' || record.status === statusFilter;
+
+    const matchSearch =
+      record.admin?.name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+    return matchStatus && matchSearch;
+  });
 
   /* ============================================================ */
   /* EFFECT                                                       */
   /* ============================================================ */
 
   useEffect(() => {
-    if (adminProfile) {
-      refetchAll();
-    }
-  }, [selectedDate, selectedMonth, adminProfile, refetchAll]);
+    fetchAttendanceData();
+    fetchMonthlyAttendance();
+  }, [selectedDate, selectedMonth, page]);
 
   /* ============================================================ */
   /* RETURN                                                       */
   /* ============================================================ */
 
   return {
-    attendanceData,
-    allAdmins,
-    todayAttendance,
-    myAttendance,
+    attendanceData: filteredData,
     monthlyAttendance,
 
     loading,
     error,
 
-    refetchAll,
+    // pagination
+    page,
+    setPage,
 
-    fetchAttendanceData,
-    fetchTodayAttendance,
-    fetchMyAttendance,
-    fetchMonthlyAttendance,
+    // filters
+    statusFilter,
+    setStatusFilter,
+    searchQuery,
+    setSearchQuery,
+
+    // actions
+    refetch: fetchAttendanceData,
+    markAttendanceOptimistic,
   };
 };
