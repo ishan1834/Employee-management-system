@@ -16,7 +16,17 @@ import {
   setGeolocationGrantedFlag,
 } from '@/utils/geolocation';
 
+
+
+
+
+
 type LoginStep = 'location' | 'email' | 'otp';
+
+
+
+
+
 
 const RoleBasedLogin: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -26,10 +36,22 @@ const RoleBasedLogin: React.FC = () => {
   const { user, session, loginWithOTP } = useAuth();
   const { toast } = useToast();
 
+
+
+
+
+  
+
   const [locationGranted, setLocationGranted] = useState(false);
   const [locationChecking, setLocationChecking] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+
+
+
+
+  
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +75,14 @@ const RoleBasedLogin: React.FC = () => {
         }
       }
 
+
+
+
+
+
+
+
+      
       setLocationChecking(false);
     };
 
@@ -63,13 +93,30 @@ const RoleBasedLogin: React.FC = () => {
     };
   }, []);
 
+
+
+
+
+
+
+  
+
   // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
       return () => clearTimeout(timer);
     }
+
+    
   }, [resendCooldown]);
+
+
+
+
+
+
+  
 
   // If user is already logged in, redirect to dashboard
   if (user && session) {
@@ -107,6 +154,13 @@ const RoleBasedLogin: React.FC = () => {
     }
   };
 
+
+
+
+
+
+  
+
   const handleSendOTP = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
@@ -119,6 +173,11 @@ const RoleBasedLogin: React.FC = () => {
       return;
     }
 
+
+
+
+
+    
     setIsLoading(true);
     
     try {
@@ -157,6 +216,13 @@ const RoleBasedLogin: React.FC = () => {
       return;
     }
 
+
+
+
+
+
+    
+
     setIsLoading(true);
     
     try {
@@ -189,9 +255,25 @@ const RoleBasedLogin: React.FC = () => {
     }
   };
 
+
+
+
+  
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
+
+
+
+
+      
       {/* Character Background Image with Blinking Effect - Centered and Larger */}
+
+
+
+
+
+      
       <div className="absolute inset-0 flex items-center justify-center">
         <div 
           className="w-full h-full max-w-6xl max-h-6xl background-image-blink"
@@ -206,21 +288,61 @@ const RoleBasedLogin: React.FC = () => {
       </div>
 
       {/* Enhanced Animated Background Elements */}
+
+
+
+
+
+      
       <div className="absolute inset-0 overflow-hidden">
+
+
+
+        
         {/* Rotating gradient orbs with blue-purple theme */}
+
+
+
+
+        
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-[spin_20s_linear_infinite]"></div>
         <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-600/15 to-indigo-600/15 rounded-full blur-3xl animate-[spin_25s_linear_infinite_reverse]"></div>
         <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-gradient-to-r from-indigo-500/25 to-cyan-500/25 rounded-full blur-3xl animate-[spin_15s_linear_infinite]"></div>
+
+
         
         {/* Enhanced floating animation orbs */}
+
+
+
+
+        
         <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-full blur-2xl animate-[bounce_3s_ease-in-out_infinite] energy-glow"></div>
         <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-2xl animate-[bounce_4s_ease-in-out_infinite] energy-glow" style={{ animationDelay: '1s' }}></div>
+
+
+
+
         
         {/* Enhanced pulsating rings */}
+
+
+
+
+        
         <div className="absolute top-1/3 right-1/3 w-80 h-80 border border-blue-400/20 rounded-full animate-ping"></div>
         <div className="absolute bottom-1/3 left-1/3 w-60 h-60 border border-purple-400/20 rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
+
+
+
+
+
         
         {/* Enhanced moving gradient lines */}
+
+
+
+        
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent animate-[slide-in-right_4s_ease-in-out_infinite]"></div>
           <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-400/30 to-transparent animate-[slide-in-right_5s_ease-in-out_infinite]" style={{ animationDelay: '1s' }}></div>
@@ -279,6 +401,11 @@ const RoleBasedLogin: React.FC = () => {
           <p className="text-muted-foreground mt-2 text-lg typewriter">Admin Dashboard Access</p>
         </div>
 
+
+
+
+        
+
         {/* Location Gate (required) */}
         {step === 'location' && !locationGranted ? (
           <Card className="bg-black/70 border-white/20 backdrop-blur-sm animate-scale-in glow-effect hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-500 energy-glow">
@@ -324,6 +451,11 @@ const RoleBasedLogin: React.FC = () => {
             </CardContent>
           </Card>
         ) : step === 'email' ? (
+
+
+
+
+      
           /* Email Entry Step */
           <Card className="bg-black/70 border-white/20 backdrop-blur-sm animate-scale-in glow-effect hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-500 energy-glow">
             <CardContent className="pt-6">
@@ -376,6 +508,12 @@ const RoleBasedLogin: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
+
+
+
+
+
+      
           /* OTP Verification Step */
           <Card className="bg-black/70 border-white/20 backdrop-blur-sm animate-scale-in glow-effect hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-500 energy-glow">
             <CardContent className="pt-6">
@@ -503,6 +641,12 @@ const RoleBasedLogin: React.FC = () => {
             </CardContent>
           </Card>
         )}
+
+
+
+
+
+        
 
         {/* Footer with animation */}
 
