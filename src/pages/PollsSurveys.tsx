@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 import ModuleLayout from '@/components/ModuleLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const PollsSurveys: React.FC = () => {
   const { adminProfile } = useAuth();
