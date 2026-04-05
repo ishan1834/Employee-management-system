@@ -1009,24 +1009,76 @@ const Skeletons = () => (
 );
 
 // ── Context menu ──
-const CtxMenuEl = ({ ctx, onClose, onCopy, onDelete, onReply }: { ctx: CtxMenu; onClose: () => void; onCopy: () => void; onDelete: () => void; onReply: () => void; }) => {
+const CtxMenuEl = ({
+  ctx,
+  onClose,
+  onCopy,
+  onDelete,
+  onReply,
+}: {
+  ctx: CtxMenu;
+  onClose: () => void;
+  onCopy: () => void;
+  onDelete: () => void;
+  onReply: () => void;
+}) => {
   useEffect(() => {
-    const h = () => onClose();
-    window.addEventListener('click', h);
-    return () => window.removeEventListener('click', h);
+    const handleClick = () => onClose();
+
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
   }, [onClose]);
+
   return (
-    <div className="tc-ctx" style={{ left: Math.min(ctx.x, window.innerWidth - 195), top: Math.min(ctx.y, window.innerHeight - 160) }} onClick={e => e.stopPropagation()}>
-      <button className="tc-ctx-item" onClick={() => { onReply(); onClose(); }}><Reply style={{ width: 14, height: 14, opacity: .5 }} /> Reply</button>
-      <button className="tc-ctx-item" onClick={() => { onCopy(); onClose(); }}><Copy style={{ width: 14, height: 14, opacity: .5 }} /> Copy text</button>
-      {ctx.isOwn && <>
-        <div className="tc-ctx-sep" />
-        <button className="tc-ctx-item danger" onClick={() => { onDelete(); onClose(); }}><Trash2 style={{ width: 14, height: 14 }} /> Delete for everyone</button>
-      </>}
+    <div
+      className="tc-ctx"
+      style={{
+        left: Math.min(ctx.x, window.innerWidth - 195),
+        top: Math.min(ctx.y, window.innerHeight - 160),
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        className="tc-ctx-item"
+        onClick={() => {
+          onReply();
+          onClose();
+        }}
+      >
+        <Reply style={{ width: 14, height: 14, opacity: 0.5 }} />
+        Reply
+      </button>
+
+      <button
+        className="tc-ctx-item"
+        onClick={() => {
+          onCopy();
+          onClose();
+        }}
+      >
+        <Copy style={{ width: 14, height: 14, opacity: 0.5 }} />
+        Copy text
+      </button>
+
+      {ctx.isOwn && (
+        <>
+          <div className="tc-ctx-sep" />
+
+          <button
+            className="tc-ctx-item danger"
+            onClick={() => {
+              onDelete();
+              onClose();
+            }}
+          >
+            <Trash2 style={{ width: 14, height: 14 }} />
+            Delete for everyone
+          </button>
+        </>
+      )}
     </div>
   );
 };
-
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
