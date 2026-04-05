@@ -61,3 +61,21 @@ function useSidebar() {
   }
   return context
 }
+const SidebarTrigger = (props) => {
+  const { toggleSidebar } = useSidebar()
+
+  return (
+    <Button onClick={toggleSidebar}>
+      <PanelLeft />
+    </Button>
+  )
+}
+
+const SidebarRail = (props) => {
+  const { toggleSidebar } = useSidebar()
+  return <button onClick={toggleSidebar} />
+}
+
+const SidebarInput = React.forwardRef((props, ref) => {
+  return <Input ref={ref} {...props} />
+})
