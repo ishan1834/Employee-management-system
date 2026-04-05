@@ -7,6 +7,25 @@ import { supabase } from '@/integrations/supabase/client';
 
 const PollsSurveys: React.FC = () => {
   const { adminProfile } = useAuth();
+  const fetchData = async () => {
+  const [{ data: pollsData }, { data: votesData }] = await Promise.all([
+    supabase
+      .from('polls' as any)
+      .select('*, admins!polls_created_by_fkey(name)')
+      .order('created_at', { ascending: false }),
+    supabase.from('poll_votes' as any).select('*')
+  ]);
+
+  setPolls((pollsData as any[]) || []);
+  setVotes((votesData as any[]) || []);
+  setLoading(false);
+};
+
+useEffect(() => {
+  fetchData();
+  const i = setInterval(fetchData, 5000);
+  return () => clearInterval(i);
+}, []);
 
   const [polls, setPolls] = useState<any[]>([]);
   const [votes, setVotes] = useState<any[]>([]);
