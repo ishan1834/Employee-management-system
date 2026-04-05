@@ -835,6 +835,7 @@ const Bubble = memo(({
           </div>
         )}
       </div>
+      
 
       {/* Content stack */}
       <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '72%', alignItems: isOwn ? 'flex-end' : 'flex-start', position: 'relative' }}>
