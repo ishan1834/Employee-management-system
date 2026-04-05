@@ -958,11 +958,51 @@ const Bubble = memo(({
 
 // ── Skeleton loading ──
 const Skeletons = () => (
-  <div style={{ padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-    {[{ w: 160, o: false }, { w: 220, o: true }, { w: 130, o: false }, { w: 185, o: true }, { w: 110, o: false }, { w: 200, o: true }].map(({ w, o }, i) => (
-      <div key={i} style={{ display: 'flex', alignItems: 'flex-end', gap: 9, flexDirection: o ? 'row-reverse' : 'row' }}>
-        <div className="tc-skel" style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0 }} />
-        <div className="tc-skel" style={{ width: w, height: o ? 36 : 44, borderRadius: o ? '16px 16px 4px 16px' : '16px 16px 16px 4px' }} />
+  <div
+    style={{
+      padding: '16px 14px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16,
+    }}
+  >
+    {[
+      { w: 160, o: false },
+      { w: 220, o: true },
+      { w: 130, o: false },
+      { w: 185, o: true },
+      { w: 110, o: false },
+      { w: 200, o: true },
+    ].map(({ w, o }, index) => (
+      <div
+        key={index}
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: 9,
+          flexDirection: o ? 'row-reverse' : 'row',
+        }}
+      >
+        <div
+          className="tc-skel"
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            flexShrink: 0,
+          }}
+        />
+
+        <div
+          className="tc-skel"
+          style={{
+            width: w,
+            height: o ? 36 : 44,
+            borderRadius: o
+              ? '16px 16px 4px 16px'
+              : '16px 16px 16px 4px',
+          }}
+        />
       </div>
     ))}
   </div>
