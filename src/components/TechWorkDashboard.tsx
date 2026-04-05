@@ -70,31 +70,32 @@ const TechWorkDashboard: React.FC = () => {
   });
 
   const fetchWorkLogs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('tech_work_logs')
-        .select('*')
-        .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('tech_work_logs')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setWorkLogs(data || []);
+    if (error) throw error;
 
-      // Calculate stats
-      const logs = data || [];
-      setStats({
-        totalWork: logs.length,
-        pagesCreated: logs.filter(l => l.work_type === 'page_created').length,
-        pagesFixed: logs.filter(l => l.work_type === 'page_fixed').length,
-        bugsFixed: logs.filter(l => l.work_type === 'bug_fixed').length,
-        featuresAdded: logs.filter(l => l.work_type === 'feature_added').length,
-        totalHours: logs.reduce((sum, l) => sum + (l.hours_spent || 0), 0)
-      });
-    } catch (error) {
-      console.error('Error fetching work logs:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const logs = data || [];
+    setWorkLogs(logs);
+
+    setStats({
+      totalWork: logs.length,
+      pagesCreated: logs.filter(l => l.work_type === 'page_created').length,
+      pagesFixed: logs.filter(l => l.work_type === 'page_fixed').length,
+      bugsFixed: logs.filter(l => l.work_type === 'bug_fixed').length,
+      featuresAdded: logs.filter(l => l.work_type === 'feature_added').length,
+      totalHours: logs.reduce((sum, l) => sum + (l.hours_spent || 0), 0)
+    });
+
+  } catch (error) {
+    console.error('Error fetching work logs:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchWorkLogs();
