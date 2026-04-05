@@ -4,6 +4,11 @@ import ModuleLayout from '@/components/ModuleLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Plus } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const PollsSurveys: React.FC = () => {
   const { adminProfile } = useAuth();
@@ -15,7 +20,9 @@ const PollsSurveys: React.FC = () => {
       .order('created_at', { ascending: false }),
     supabase.from('poll_votes' as any).select('*')
   ]);
-
+const [showForm, setShowForm] = useState(false);
+const [question, setQuestion] = useState('');
+const [options, setOptions] = useState(['', '']);
   setPolls((pollsData as any[]) || []);
   setVotes((votesData as any[]) || []);
   setLoading(false);
