@@ -835,7 +835,7 @@ const Bubble = memo(({
           </div>
         )}
       </div>
-      
+
 
       {/* Content stack */}
       <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '72%', alignItems: isOwn ? 'flex-end' : 'flex-start', position: 'relative' }}>
@@ -901,22 +901,54 @@ const Bubble = memo(({
 
         {/* Inline reaction picker */}
         {showReactPicker && (
-          <div style={{
-            position: 'absolute', zIndex: 50,
-            bottom: 'calc(100% + 8px)', [isOwn ? 'right' : 'left']: 0,
-            background: 'var(--tc-bg2)', border: '1px solid var(--tc-border-md)',
-            borderRadius: 14, padding: '8px', display: 'flex', flexWrap: 'wrap', gap: 3,
-            boxShadow: '0 12px 40px rgba(0,0,0,.7)', animation: 'tc-pop .14s ease both',
-            maxWidth: 240,
-          }} onClick={e => e.stopPropagation()}>
-            {EMOJIS.map(e => (
-              <button key={e} style={{ fontSize: 18, cursor: 'pointer', padding: '4px 5px', borderRadius: 8, border: 'none', background: 'transparent', transition: 'background .1s', lineHeight: 1 }}
-                onMouseEnter={ev => (ev.currentTarget.style.background = 'rgba(255,255,255,.07)')}
-                onMouseLeave={ev => (ev.currentTarget.style.background = 'transparent')}
-                onClick={() => { onReact(msg.id, e); setShowReactPicker(false); }}>{e}</button>
-            ))}
-          </div>
-        )}
+  <div
+    style={{
+      position: 'absolute',
+      zIndex: 50,
+      bottom: 'calc(100% + 8px)',
+      [isOwn ? 'right' : 'left']: 0,
+      background: 'var(--tc-bg2)',
+      border: '1px solid var(--tc-border-md)',
+      borderRadius: 14,
+      padding: '8px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 3,
+      boxShadow: '0 12px 40px rgba(0,0,0,.7)',
+      animation: 'tc-pop .14s ease both',
+      maxWidth: 240,
+    }}
+    onClick={(e) => e.stopPropagation()}
+  >
+    {EMOJIS.map((emoji) => (
+      <button
+        key={emoji}
+        style={{
+          fontSize: 18,
+          cursor: 'pointer',
+          padding: '4px 5px',
+          borderRadius: 8,
+          border: 'none',
+          background: 'transparent',
+          transition: 'background .1s',
+          lineHeight: 1,
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.background = 'rgba(255,255,255,.07)')
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.background = 'transparent')
+        }
+        onClick={() => {
+          onReact(msg.id, emoji);
+          setShowReactPicker(false);
+        }}
+      >
+        {emoji}
+      </button>
+    ))}
+  </div>
+)}
       </div>
     </div>
   );
