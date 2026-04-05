@@ -954,6 +954,8 @@ const Bubble = memo(({
   );
 });
 
+
+
 // ── Skeleton loading ──
 const Skeletons = () => (
   <div style={{ padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 16 }}>
