@@ -5,11 +5,15 @@
 /* Description: Unified administrative layer for global attendance assets.    */
 /* ========================================================================== */
 
+
+
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 
 /* ========================================================================== */
 /* UI COMPONENT IMPORTS                                                       */
 /* ========================================================================== */
+
+
 
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter
@@ -28,9 +32,14 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
 
+
+
 /* ========================================================================== */
 /* ICONS & VISUALS                                                            */
 /* ========================================================================== */
+
+
+
 
 import {
   Users,
@@ -43,9 +52,15 @@ import {
   RefreshCw
 } from "lucide-react";
 
+
+
+
 /* ========================================================================== */
 /* TYPES & INTERFACES                                                         */
 /* ========================================================================== */
+
+
+
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -61,9 +76,15 @@ interface SystemHealth {
   uptime: number;
 }
 
+
+
+
 /* ========================================================================== */
 /* CONFIGURATION CONSTANTS                                                    */
 /* ========================================================================== */
+
+
+
 
 const PERFORMANCE_THRESHOLDS = {
   excellent: 85,
@@ -73,9 +94,15 @@ const PERFORMANCE_THRESHOLDS = {
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
+
+
+
 /* ========================================================================== */
 /* HELPER FUNCTIONS                                                           */
 /* ========================================================================== */
+
+
+
 
 /**
  * Returns performance label based on percentage
@@ -87,9 +114,15 @@ const getPerformanceLabel = (value: number): string => {
   return "Poor";
 };
 
+
+
+
 /**
  * Returns badge color class
  */
+
+
+
 const getPerformanceBadge = (value: number): string => {
   if (value >= 85) return "bg-green-500";
   if (value >= 70) return "bg-blue-500";
@@ -97,15 +130,27 @@ const getPerformanceBadge = (value: number): string => {
   return "bg-red-500";
 };
 
+
+
+
 /* ========================================================================== */
 /* MAIN COMPONENT                                                             */
 /* ========================================================================== */
 
+
+
+
 const StrategicCommandCenter: React.FC = () => {
 
+
+
+  
   /* ============================= */
   /* STATE MANAGEMENT              */
   /* ============================= */
+
+
+  
 
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalUsers: 0,
@@ -132,10 +177,15 @@ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
+
+
+  
   /* ============================= */
   /* EFFECTS                       */
   /* ============================= */
 
+
+  
   useEffect(() => {
     // Simulated API fetch
     const fetchData = () => {
@@ -191,19 +241,46 @@ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
     return () => clearInterval(interval);
   }, []);
 
+
+
+  
   /* ============================= */
   /* MEMOIZED VALUES               */
   /* ============================= */
 
+
+
+
+  
   const performanceLabel = useMemo(
     () => getPerformanceLabel(metrics.performanceScore),
     [metrics.performanceScore]
   );
 
+
+
+
+
+
+
+
+  
   /* ============================= */
   /* HANDLERS                      */
   /* ============================= */
 
+
+
+
+
+
+
+
+
+
+
+
+  
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
     setTimeout(() => {
@@ -211,10 +288,49 @@ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
     }, 1000);
   }, []);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
   /* ========================================================================== */
   /* RENDER                                                                     */
   /* ========================================================================== */
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   return (
     <div className="p-6 space-y-6">
 
@@ -245,9 +361,40 @@ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   />
 </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+
 {/* ===================================================== */}
 {/* TABS SYSTEM                                           */}
 {/* ===================================================== */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
 
 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
@@ -265,9 +412,48 @@ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
     </TabsTrigger>
   </TabsList>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
   {/* ===================================================== */}
   {/* OVERVIEW TAB                                           */}
   {/* ===================================================== */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
   <TabsContent value="overview" className="space-y-6">
 
@@ -353,9 +539,32 @@ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
 
   </TabsContent>
 
+
+
+
+
+
+
+
+
+
+  
+
   {/* ===================================================== */}
   {/* SYSTEM TAB                                             */}
   {/* ===================================================== */}
+
+
+
+
+
+
+
+
+
+
+
+  
 
   <TabsContent value="system" className="space-y-6">
 
@@ -517,9 +726,28 @@ interface AuditEvent {
   severity: 'INFO' | 'WARN' | 'CRITICAL';
 }
 
+
+
+
+
+
+
+
+
+
+
 /* ========================================================================== */
 /* HELPER UTILITIES                                                           */
 /* ========================================================================== */
+
+
+
+
+
+
+
+
+
 
 const generateMockLogs = (): AuditEvent[] => [
   { id: '101', type: 'SYSTEM', message: 'Encryption Handshake Success', timestamp: '22:10:01', severity: 'INFO' },
@@ -528,9 +756,32 @@ const generateMockLogs = (): AuditEvent[] => [
   { id: '104', type: 'OVERRIDE', message: 'Unauthorized Access Blocked (IP: 192.168.1.1)', timestamp: '22:11:00', severity: 'CRITICAL' },
 ];
 
+
+
+
+
+
+
+
+
+
 /* ========================================================================== */
 /* MAIN COMPONENT                                                             */
 /* ========================================================================== */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const SuperAdminDashboard: React.FC<any> = (props) => {
   const { stats, attendanceData, allAdmins } = props;
@@ -588,6 +839,16 @@ const SuperAdminDashboard: React.FC<any> = (props) => {
     </Card>
   );
 
+
+
+
+
+
+
+
+
+
+  
   return (
     <div className="min-h-screen bg-[#050507] text-gray-400 font-sans selection:bg-blue-500/30 p-6">
       
@@ -861,5 +1122,13 @@ const SuperAdminDashboard: React.FC<any> = (props) => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
 
 export default SuperAdminDashboard;
