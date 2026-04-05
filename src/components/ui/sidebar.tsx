@@ -75,6 +75,23 @@ const SidebarRail = (props) => {
   const { toggleSidebar } = useSidebar()
   return <button onClick={toggleSidebar} />
 }
+const Sidebar = React.forwardRef((props, ref) => {
+  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+
+  if (isMobile) {
+    return (
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetContent>{props.children}</SheetContent>
+      </Sheet>
+    )
+  }
+
+  return (
+    <div ref={ref} data-state={state}>
+      {props.children}
+    </div>
+  )
+})
 
 const SidebarInput = React.forwardRef((props, ref) => {
   return <Input ref={ref} {...props} />
