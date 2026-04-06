@@ -7,6 +7,10 @@ import { toast } from '@/hooks/use-toast';
 type AdminProfile = Database['public']['Tables']['admins']['Row'];
 type AdminRole = AdminProfile['role'];
 const UNKNOWN_LOCATION = { ip:'Unknown', city:'Unknown' };
+const fetchAdminProfile = useCallback(async (email: string, id: string) => {
+  const { data } = await supabase.from('admins').select('*').eq('email', email).single();
+  setAdminProfile(data);
+}, []);
 
 async function fetchLocationData() {
   try {
