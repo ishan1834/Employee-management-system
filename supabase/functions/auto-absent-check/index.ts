@@ -9,11 +9,19 @@ const corsHeaders = {
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istNow = new Date(now.getTime() + istOffset);
     const today = istNow.toISOString().split("T")[0];
+    const { data: admins, error: adminsError } = await supabase
+      .from("admins")
+      .select("id, name, role")
+      .eq("is_active", true)
+      .not("role", "in", '("esports_admin","super_admin")');
+
+    if (adminsError) throw adminsError;
+
+    const results: any[] = [];
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
