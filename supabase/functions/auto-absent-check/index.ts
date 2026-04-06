@@ -94,3 +94,14 @@ serve(async (req) => {
         }
       }
     }
+    return new Response(
+      JSON.stringify({ success: true, date: today, results }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
