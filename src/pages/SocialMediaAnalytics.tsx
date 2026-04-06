@@ -15,19 +15,10 @@ import { toast } from '@/hooks/use-toast';
 import { useActivityLogger, ActivityActions } from '@/hooks/useActivityLogger';
 import { useAutoAttendance } from '@/hooks/useAutoAttendance';
 interface SocialMediaAnalytic {
-  id: string;
-  date: string;
-  platform: string;
-  posts_count: number;
-  followers_gained: number;
-  followers_lost: number;
-  total_followers: number;
-  likes_count: number;
-  comments_count: number;
-  shares_count: number;
-  engagement_rate: number;
-}
-const platforms = [
-  'Instagram','Facebook','Twitter/X','LinkedIn',
-  'YouTube','TikTok','Pinterest','Snapchat','Threads'
-];
+ const SocialMediaAnalytics: React.FC = () => {
+  const { adminProfile } = useAuth();
+  const { logActivity } = useActivityLogger();
+  const { markAttendanceAsPresent } = useAutoAttendance();
+
+  const [analytics, setAnalytics] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
