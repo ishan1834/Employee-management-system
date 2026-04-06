@@ -19,6 +19,17 @@ interface SocialMediaAnalytic {
   const { adminProfile } = useAuth();
   const { logActivity } = useActivityLogger();
   const { markAttendanceAsPresent } = useAutoAttendance();
+ return (
+  <ModuleLayout title="Social Media Analytics">
+    <Card>
+      <CardContent>
+        <p>Total Posts: {stats.totalPosts}</p>
+      </CardContent>
+    </Card>
+
+    <Button>Add Analytics</Button>
+  </ModuleLayout>
+);
 
   const [analytics, setAnalytics] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
