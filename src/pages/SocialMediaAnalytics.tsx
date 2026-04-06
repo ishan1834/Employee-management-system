@@ -14,3 +14,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useActivityLogger, ActivityActions } from '@/hooks/useActivityLogger';
 import { useAutoAttendance } from '@/hooks/useAutoAttendance';
+interface SocialMediaAnalytic {
+  id: string;
+  date: string;
+  platform: string;
+  posts_count: number;
+  followers_gained: number;
+  followers_lost: number;
+  total_followers: number;
+  likes_count: number;
+  comments_count: number;
+  shares_count: number;
+  engagement_rate: number;
+}
