@@ -22,3 +22,16 @@ interface SocialMediaAnalytic {
 
   const [analytics, setAnalytics] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+const [stats, setStats] = useState({
+  totalPosts: 0,
+  totalFollowersGained: 0,
+  totalEngagement: 0,
+  avgEngagementRate: 0
+});
+
+const [formData, setFormData] = useState({
+  date: '',
+  platform: 'Instagram',
+  posts_count: 0,
+  followers_gained: 0
+});
