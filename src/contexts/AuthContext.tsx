@@ -6,6 +6,16 @@ import { castToAdminProfile } from '@/utils/adminTypeCasting';
 import { toast } from '@/hooks/use-toast';
 type AdminProfile = Database['public']['Tables']['admins']['Row'];
 type AdminRole = AdminProfile['role'];
+const UNKNOWN_LOCATION = { ip:'Unknown', city:'Unknown' };
+
+async function fetchLocationData() {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    return await res.json();
+  } catch {
+    return UNKNOWN_LOCATION;
+  }
+}
 
 export type AuthLoadingState =
   | 'idle'
