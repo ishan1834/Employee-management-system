@@ -16,6 +16,20 @@ export type AuthLoadingState =
 const ROLE_HIERARCHY: AdminRole[] = [
   'moderator','content','tech','design','admin','super_admin'
 ];
+export interface AuthContextType {
+  user: User | null;
+  adminProfile: AdminProfile | null;
+  session: Session | null;
+
+  loadingState: AuthLoadingState;
+  isLoading: boolean;
+  isInitialized: boolean;
+
+  lastLogin: LastLoginInfo | null;
+
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
 const ROLE_PERMISSIONS: Record<AdminRole, Set<string>> = {
   moderator: new Set(['dashboard']),
