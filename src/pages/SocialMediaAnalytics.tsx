@@ -9,3 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, TrendingUp, Users, MessageSquare, Heart, Share2, Eye, BarChart3, Calendar, Trash2, Edit, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { useActivityLogger, ActivityActions } from '@/hooks/useActivityLogger';
+import { useAutoAttendance } from '@/hooks/useAutoAttendance';
