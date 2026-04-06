@@ -39,6 +39,16 @@ const fetchAnalytics = async () => {
 
   setAnalytics(data || []);
 };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!adminProfile) return;
+
+  await supabase.from('social_media_analytics').insert(formData);
+  await logActivity(ActivityActions.CREATE_SOCIAL_ANALYTICS, formData);
+
+  fetchAnalytics();
+};
 
 const [formData, setFormData] = useState({
   date: '',
