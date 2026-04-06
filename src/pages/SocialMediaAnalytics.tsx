@@ -28,6 +28,17 @@ const [stats, setStats] = useState({
   totalEngagement: 0,
   avgEngagementRate: 0
 });
+ useEffect(() => {
+  fetchAnalytics();
+}, []);
+
+const fetchAnalytics = async () => {
+  const { data } = await supabase
+    .from('social_media_analytics')
+    .select('*');
+
+  setAnalytics(data || []);
+};
 
 const [formData, setFormData] = useState({
   date: '',
