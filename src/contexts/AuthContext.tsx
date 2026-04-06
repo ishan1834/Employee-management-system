@@ -49,6 +49,13 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<string>> = {
   moderator: new Set(['dashboard']),
   super_admin: new Set(['*']),
 };
+const login = async (email: string, password: string) => {
+  await supabase.auth.signInWithPassword({ email, password });
+};
+
+const logout = async () => {
+  await supabase.auth.signOut();
+};
 
 export interface LastLoginInfo {
   timestamp: string;
