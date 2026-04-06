@@ -26,3 +26,71 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        for (const admin of admins || []) {
+      const { data: existingAttendance } = await supabase
+        .from("attendance")
+        .select("id, status, check_in_time")
+        .eq("admin_id", admin.id)
+        .eq("date", today)
+        .single();
+
+      if (existingAttendance && (existingAttendance.status === "present" || existingAttendance.status === "late")) {
+        const hasWorkLog = await checkWorkLog(supabase, admin, today);
+
+        if (hasWorkLog) {
+          results.push({ admin: admin.name, action: "kept", reason: "work_log_exists", status: existingAttendance.status });
+        } else {
+          await supabase
+            .from("attendance")
+            .update({
+              status: "absent",
+              override_reason: "Auto-absent: No work log submitted by 11:59 PM",
+            })
+            .eq("id", existingAttendance.id);
+
+          results.push({ admin: admin.name, action: "overridden_to_absent", reason: "no_work_log" });
+        }
+        continue;
+      }
+
+      const hasWorkLog = await checkWorkLog(supabase, admin, today);
+
+      if (hasWorkLog) {
+        if (!existingAttendance) {
+          const status = await getStatusFromWorkLogTime(supabase, admin, today);
+
+          await supabase.from("attendance").insert({
+            admin_id: admin.id,
+            date: today,
+            status: status,
+            check_in_time: now.toISOString(),
+            marked_by: admin.id,
+            marked_at: now.toISOString(),
+          });
+
+          results.push({ admin: admin.name, action: `auto_marked_${status}`, reason: "work_log_exists" });
+        }
+      } else {
+        if (existingAttendance) {
+          await supabase
+            .from("attendance")
+            .update({
+              status: "absent",
+              override_reason: "Auto-absent: No work log submitted by 11:59 PM",
+            })
+            .eq("id", existingAttendance.id);
+
+          results.push({ admin: admin.name, action: "updated_to_absent", reason: "no_work_log" });
+        } else {
+          await supabase.from("attendance").insert({
+            admin_id: admin.id,
+            date: today,
+            status: "absent",
+            marked_by: admin.id,
+            marked_at: now.toISOString(),
+          });
+
+          results.push({ admin: admin.name, action: "marked_absent", reason: "no_work_log" });
+        }
+      }
+    }
