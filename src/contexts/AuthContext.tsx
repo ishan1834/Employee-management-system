@@ -13,6 +13,14 @@ export type AuthLoadingState =
   | 'logging-in'
   | 'logging-out'
   | 'refreshing';
+const ROLE_HIERARCHY: AdminRole[] = [
+  'moderator','content','tech','design','admin','super_admin'
+];
+
+const ROLE_PERMISSIONS: Record<AdminRole, Set<string>> = {
+  moderator: new Set(['dashboard']),
+  super_admin: new Set(['*']),
+};
 
 export interface LastLoginInfo {
   timestamp: string;
