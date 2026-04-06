@@ -79,7 +79,93 @@ serve(async (req) => {
               override_reason: "Auto-absent: No work log submitted by 11:59 PM",
             })
             .eq("id", existingAttendance.id);
+async function checkWorkLog(supabase: any, admin: any, today: string): Promise<boolean> {
+  const todayStart = today + "T00:00:00";
+  const todayEnd = today + "T23:59:59";
+async function getStatusFromWorkLogTime(supabase: any, admin: any, today: string): Promise<string> {
+  const todayStart = today + "T00:00:00";
+  const todayEnd = today + "T23:59:59";
 
+  let earliestTime: Date | null = null;
+
+  const tables: string[] = [];
+
+  if (admin.role === "tech_admin") {
+    tables.push("tech_work_logs");
+  } else if (admin.role === "content_admin" || admin.role === "social_admin") {
+    tables.push("content_work_logs");
+  } else if (admin.role === "hr_admin") {
+    tables.push("content_work_logs", "tech_work_logs");
+  }
+
+  for (const table of tables) {
+    const { data } = await supabase
+      .from(table)
+      .select("created_at")
+      .eq("admin_id", admin.id)
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEnd)
+      .order("created_at", { ascending: true })
+      .limit(1);
+
+    if (data && data.length > 0) {
+      const logTime = new Date(data[0].created_at);
+      if (!earliestTime || logTime < earliestTime) {
+        earliestTime = logTime;
+      }
+    }
+  }
+
+  if (!earliestTime) return "absent";
+
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(earliestTime.getTime() + istOffset);
+  const hours = istTime.getUTCHours();
+
+  if (hours >= 6 && hours < 11) return "present";
+  if (hours >= 11 && hours < 17) return "late";
+  return "absent";
+}
+  if (admin.role === "tech_admin") {
+    const { data } = await supabase
+      .from("tech_work_logs")
+      .select("id")
+      .eq("admin_id", admin.id)
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEnd)
+      .limit(1);
+    return (data || []).length > 0;
+  } else if (admin.role === "content_admin" || admin.role === "social_admin") {
+    const { data } = await supabase
+      .from("content_work_logs")
+      .select("id")
+      .eq("admin_id", admin.id)
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEnd)
+      .limit(1);
+    return (data || []).length > 0;
+  } else if (admin.role === "hr_admin") {
+    const { data: c } = await supabase
+      .from("content_work_logs")
+      .select("id")
+      .eq("admin_id", admin.id)
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEnd)
+      .limit(1);
+
+    const { data: t } = await supabase
+      .from("tech_work_logs")
+      .select("id")
+      .eq("admin_id", admin.id)
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEnd)
+      .limit(1);
+
+    return ((c || []).length > 0) || ((t || []).length > 0);
+  }
+
+  return false;
+}
           results.push({ admin: admin.name, action: "updated_to_absent", reason: "no_work_log" });
         } else {
           await supabase.from("attendance").insert({
@@ -94,6 +180,7 @@ serve(async (req) => {
         }
       }
     }
+    
     return new Response(
       JSON.stringify({ success: true, date: today, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
