@@ -27,3 +27,7 @@ interface SocialMediaAnalytic {
   shares_count: number;
   engagement_rate: number;
 }
+const platforms = [
+  'Instagram','Facebook','Twitter/X','LinkedIn',
+  'YouTube','TikTok','Pinterest','Snapchat','Threads'
+];
