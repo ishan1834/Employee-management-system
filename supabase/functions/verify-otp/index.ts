@@ -84,3 +84,82 @@ serve(async (req: Request): Promise<Response> => {
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+    let userId = admin.user_id;
+
+    if (!userId) {
+      const tempPassword = crypto.randomUUID() + crypto.randomUUID();
+
+      const { data: authUser, error: createError } =
+        await supabase.auth.admin.createUser({
+          email: admin.email,
+          password: tempPassword,
+          email_confirm: true,
+        });
+
+      if (createError) {
+        const { data: existingUsers } = await supabase.auth.admin.listUsers();
+        const existingUser = existingUsers?.users?.find(
+          (u) => u.email === admin.email
+        );
+
+        if (existingUser) {
+          userId = existingUser.id;
+        } else {
+          return new Response(
+            JSON.stringify({ error: "Failed to setup authentication" }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+      } else {
+        userId = authUser.user.id;
+      }
+
+      await supabase
+        .from("admins")
+        .update({ user_id: userId })
+        .eq("id", admin.id);
+    }
+
+    const { data: signInData, error: signInError } =
+      await supabase.auth.admin.generateLink({
+        type: "magiclink",
+        email: admin.email,
+        options: {
+          redirectTo: `${req.headers.get("origin") || "https://muesportsindia-admin.lovable.app"}/dashboard`,
+        },
+      });
+
+    if (signInError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to complete authentication" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    await supabase
+      .from("admins")
+      .update({ last_login: new Date().toISOString() })
+      .eq("id", admin.id);
+
+    const hashed_token = signInData.properties?.hashed_token;
+    const verification_type = signInData.properties?.verification_type;
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "OTP verified successfully",
+        adminId: admin.id,
+        email: admin.email,
+        actionLink: signInData.properties?.action_link,
+        token_hash: hashed_token,
+        type: verification_type,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message || "Internal server error" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
+  }
+});
