@@ -18,11 +18,8 @@
 
 
 ![Status](https://img.shields.io/badge/STATUS-LIVE-00ff88?style=for-the-badge&labelColor=0d0d0d)
-
 ![Portal](https://img.shields.io/badge/PORTAL-ADMIN_ONLY-e0a800?style=for-the-badge&labelColor=0d0d0d)
-
 ![Stack](https://img.shields.io/badge/STACK-REACT_·_SUPABASE_·_BREVO-61dafb?style=for-the-badge&labelColor=0d0d0d)
-
 ![Country](https://img.shields.io/badge/INDIA_🇮🇳-MSME_REGISTERED-ff9933?style=for-the-badge&labelColor=0d0d0d)
 
 
