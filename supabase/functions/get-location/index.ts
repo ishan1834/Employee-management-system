@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,15 +26,11 @@ serve(async (req) => {
       isp: "Unknown",
       timezone: "Unknown",
     };
-        // Primary: ipwho.is
-    try {
-      const url = candidateIp
-        ? `https://ipwho.is/${encodeURIComponent(candidateIp)}`
-        : "https://ipwho.is/";
 
-      const res = await fetch(url, {
-        headers: { Accept: "application/json" },
-      });
+    // Primary: ipwho.is (no token, HTTPS)
+    try {
+      const url = candidateIp ? `https://ipwho.is/${encodeURIComponent(candidateIp)}` : "https://ipwho.is/";
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
 
       if (res.ok) {
         const geo = await res.json();
@@ -55,13 +51,10 @@ serve(async (req) => {
       console.error("get-location: ipwho.is failed", e);
     }
 
-    // Fallback: ipapi.co
+    // Fallback: ipapi.co (no token, HTTPS)
     if (locationData.ip === "Unknown") {
       try {
-        const res = await fetch("https://ipapi.co/json/", {
-          headers: { Accept: "application/json" },
-        });
-
+        const res = await fetch("https://ipapi.co/json/", { headers: { Accept: "application/json" } });
         if (res.ok) {
           const geo = await res.json();
           console.log("get-location: ipapi.co", geo);
@@ -88,7 +81,6 @@ serve(async (req) => {
     });
   } catch (error: any) {
     console.error("get-location: error", error);
-
     return new Response(
       JSON.stringify({
         error: error?.message || "Unknown error",
