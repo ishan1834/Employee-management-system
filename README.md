@@ -27,22 +27,11 @@
 <br/>
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white&labelColor=0d0d0d)
-
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=0d0d0d)
-
-
 ![Supabase](https://img.shields.io/badge/Supabase-Edge_Functions-3ECF8E?style=flat-square&logo=supabase&logoColor=white&labelColor=0d0d0d)
-
-
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white&labelColor=0d0d0d)
-
-
 ![Framer](https://img.shields.io/badge/Framer_Motion-11-FF0055?style=flat-square&logo=framer&logoColor=white&labelColor=0d0d0d)
-
-
 ![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=flat-square&logo=netlify&logoColor=white&labelColor=0d0d0d)
-
-
 ![Brevo](https://img.shields.io/badge/Brevo-Email_API-0B996E?style=flat-square&labelColor=0d0d0d)
 
 
