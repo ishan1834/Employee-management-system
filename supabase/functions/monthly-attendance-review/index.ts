@@ -94,3 +94,55 @@ serve(async (req) => {
     const effectiveThreshold = Math.min(minDaysThreshold, workingDays);
 
     const results: any[] = [];
+        for (const admin of admins || []) {
+      if (admin.role === "super_admin") continue;
+
+      const { data: attendance } = await supabase
+        .from("attendance")
+        .select("status, date")
+        .eq("admin_id", admin.id)
+        .gte("date", monthStart)
+        .lte("date", monthEnd);
+
+      const attendanceDates = new Set((attendance || []).map((a: any) => a.date));
+
+      let workLogDates = new Set<string>();
+
+      if (admin.role === "tech_admin") {
+        const { data: techLogs } = await supabase
+          .from("tech_work_logs")
+          .select("created_at")
+          .eq("admin_id", admin.id)
+          .gte("created_at", monthStart)
+          .lte("created_at", monthEnd + "T23:59:59");
+
+        (techLogs || []).forEach((l: any) => {
+          workLogDates.add(l.created_at.split("T")[0]);
+        });
+      } else if (admin.role === "content_admin" || admin.role === "social_admin") {
+        const { data: contentLogs } = await supabase
+          .from("content_work_logs")
+          .select("created_at")
+          .eq("admin_id", admin.id)
+          .gte("created_at", monthStart)
+          .lte("created_at", monthEnd + "T23:59:59");
+
+        (contentLogs || []).forEach((l: any) => {
+          workLogDates.add(l.created_at.split("T")[0]);
+        });
+      }
+
+      if (admin.role !== "esports_admin") {
+        for (const dateStr of workingDatesList) {
+          if (!attendanceDates.has(dateStr) && !workLogDates.has(dateStr)) {
+            await supabase.from("attendance").insert({
+              admin_id: admin.id,
+              date: dateStr,
+              status: "absent",
+              marked_by: admin.id,
+              marked_at: new Date().toISOString(),
+            });
+          }
+        }
+      }
+    
