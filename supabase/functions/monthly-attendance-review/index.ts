@@ -55,3 +55,42 @@ serve(async (req) => {
       reviewMonth = month === 0 ? 12 : month;
       reviewYear = month === 0 ? year - 1 : year;
     }
+    const { data: admins, error: adminsError } = await supabase
+      .from("admins")
+      .select("id, name, role")
+      .eq("is_active", true);
+
+    if (adminsError) throw adminsError;
+
+    const monthStart = `${reviewYear}-${String(reviewMonth).padStart(2, "0")}-01`;
+    const lastDay = new Date(reviewYear, reviewMonth, 0).getDate();
+    const monthEnd = `${reviewYear}-${String(reviewMonth).padStart(2, "0")}-${lastDay}`;
+
+    const { data: holidays } = await supabase
+      .from("holidays")
+      .select("date")
+      .gte("date", monthStart)
+      .lte("date", monthEnd);
+
+    const holidayDates = new Set((holidays || []).map((h: any) => h.date));
+
+    const todayDate = now.getDate();
+    const maxDay = reviewCurrentMonth ? todayDate : lastDay;
+
+    let workingDays = 0;
+    const workingDatesList: string[] = [];
+
+    for (let day = 1; day <= maxDay; day++) {
+      const d = new Date(reviewYear, reviewMonth - 1, day);
+      const dayOfWeek = d.getDay();
+      const dateStr = `${reviewYear}-${String(reviewMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidayDates.has(dateStr)) {
+        workingDays++;
+        workingDatesList.push(dateStr);
+      }
+    }
+
+    const effectiveThreshold = Math.min(minDaysThreshold, workingDays);
+
+    const results: any[] = [];
