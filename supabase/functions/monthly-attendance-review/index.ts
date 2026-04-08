@@ -145,4 +145,76 @@ serve(async (req) => {
           }
         }
       }
+            const { data: updatedAttendance } = await supabase
+        .from("attendance")
+        .select("status")
+        .eq("admin_id", admin.id)
+        .gte("date", monthStart)
+        .lte("date", monthEnd);
+
+      const presentDays = (updatedAttendance || []).filter((a: any) => a.status === "present").length;
+      const lateDays = (updatedAttendance || []).filter((a: any) => a.status === "late").length;
+      const absentDays = (updatedAttendance || []).filter((a: any) => a.status === "absent").length;
+
+      const totalPresent = presentDays + Math.floor(lateDays * 0.5);
+      const shouldSuspend = totalPresent < effectiveThreshold;
+
+      const suspensionStart = shouldSuspend ? new Date().toISOString().split("T")[0] : null;
+      const suspensionEnd = shouldSuspend
+        ? new Date(Date.now() + suspensionDays * 86400000).toISOString().split("T")[0]
+        : null;
+
+      await supabase
+        .from("monthly_attendance_reviews")
+        .delete()
+        .eq("admin_id", admin.id)
+        .eq("month", reviewMonth)
+        .eq("year", reviewYear);
+
+      await supabase.from("monthly_attendance_reviews").insert({
+        admin_id: admin.id,
+        month: reviewMonth,
+        year: reviewYear,
+        present_days: presentDays,
+        late_days: lateDays,
+        absent_days: absentDays,
+        total_working_days: workingDays,
+        is_suspended: shouldSuspend,
+        suspension_start: suspensionStart,
+        suspension_end: suspensionEnd,
+      });
+
+      if (shouldSuspend) {
+        await supabase.from("admins").update({ status: "suspended" }).eq("id", admin.id);
+
+        await supabase.from("admin_notifications").insert({
+          title: "Account Suspended - Low Attendance",
+          message: `Your account has been suspended for ${suspensionDays} days due to low attendance (${totalPresent}/${effectiveThreshold} days) in ${reviewYear}-${String(reviewMonth).padStart(2, "0")}.`,
+          priority: "urgent",
+          recipient_type: "specific",
+          recipients: [admin.id],
+        });
+      }
+
+      results.push({
+        admin: admin.name,
+        role: admin.role,
+        present: totalPresent,
+        threshold: effectiveThreshold,
+        absent: absentDays,
+        suspended: shouldSuspend,
+      });
+    }
+
+    return new Response(
+      JSON.stringify({ success: true, results, workingDays, threshold: effectiveThreshold, suspensionDays, reviewMonth, reviewYear }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
     
