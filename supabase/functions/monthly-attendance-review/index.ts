@@ -26,3 +26,32 @@ serve(async (req) => {
       if (body.suspension_days) suspensionDays = body.suspension_days;
       if (body.review_current_month) reviewCurrentMonth = body.review_current_month;
     } catch {}
+    const { data: settingsRow } = await supabase
+      .from("attendance_settings")
+      .select("min_days_threshold, suspension_days")
+      .limit(1)
+      .single();
+
+    if (settingsRow) {
+      if (!minDaysThreshold || minDaysThreshold === 20) {
+        minDaysThreshold = settingsRow.min_days_threshold;
+      }
+      if (!suspensionDays || suspensionDays === 7) {
+        suspensionDays = settingsRow.suspension_days;
+      }
+    }
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    let reviewMonth: number;
+    let reviewYear: number;
+
+    if (reviewCurrentMonth) {
+      reviewMonth = month + 1;
+      reviewYear = year;
+    } else {
+      reviewMonth = month === 0 ? 12 : month;
+      reviewYear = month === 0 ? year - 1 : year;
+    }
