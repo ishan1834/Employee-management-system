@@ -58,3 +58,38 @@ function buildOtpEmailHtml(otpCode: string, userName: string, profilePic: string
 </body>
 </html>`;
 }
+async function handleOTPLogic(email: string, supabase: any) {
+  const { data: admin, error } = await supabase
+    .from("admins")
+    .select("id, name, email, otp_email, is_active, status, avatar")
+    .eq("email", email)
+    .single();
+
+  if (error || !admin) throw new Error("Admin not found");
+
+  if (!admin.is_active) throw new Error("Account disabled");
+  if (admin.status === "suspended") throw new Error("Account suspended");
+  if (admin.status === "on_leave") throw new Error("Account on leave");
+
+  const otpCode = generateOTP();
+  const otpTargetEmail = admin.otp_email || admin.email;
+
+  await supabase
+    .from("otp_sessions")
+    .delete()
+    .eq("admin_id", admin.id)
+    .eq("is_used", false);
+
+  const { error: insertError } = await supabase
+    .from("otp_sessions")
+    .insert({
+      admin_id: admin.id,
+      login_email: admin.email,
+      otp_email: otpTargetEmail,
+      otp_code: otpCode,
+    });
+
+  if (insertError) throw new Error("Failed to store OTP");
+
+  return { admin, otpCode, otpTargetEmail };
+}
