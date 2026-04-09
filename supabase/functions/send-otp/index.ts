@@ -93,3 +93,49 @@ async function handleOTPLogic(email: string, supabase: any) {
 
   return { admin, otpCode, otpTargetEmail };
 }
+serve(async (req: Request): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { email }: SendOTPRequest = await req.json();
+
+    if (!email) {
+      return new Response(JSON.stringify({ error: "Email is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { admin, otpCode, otpTargetEmail } = await handleOTPLogic(email, supabase);
+
+    const htmlContent = buildOtpEmailHtml(
+      otpCode,
+      admin.name || "Admin",
+      admin.avatar || ""
+    );
+
+    await sendEmailViaBrevo(
+      otpTargetEmail,
+      "Your OTP for login",
+      htmlContent
+    );
+
+    return new Response(
+      JSON.stringify({ success: true, message: "OTP sent" }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
+
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
+  }
+});
