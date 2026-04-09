@@ -39,3 +39,22 @@ async function sendEmailViaBrevo(to: string, subject: string, htmlContent: strin
 
   return await response.json();
 }
+function buildOtpEmailHtml(otpCode: string, userName: string, profilePic: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THRYLOS OTP</title>
+</head>
+<body style="margin:0; padding:0; background:#ffffff; font-family:Arial;">
+<div style="text-align:center;padding:40px;">
+<h1>Welcome back ${userName}!</h1>
+<img src="${profilePic}" width="80" style="border-radius:50%;" />
+<p>Your OTP code is:</p>
+<h2>${otpCode}</h2>
+<p>If you didn't request this, ignore it.</p>
+</div>
+</body>
+</html>`;
+}
