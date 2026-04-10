@@ -139,6 +139,71 @@ LANGUAGE SQL
 SECURITY DEFINER
 STABLE
 AS $$
+  -- Policies (example subset for brevity consistency)
+CREATE POLICY "Admins can view all attendance"
+  ON public.attendance FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Admins can send messages"
+  ON public.chat_messages FOR INSERT
+  TO authenticated
+  WITH CHECK (sender_id = public.get_current_admin());
+
+-- New user handler
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.admins (user_id, name, email, role)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
+    NEW.email,
+    'social_admin'
+  );
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- updated_at trigger
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_admins_updated_at
+  BEFORE UPDATE ON public.admins
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Realtime
+ALTER TABLE public.admins REPLICA IDENTITY FULL;
+ALTER TABLE public.attendance REPLICA IDENTITY FULL;
+ALTER TABLE public.chat_messages REPLICA IDENTITY FULL;
+ALTER TABLE public.analytics_data REPLICA IDENTITY FULL;
+ALTER TABLE public.payment_verifications REPLICA IDENTITY FULL;
+ALTER TABLE public.certificates REPLICA IDENTITY FULL;
+ALTER TABLE public.internships REPLICA IDENTITY FULL;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.admins;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.analytics_data;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.payment_verifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.certificates;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.internships;
   SELECT EXISTS (
     SELECT 1 FROM public.admins WHERE user_id = auth.uid()
   );
