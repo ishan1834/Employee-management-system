@@ -1,4 +1,5 @@
--- Drop existing tables
+
+-- First, let's drop any existing tables to start fresh
 DROP TABLE IF EXISTS public.internships CASCADE;
 DROP TABLE IF EXISTS public.certificates CASCADE;
 DROP TABLE IF EXISTS public.payment_verifications CASCADE;
@@ -7,15 +8,15 @@ DROP TABLE IF EXISTS public.chat_messages CASCADE;
 DROP TABLE IF EXISTS public.attendance CASCADE;
 DROP TABLE IF EXISTS public.admins CASCADE;
 
--- Drop types
+-- Drop existing types
 DROP TYPE IF EXISTS public.attendance_status CASCADE;
 DROP TYPE IF EXISTS public.user_role CASCADE;
 
--- Drop functions
+-- Drop existing functions
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 DROP FUNCTION IF EXISTS public.update_updated_at_column() CASCADE;
 
--- Create enums
+-- Create enum types
 CREATE TYPE public.user_role AS ENUM (
   'super_admin',
   'betting_admin', 
@@ -25,6 +26,8 @@ CREATE TYPE public.user_role AS ENUM (
 );
 
 CREATE TYPE public.attendance_status AS ENUM ('present', 'absent', 'late');
+
+-- Create admins table with proper constraints
 CREATE TABLE public.admins (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
@@ -38,6 +41,7 @@ CREATE TABLE public.admins (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Create attendance table
 CREATE TABLE public.attendance (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   admin_id UUID NOT NULL REFERENCES public.admins(id) ON DELETE CASCADE,
@@ -49,6 +53,7 @@ CREATE TABLE public.attendance (
   UNIQUE(admin_id, date)
 );
 
+-- Create chat messages table
 CREATE TABLE public.chat_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sender_id UUID NOT NULL REFERENCES public.admins(id) ON DELETE CASCADE,
@@ -57,6 +62,8 @@ CREATE TABLE public.chat_messages (
   file_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
+-- Create analytics data table
 CREATE TABLE public.analytics_data (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   domain TEXT NOT NULL,
@@ -67,6 +74,7 @@ CREATE TABLE public.analytics_data (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Create payment verifications table
 CREATE TABLE public.payment_verifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_name TEXT NOT NULL,
@@ -79,6 +87,7 @@ CREATE TABLE public.payment_verifications (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Create certificates table
 CREATE TABLE public.certificates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   certificate_id TEXT UNIQUE NOT NULL,
@@ -90,6 +99,7 @@ CREATE TABLE public.certificates (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Create internships table
 CREATE TABLE public.internships (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   intern_name TEXT NOT NULL,
@@ -102,7 +112,8 @@ CREATE TABLE public.internships (
   assigned_to UUID REFERENCES public.admins(id),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
--- Enable RLS
+
+-- Enable Row Level Security on all tables
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
@@ -111,7 +122,7 @@ ALTER TABLE public.payment_verifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
 
--- Helper functions
+-- Create security definer function to get current admin
 CREATE OR REPLACE FUNCTION public.get_current_admin()
 RETURNS UUID
 LANGUAGE SQL
@@ -121,6 +132,7 @@ AS $$
   SELECT id FROM public.admins WHERE user_id = auth.uid();
 $$;
 
+-- Create security definer function to check admin role
 CREATE OR REPLACE FUNCTION public.check_admin_role(required_role user_role)
 RETURNS BOOLEAN
 LANGUAGE SQL
@@ -133,15 +145,58 @@ AS $$
   );
 $$;
 
+-- Create security definer function to check if user is admin
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
 LANGUAGE SQL
 SECURITY DEFINER
 STABLE
 AS $$
-  -- Policies (example subset for brevity consistency)
+  SELECT EXISTS (
+    SELECT 1 FROM public.admins WHERE user_id = auth.uid()
+  );
+$$;
+
+-- RLS Policies for admins table
+CREATE POLICY "Authenticated admins can view all admins"
+  ON public.admins FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Super admins can insert admins"
+  ON public.admins FOR INSERT
+  TO authenticated
+  WITH CHECK (public.check_admin_role('super_admin'));
+
+CREATE POLICY "Super admins can update admins"
+  ON public.admins FOR UPDATE
+  TO authenticated
+  USING (public.check_admin_role('super_admin'));
+
+CREATE POLICY "Admins can update their own profile"
+  ON public.admins FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+-- RLS Policies for attendance table
 CREATE POLICY "Admins can view all attendance"
   ON public.attendance FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Admins can mark attendance"
+  ON public.attendance FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_admin());
+
+CREATE POLICY "Admins can update attendance"
+  ON public.attendance FOR UPDATE
+  TO authenticated
+  USING (public.is_admin());
+
+-- RLS Policies for chat messages
+CREATE POLICY "Admins can view chat messages"
+  ON public.chat_messages FOR SELECT
   TO authenticated
   USING (public.is_admin());
 
@@ -150,7 +205,56 @@ CREATE POLICY "Admins can send messages"
   TO authenticated
   WITH CHECK (sender_id = public.get_current_admin());
 
--- New user handler
+-- RLS Policies for analytics data
+CREATE POLICY "Admins can view analytics"
+  ON public.analytics_data FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Admins can insert analytics"
+  ON public.analytics_data FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_admin());
+
+-- RLS Policies for payment verifications
+CREATE POLICY "Admins can view payments"
+  ON public.payment_verifications FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Admins can insert payments"
+  ON public.payment_verifications FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_admin());
+
+CREATE POLICY "Admins can update payments"
+  ON public.payment_verifications FOR UPDATE
+  TO authenticated
+  USING (public.is_admin());
+
+-- RLS Policies for certificates
+CREATE POLICY "Admins can view certificates"
+  ON public.certificates FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Admins can issue certificates"
+  ON public.certificates FOR INSERT
+  TO authenticated
+  WITH CHECK (issued_by = public.get_current_admin());
+
+-- RLS Policies for internships
+CREATE POLICY "Admins can view internships"
+  ON public.internships FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
+CREATE POLICY "Admins can manage internships"
+  ON public.internships FOR ALL
+  TO authenticated
+  USING (public.is_admin());
+
+-- Function to handle new user registration
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -169,11 +273,12 @@ BEGIN
 END;
 $$;
 
+-- Trigger for new user registration
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- updated_at trigger
+-- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -184,11 +289,12 @@ BEGIN
 END;
 $$;
 
+-- Trigger for updated_at on admins table
 CREATE TRIGGER update_admins_updated_at
   BEFORE UPDATE ON public.admins
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
--- Realtime
+-- Enable realtime for all tables
 ALTER TABLE public.admins REPLICA IDENTITY FULL;
 ALTER TABLE public.attendance REPLICA IDENTITY FULL;
 ALTER TABLE public.chat_messages REPLICA IDENTITY FULL;
@@ -197,6 +303,7 @@ ALTER TABLE public.payment_verifications REPLICA IDENTITY FULL;
 ALTER TABLE public.certificates REPLICA IDENTITY FULL;
 ALTER TABLE public.internships REPLICA IDENTITY FULL;
 
+-- Add tables to realtime publication
 ALTER PUBLICATION supabase_realtime ADD TABLE public.admins;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
@@ -204,7 +311,3 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.analytics_data;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.payment_verifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.certificates;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.internships;
-  SELECT EXISTS (
-    SELECT 1 FROM public.admins WHERE user_id = auth.uid()
-  );
-$$;
