@@ -102,3 +102,44 @@ CREATE TABLE public.internships (
   assigned_to UUID REFERENCES public.admins(id),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+-- Enable RLS
+ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.analytics_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_verifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
+
+-- Helper functions
+CREATE OR REPLACE FUNCTION public.get_current_admin()
+RETURNS UUID
+LANGUAGE SQL
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT id FROM public.admins WHERE user_id = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION public.check_admin_role(required_role user_role)
+RETURNS BOOLEAN
+LANGUAGE SQL
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admins 
+    WHERE user_id = auth.uid() AND role = required_role
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE SQL
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admins WHERE user_id = auth.uid()
+  );
+$$;
