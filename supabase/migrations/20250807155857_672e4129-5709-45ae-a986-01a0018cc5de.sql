@@ -49,3 +49,26 @@ CREATE TABLE IF NOT EXISTS public.payment_verifications (
   verified_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+CREATE TABLE IF NOT EXISTS public.certificates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  certificate_id TEXT NOT NULL UNIQUE,
+  participant_name TEXT NOT NULL,
+  participant_email TEXT NOT NULL,
+  course_name TEXT NOT NULL,
+  issue_date DATE DEFAULT CURRENT_DATE,
+  issued_by UUID REFERENCES public.admins(id) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.internships (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  intern_name TEXT NOT NULL,
+  intern_email TEXT NOT NULL,
+  intern_id TEXT NOT NULL UNIQUE,
+  join_date DATE NOT NULL,
+  end_date DATE,
+  department TEXT,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'terminated')),
+  assigned_to UUID REFERENCES public.admins(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
