@@ -1,29 +1,87 @@
-// Importing necessary libraries and components
-import React from 'react';
+// ============================================================
+// main.tsx — Enhanced Version
+// ============================================================
+
+import React, { StrictMode } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Function to initialize and render the React application
-function initializeApp(): void {
-  // Get the root DOM element
-  const container: HTMLElement | null = document.getElementById('root');
+/* ============================================================ */
+/* ERROR BOUNDARY (NEW FEATURE)                                 */
+/* ============================================================ */
 
-  // Check if the root element exists
-  if (!container) {
-    throw new Error("Root element with id 'root' not found in the DOM.");
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
   }
 
-  // Create a React root
-  const root: Root = createRoot(container);
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
 
-  // Render the App component inside React.StrictMode
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+  componentDidCatch(error: Error) {
+    console.error("App crashed:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 20, textAlign: "center" }}>
+          <h2>Something went wrong.</h2>
+          <p>Please refresh the page.</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
-// Call the initialization function
-initializeApp();
+/* ============================================================ */
+/* APP INITIALIZER                                              */
+/* ============================================================ */
+
+function initializeApp(): void {
+  const startTime = performance.now();
+
+  const container: HTMLElement | null = document.getElementById('root');
+
+  if (!container) {
+    console.error("Root element missing");
+    throw new Error("Root element with id 'root' not found.");
+  }
+
+  const root: Root = createRoot(container);
+
+  root.render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>
+  );
+
+  /* ============================================================ */
+  /* PERFORMANCE LOGGING (NEW FEATURE)                            */
+  /* ============================================================ */
+
+  window.addEventListener('load', () => {
+    const endTime = performance.now();
+    console.log(`App loaded in ${(endTime - startTime).toFixed(2)} ms`);
+  });
+}
+
+/* ============================================================ */
+/* SAFE INITIALIZATION                                           */
+/* ============================================================ */
+
+try {
+  initializeApp();
+} catch (error) {
+  console.error("Failed to initialize app:", error);
+}
