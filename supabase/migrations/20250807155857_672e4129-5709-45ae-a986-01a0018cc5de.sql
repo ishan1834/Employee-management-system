@@ -133,3 +133,12 @@ CREATE TABLE IF NOT EXISTS public.betting_events (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can view admins"
+ON public.admins FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can insert admins"
+ON public.admins FOR INSERT TO authenticated WITH CHECK (true);
