@@ -72,3 +72,27 @@ CREATE TABLE IF NOT EXISTS public.internships (
   assigned_to UUID REFERENCES public.admins(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+CREATE TABLE IF NOT EXISTS public.esports_players (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  player_name TEXT NOT NULL,
+  game_uid TEXT NOT NULL,
+  email TEXT NOT NULL,
+  tournament_name TEXT NOT NULL,
+  entry_fees NUMERIC NOT NULL DEFAULT 0,
+  payment_received BOOLEAN DEFAULT false,
+  registered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.social_media_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_account_link TEXT NOT NULL,
+  service_type TEXT NOT NULL CHECK (service_type IN ('instagram', 'youtube', 'facebook', 'telegram', 'twitter')),
+  order_type TEXT NOT NULL CHECK (order_type IN ('likes', 'followers', 'comments', 'views')),
+  quantity INTEGER NOT NULL DEFAULT 0,
+  payment_amount NUMERIC NOT NULL DEFAULT 0,
+  payment_received BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
