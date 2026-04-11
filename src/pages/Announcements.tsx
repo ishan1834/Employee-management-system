@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '@/components/Header';
 import ModuleLayout from '@/components/ModuleLayout';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,19 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle2, Circle, Clock, Plus, Trash2, Search, Filter } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-/* ====================== DEBOUNCE HOOK ====================== */
+/* ====================== DEBOUNCE ====================== */
 
 const useDebounce = (value: string, delay: number) => {
   const [debounced, setDebounced] = useState(value);
-
   useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value]);
   return debounced;
 };
 
@@ -28,19 +26,30 @@ const useDebounce = (value: string, delay: number) => {
 
 const Tasks: React.FC = () => {
   const { adminProfile } = useAuth();
+  const isSuperAdmin = adminProfile?.role === 'super_admin';
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 400);
 
-  const [taskTitle, setTaskTitle] = useState('');
-  const [category, setCategory] = useState('general');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const isSuperAdmin = adminProfile?.role === 'super_admin';
+  const cacheKey = 'tasks-cache';
+
+  /* ====================== CACHE LOAD ====================== */
+
+  const loadCache = () => {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setTasks(JSON.parse(cached));
+    }
+  };
+
+  const saveCache = (data: any[]) => {
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+  };
 
   /* ====================== FETCH ====================== */
 
@@ -50,95 +59,100 @@ const Tasks: React.FC = () => {
 
       const { data, error } = await supabase
         .from('tasks' as any)
-        .select('*, admins!tasks_assigned_by_fkey(name)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       setTasks(data || []);
+      saveCache(data || []);
     } catch (err: any) {
       toast({
-        title: 'Error loading tasks',
+        title: 'Fetch failed',
         description: err.message,
         variant: 'destructive'
       });
-      setTasks([]);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ====================== REALTIME ====================== */
+
   useEffect(() => {
+    loadCache();
     fetchTasks();
-    const interval = setInterval(fetchTasks, 10000);
-    return () => clearInterval(interval);
+
+    const channel = supabase
+      .channel('tasks-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+        fetchTasks();
+      })
+      .subscribe();
+
+    const interval = setInterval(fetchTasks, 15000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
-  /* ====================== CREATE ====================== */
+  /* ====================== OPTIMISTIC UPDATE ====================== */
 
-  const handleCreate = async () => {
-    if (!taskTitle.trim()) return;
+  const toggleStatus = async (task: any) => {
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
 
-    const { error } = await supabase.from('tasks' as any).insert({
-      title: taskTitle,
-      category,
-      status: 'pending',
-      assigned_by: adminProfile?.id
-    });
+    // optimistic update
+    setTasks(prev =>
+      prev.map(t => (t.id === task.id ? { ...t, status: newStatus } : t))
+    );
+
+    const { error } = await supabase
+      .from('tasks' as any)
+      .update({ status: newStatus })
+      .eq('id', task.id);
 
     if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      return;
+      toast({ title: 'Error', description: error.message });
+      fetchTasks(); // rollback
     }
-
-    toast({ title: 'Task created!' });
-    setTaskTitle('');
-    setShowForm(false);
-    fetchTasks();
   };
 
-  /* ====================== ACTIONS ====================== */
-
-  const toggleStatus = async (id: string, status: string) => {
-    const newStatus = status === 'completed' ? 'pending' : 'completed';
-    await supabase.from('tasks' as any).update({ status: newStatus }).eq('id', id);
-    fetchTasks();
-  };
+  /* ====================== DELETE ====================== */
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete task?')) return;
-    await supabase.from('tasks' as any).delete().eq('id', id);
-    fetchTasks();
+    setTasks(prev => prev.filter(t => t.id !== id));
+
+    const { error } = await supabase
+      .from('tasks' as any)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: 'Delete failed' });
+      fetchTasks();
+    }
   };
 
   /* ====================== FILTER ====================== */
 
   const filtered = useMemo(() => {
     return tasks.filter(t => {
-      const matchesSearch = t.title?.toLowerCase().includes(debouncedSearch.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchSearch = t.title?.toLowerCase().includes(debouncedSearch.toLowerCase());
+      const matchStatus = statusFilter === 'all' || t.status === statusFilter;
+      return matchSearch && matchStatus;
     });
   }, [tasks, debouncedSearch, statusFilter]);
 
-  /* ====================== STATS PANEL ====================== */
+  /* ====================== STATS ====================== */
 
   const stats = useMemo(() => {
     const total = tasks.length;
     const completed = tasks.filter(t => t.status === 'completed').length;
     const pending = tasks.filter(t => t.status === 'pending').length;
-
     return { total, completed, pending };
   }, [tasks]);
-
-  /* ====================== CATEGORY COLORS ====================== */
-
-  const categoryColors: Record<string, string> = {
-    urgent: 'bg-red-500/20 text-red-400',
-    feature: 'bg-purple-500/20 text-purple-400',
-    bug: 'bg-yellow-500/20 text-yellow-400',
-    general: 'bg-blue-500/20 text-blue-400'
-  };
 
   /* ====================== UI ====================== */
 
@@ -146,13 +160,13 @@ const Tasks: React.FC = () => {
     <div className="min-h-screen bg-black text-white">
       <Header />
 
-      <ModuleLayout 
-        title="Tasks & Roadmap"
-        description="Manage your tasks efficiently"
+      <ModuleLayout
+        title="Tasks (Real-Time)"
+        description="Live updates + optimized performance"
         actions={
           isSuperAdmin && (
-            <Button onClick={() => setShowForm(!showForm)}>
-              <Plus className="w-4 h-4 mr-1" /> New Task
+            <Button>
+              <Plus className="w-4 h-4 mr-1" /> Add Task
             </Button>
           )
         }
@@ -167,11 +181,7 @@ const Tasks: React.FC = () => {
 
         {/* ===== SEARCH ===== */}
         <div className="flex gap-3 mb-6">
-          <Input
-            placeholder="Search tasks..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -182,20 +192,17 @@ const Tasks: React.FC = () => {
           </Select>
         </div>
 
-        {/* ===== TASK LIST ===== */}
+        {/* ===== LIST ===== */}
         {loading ? (
           <p>Loading...</p>
         ) : filtered.map(t => (
           <Card key={t.id}>
             <CardContent className="p-4 flex justify-between items-center">
-              <div className="flex gap-3 items-center">
-                <button onClick={() => toggleStatus(t.id, t.status)}>
+              <div className="flex items-center gap-3">
+                <button onClick={() => toggleStatus(t)}>
                   {t.status === 'completed' ? <CheckCircle2 /> : <Circle />}
                 </button>
-                <div>
-                  <div>{t.title}</div>
-                  <Badge className={categoryColors[t.category] || ''}>{t.category}</Badge>
-                </div>
+                <span>{t.title}</span>
               </div>
 
               {isSuperAdmin && (
