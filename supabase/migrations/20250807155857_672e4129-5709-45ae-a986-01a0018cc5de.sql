@@ -122,3 +122,14 @@ CREATE TABLE IF NOT EXISTS public.team_stocks (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+CREATE TABLE IF NOT EXISTS public.betting_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_name TEXT NOT NULL,
+  user_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  bet_amount NUMERIC NOT NULL DEFAULT 0,
+  fees_paid NUMERIC NOT NULL DEFAULT 0,
+  payment_received BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
