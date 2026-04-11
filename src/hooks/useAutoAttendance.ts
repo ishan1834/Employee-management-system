@@ -4,3 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatDateForDB } from '@/lib/utils';
 export const useAutoAttendance = () => {
   const { adminProfile } = useAuth();
+  const getTimeBasedStatus = (): string => {
+    const now = new Date();
+    const hours = now.getHours();
