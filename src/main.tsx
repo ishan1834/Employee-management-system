@@ -1,25 +1,13 @@
-// ============================================================
-// main.tsx — Advanced Version (Production Ready)
-// ============================================================
-
 import React, { StrictMode } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-
-/* ============================================================ */
-/* CONFIG                                                       */
-/* ============================================================ */
 
 const APP_CONFIG = {
   name: "THRYLOS Dashboard",
   version: "1.0.0",
   env: import.meta.env.MODE,
 };
-
-/* ============================================================ */
-/* ERROR BOUNDARY                                               */
-/* ============================================================ */
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -54,21 +42,12 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-/* ============================================================ */
-/* ANALYTICS LOGGER (NEW)                                       */
-/* ============================================================ */
-
 function logEvent(event: string, data?: any) {
   console.log(`[EVENT]: ${event}`, data || "");
 }
 
-/* ============================================================ */
-/* THEME INIT (NEW FEATURE)                                     */
-/* ============================================================ */
-
 function initializeTheme() {
   const root = document.documentElement;
-
   const saved = localStorage.getItem("theme");
 
   if (saved) {
@@ -78,10 +57,6 @@ function initializeTheme() {
     root.classList.toggle("dark", prefersDark);
   }
 }
-
-/* ============================================================ */
-/* NETWORK STATUS (NEW FEATURE)                                 */
-/* ============================================================ */
 
 function monitorNetwork() {
   window.addEventListener("online", () => {
@@ -95,10 +70,6 @@ function monitorNetwork() {
   });
 }
 
-/* ============================================================ */
-/* PERFORMANCE TRACKING                                         */
-/* ============================================================ */
-
 function trackPerformance(startTime: number) {
   window.addEventListener("load", () => {
     const endTime = performance.now();
@@ -106,7 +77,6 @@ function trackPerformance(startTime: number) {
     logEvent("APP_LOAD_TIME", endTime - startTime);
   });
 
-  // First Contentful Paint (FCP)
   const observer = new PerformanceObserver((list) => {
     list.getEntries().forEach((entry) => {
       if (entry.name === "first-contentful-paint") {
@@ -118,10 +88,6 @@ function trackPerformance(startTime: number) {
 
   observer.observe({ type: "paint", buffered: true });
 }
-
-/* ============================================================ */
-/* INITIALIZATION                                               */
-/* ============================================================ */
 
 function initializeApp(): void {
   const startTime = performance.now();
@@ -150,10 +116,6 @@ function initializeApp(): void {
 
   trackPerformance(startTime);
 }
-
-/* ============================================================ */
-/* SAFE BOOTSTRAP                                               */
-/* ============================================================ */
 
 try {
   initializeApp();
