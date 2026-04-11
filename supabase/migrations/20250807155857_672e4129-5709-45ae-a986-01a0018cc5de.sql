@@ -28,3 +28,24 @@ CREATE TABLE IF NOT EXISTS public.chat_messages (
   file_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+CREATE TABLE IF NOT EXISTS public.analytics_data (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  domain TEXT NOT NULL,
+  metric_type TEXT NOT NULL,
+  value NUMERIC NOT NULL DEFAULT 0,
+  date DATE DEFAULT CURRENT_DATE,
+  admin_id UUID REFERENCES public.admins(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.payment_verifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_name TEXT NOT NULL,
+  user_email TEXT NOT NULL,
+  transaction_id TEXT NOT NULL UNIQUE,
+  amount NUMERIC DEFAULT 0,
+  payment_received BOOLEAN DEFAULT false,
+  verified_by UUID REFERENCES public.admins(id),
+  verified_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
