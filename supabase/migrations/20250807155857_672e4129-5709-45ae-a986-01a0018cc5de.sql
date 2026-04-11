@@ -142,3 +142,8 @@ ON public.admins FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Authenticated users can insert admins"
 ON public.admins FOR INSERT TO authenticated WITH CHECK (true);
+ALTER TABLE public.admins REPLICA IDENTITY FULL;
+ALTER TABLE public.attendance REPLICA IDENTITY FULL;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.admins;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
