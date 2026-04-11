@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import ModuleLayout from '@/components/ModuleLayout';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle2, Circle, Clock, Plus, Trash2, Search, Filter } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+/* ====================== DEBOUNCE HOOK ====================== */
+
+const useDebounce = (value: string, delay: number) => {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+};
+
+/* ====================== COMPONENT ====================== */
+
 const Tasks: React.FC = () => {
   const { adminProfile } = useAuth();
 
@@ -19,11 +34,15 @@ const Tasks: React.FC = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
+
   const [taskTitle, setTaskTitle] = useState('');
   const [category, setCategory] = useState('general');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const isSuperAdmin = adminProfile?.role === 'super_admin';
+
+  /* ====================== FETCH ====================== */
 
   const fetchTasks = async () => {
     try {
@@ -55,6 +74,8 @@ const Tasks: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  /* ====================== CREATE ====================== */
+
   const handleCreate = async () => {
     if (!taskTitle.trim()) return;
 
@@ -76,6 +97,8 @@ const Tasks: React.FC = () => {
     fetchTasks();
   };
 
+  /* ====================== ACTIONS ====================== */
+
   const toggleStatus = async (id: string, status: string) => {
     const newStatus = status === 'completed' ? 'pending' : 'completed';
     await supabase.from('tasks' as any).update({ status: newStatus }).eq('id', id);
@@ -88,27 +111,98 @@ const Tasks: React.FC = () => {
     fetchTasks();
   };
 
-  const filtered = tasks.filter(t =>
-    t.title?.toLowerCase().includes(search.toLowerCase()) &&
-    (statusFilter === 'all' || t.status === statusFilter)
-  );
+  /* ====================== FILTER ====================== */
+
+  const filtered = useMemo(() => {
+    return tasks.filter(t => {
+      const matchesSearch = t.title?.toLowerCase().includes(debouncedSearch.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [tasks, debouncedSearch, statusFilter]);
+
+  /* ====================== STATS PANEL ====================== */
+
+  const stats = useMemo(() => {
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    const pending = tasks.filter(t => t.status === 'pending').length;
+
+    return { total, completed, pending };
+  }, [tasks]);
+
+  /* ====================== CATEGORY COLORS ====================== */
+
+  const categoryColors: Record<string, string> = {
+    urgent: 'bg-red-500/20 text-red-400',
+    feature: 'bg-purple-500/20 text-purple-400',
+    bug: 'bg-yellow-500/20 text-yellow-400',
+    general: 'bg-blue-500/20 text-blue-400'
+  };
+
+  /* ====================== UI ====================== */
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Header />
-      <ModuleLayout title="Tasks" description="Manage tasks">
-        
+
+      <ModuleLayout 
+        title="Tasks & Roadmap"
+        description="Manage your tasks efficiently"
+        actions={
+          isSuperAdmin && (
+            <Button onClick={() => setShowForm(!showForm)}>
+              <Plus className="w-4 h-4 mr-1" /> New Task
+            </Button>
+          )
+        }
+      >
+
+        {/* ===== STATS ===== */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <Card><CardContent className="p-4 text-center">{stats.total} Total</CardContent></Card>
+          <Card><CardContent className="p-4 text-green-400">{stats.completed} Completed</CardContent></Card>
+          <Card><CardContent className="p-4 text-yellow-400">{stats.pending} Pending</CardContent></Card>
+        </div>
+
+        {/* ===== SEARCH ===== */}
+        <div className="flex gap-3 mb-6">
+          <Input
+            placeholder="Search tasks..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* ===== TASK LIST ===== */}
         {loading ? (
-          <div className="space-y-2">
-            {[1,2,3].map(i => (
-              <div key={i} className="h-16 bg-white/5 animate-pulse rounded-lg" />
-            ))}
-          </div>
+          <p>Loading...</p>
         ) : filtered.map(t => (
           <Card key={t.id}>
-            <CardContent className="p-4 flex justify-between">
-              <span>{t.title}</span>
-              <Button onClick={() => toggleStatus(t.id, t.status)}>Toggle</Button>
+            <CardContent className="p-4 flex justify-between items-center">
+              <div className="flex gap-3 items-center">
+                <button onClick={() => toggleStatus(t.id, t.status)}>
+                  {t.status === 'completed' ? <CheckCircle2 /> : <Circle />}
+                </button>
+                <div>
+                  <div>{t.title}</div>
+                  <Badge className={categoryColors[t.category] || ''}>{t.category}</Badge>
+                </div>
+              </div>
+
+              {isSuperAdmin && (
+                <Button onClick={() => handleDelete(t.id)}>
+                  <Trash2 />
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}
