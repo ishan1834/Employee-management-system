@@ -116,7 +116,7 @@ const filtered = withBirthday.filter((p) => {
                         </div>
                         <div>
                           <h3 className="font-bold text-white text-lg">{p.full_name} 🎂</h3>
-                          <p className="text-xs text-gray-400">{p.department} • {p.designation} • {p.type}</p>
+                          <p className="text-xs text-gray-400">{p.department} • {p.designation} • {p.type} • Turns {p.age + 1} today</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -141,7 +141,7 @@ const filtered = withBirthday.filter((p) => {
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-white">{p.birthdayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                          <Badge className="bg-blue-500/20 text-blue-400 text-[10px]">In {p.daysUntil} days</Badge>
+                          <Badge className="bg-blue-500/20 text-blue-400 text-[10px]">In {p.daysUntil} days • Turns {p.age + 1}</Badge>
                         </div>
                       </CardContent>
                     </Card>
