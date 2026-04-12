@@ -1,34 +1,27 @@
-import React, { useCallback } from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useButtonClickSound } from '@/hooks/useButtonClickSound';
+import { cn } from "@/lib/utils"; // Standard shadcn utility
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type SoundType = 'click' | 'hover' | 'success' | 'error' | 'switch';
 
-export interface SoundButtonProps extends Omit<HTMLMotionProps<"button">, 'ref'> {
-  /** Enable or disable all sounds. Default: true */
+export interface SoundButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   enableSound?: boolean;
-  /** Which sound to play on click. Default: 'click' */
   clickSound?: SoundType;
-  /** Which sound to play on hover. Default: none */
   hoverSound?: SoundType;
-  /** Volume level 0–1. Default: 1 */
   volume?: number;
-  /** Enable haptic feedback on mobile (navigator.vibrate). Default: false */
   haptic?: boolean;
-  /** Haptic vibration duration in ms or pattern. Default: 30 */
   hapticDuration?: number | number[];
-  /** Show loading spinner and disable interaction while true */
   loading?: boolean;
-  /** Accessible label shown during loading */
   loadingLabel?: string;
-  /** The base shadcn button variant */
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  /** The base shadcn button size */
   size?: "default" | "sm" | "lg" | "icon";
+  // Custom motion props if you want to override defaults
+  motionProps?: any; 
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -42,8 +35,8 @@ const SoundButton = React.forwardRef<HTMLButtonElement, SoundButtonProps>(
       clickSound = 'click',
       hoverSound,
       volume = 1,
-      haptic = true, // Enabled by default for tactile feel
-      hapticDuration = 15, // Shorter is usually "snappier"
+      haptic = true,
+      hapticDuration = 15,
       loading = false,
       loadingLabel = 'Processing...',
       disabled,
@@ -57,12 +50,12 @@ const SoundButton = React.forwardRef<HTMLButtonElement, SoundButtonProps>(
   ) => {
     const { playSound } = useButtonClickSound({ volume });
 
-    // Memoized haptic trigger to prevent re-renders
-    const triggerHaptic = useCallback(() => {
+    // Internal Haptic Trigger
+    const triggerHaptic = () => {
       if (haptic && typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(hapticDuration);
       }
-    }, [haptic, hapticDuration]);
+    };
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (loading || disabled) return;
@@ -70,17 +63,35 @@ const SoundButton = React.forwardRef<HTMLButtonElement, SoundButtonProps>(
       if (enableSound) playSound(clickSound);
       triggerHaptic();
       
-      if (onClick) onClick(e as any);
+      onClick?.(e);
     };
 
     const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (!loading && !disabled && enableSound && hoverSound) {
         playSound(hoverSound);
       }
-      if (onMouseEnter) onMouseEnter(e as any);
+      onMouseEnter?.(e);
     };
 
     return (
       <motion.div
-        whileTap={{ scale: (disabled || loading) ? 1 : 0.96 }}
-        className="
+        whileTap={(!disabled && !loading) ? { scale: 0.97 } : {}}
+        className={cn("inline-block w-full sm:w-auto", className)}
+      >
+        <Button
+          ref={ref}
+          variant={variant}
+          size={size}
+          disabled={disabled || loading}
+          onClick={handleClick}
+          onMouseEnter={handleMouseEnter}
+          className="relative w-full overflow-hidden transition-all duration-200"
+          {...props}
+        >
+          {/* Use AnimatePresence for a smooth spinner transition */}
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y:
