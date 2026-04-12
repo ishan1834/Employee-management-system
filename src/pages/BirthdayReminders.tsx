@@ -64,11 +64,19 @@ const daysUntil = Math.ceil(
   (nextBday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
 );
 
+// Calculate age
+let age = today.getFullYear() - dob.getFullYear();
+const hasBirthdayPassed = (today.getMonth() > dob.getMonth()) || (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+if (!hasBirthdayPassed) {
+  age -= 1;
+}
+
 return {
   ...p,
   isToday,
   daysUntil,
   birthdayDate: dob,
+  age: age,
 };
 }).sort((a, b) => a.daysUntil - b.daysUntil);
 
