@@ -880,7 +880,7 @@ const AdminEmployeeProfile: React.FC = () => {
                       className="bg-white text-black hover:bg-gray-200 font-semibold"
                     >
                       <Lock className="w-4 h-4 mr-2" />
-                      Submit & Lock
+                      Submit and Lock Profile
                     </Button>
                   </div>
                 </>
