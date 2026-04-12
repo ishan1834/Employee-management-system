@@ -17,3 +17,26 @@ CREATE TABLE public.admins (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+CREATE TABLE public.betting_events (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  event_name TEXT NOT NULL,
+  user_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  payment_received BOOLEAN NOT NULL DEFAULT false,
+  bet_amount NUMERIC NOT NULL DEFAULT 0,
+  fees_paid NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.esports_players (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  player_name TEXT NOT NULL,
+  game_uid TEXT NOT NULL,
+  email TEXT NOT NULL,
+  tournament_name TEXT NOT NULL,
+  payment_received BOOLEAN NOT NULL DEFAULT false,
+  entry_fees NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
