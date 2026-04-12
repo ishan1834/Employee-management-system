@@ -7,6 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
   Tabs, TabsContent, TabsList, TabsTrigger
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 
 import {
-  ShieldCheck, RefreshCw, Search, Users, Activity, TrendingUp
+  ShieldCheck, RefreshCw, Users, Activity, Terminal
 } from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
@@ -42,9 +43,18 @@ interface SystemAlert {
   severity: 'info' | 'warning' | 'critical';
 }
 
-/* ---------------- CONSTANTS ---------------- */
+interface Log {
+  id: string;
+  message: string;
+  time: string;
+}
 
-const REFRESH_INTERVAL = 30000;
+/* ---------------- MOCK DATA ---------------- */
+
+const generateLogs = (): Log[] => [
+  { id: "1", message: "User logged in", time: "22:10" },
+  { id: "2", message: "Database synced", time: "22:11" },
+];
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -67,67 +77,68 @@ const StrategicCommandCenter: React.FC = () => {
   });
 
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [logs, setLogs] = useState<Log[]>(generateLogs());
+
   const [globalSearch, setGlobalSearch] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("overview");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  /* ---------------- LIVE DATA SIMULATION ---------------- */
+  /* ---------------- LIVE SYSTEM ---------------- */
 
   useEffect(() => {
     const interval = setInterval(() => {
+
+      // Update metrics
       setMetrics(prev => ({
         ...prev,
-        activeToday: prev.activeToday + Math.floor(Math.random() * 3),
-        performanceScore: Math.min(prev.performanceScore + Math.random() * 2, 100)
+        activeToday: prev.activeToday + Math.floor(Math.random() * 2)
       }));
 
-      setSystemHealth(prev => ({
-        ...prev,
-        cpuUsage: Math.min(prev.cpuUsage + Math.random() * 3, 100),
-        memoryUsage: Math.min(prev.memoryUsage + Math.random() * 2, 100)
-      }));
+      // Update logs dynamically
+      setLogs(prev => [
+        {
+          id: Date.now().toString(),
+          message: "Auto system update",
+          time: new Date().toLocaleTimeString()
+        },
+        ...prev
+      ].slice(0, 10));
 
     }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
-  /* ---------------- LOADING ---------------- */
-
-  useEffect(() => {
-    setTimeout(() => setIsLoading(false), 1000);
-  }, []);
-
-  /* ---------------- ALERT SYSTEM ---------------- */
+  /* ---------------- ALERTS ---------------- */
 
   useEffect(() => {
     const newAlerts: SystemAlert[] = [];
 
     if (systemHealth.cpuUsage > 80) {
-      newAlerts.push({ id: 'cpu', message: 'High CPU usage', severity: 'warning' });
-    }
-
-    if (systemHealth.cpuUsage > 90) {
-      newAlerts.push({ id: 'critical', message: 'Critical CPU load', severity: 'critical' });
+      newAlerts.push({ id: 'cpu', message: 'High CPU', severity: 'warning' });
     }
 
     setAlerts(newAlerts);
-
   }, [systemHealth]);
 
-  /* ---------------- DERIVED VALUES ---------------- */
+  /* ---------------- FILTERED DATA ---------------- */
 
-  const engagement = useMemo(() => {
-    return Math.round((metrics.activeToday / metrics.totalUsers) * 100);
-  }, [metrics]);
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log =>
+      log.message.toLowerCase().includes(globalSearch.toLowerCase())
+    );
+  }, [logs, globalSearch]);
+
+  /* ---------------- DERIVED ---------------- */
+
+  const engagement = Math.round(
+    (metrics.activeToday / metrics.totalUsers) * 100
+  );
 
   /* ---------------- HANDLERS ---------------- */
 
   const handleRefresh = useCallback(() => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+    setMetrics(prev => ({ ...prev }));
   }, []);
 
   /* ---------------- UI ---------------- */
@@ -138,7 +149,7 @@ const StrategicCommandCenter: React.FC = () => {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ShieldCheck /> Command Center
+          <ShieldCheck /> Enterprise Dashboard
         </h1>
 
         <Button onClick={handleRefresh}>
@@ -147,80 +158,80 @@ const StrategicCommandCenter: React.FC = () => {
         </Button>
       </div>
 
-      {/* SEARCH + FILTER */}
-      <div className="flex gap-4">
-        <input
-          value={globalSearch}
-          onChange={(e) => setGlobalSearch(e.target.value)}
-          placeholder="Search..."
-          className="border px-3 py-2 rounded"
-        />
+      {/* SEARCH */}
+      <input
+        value={globalSearch}
+        onChange={(e) => setGlobalSearch(e.target.value)}
+        placeholder="Search logs..."
+        className="border px-3 py-2 rounded"
+      />
 
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="all">All</option>
-          <option value="active">Active</option>
-        </select>
-      </div>
+      {/* GRID */}
+      <div className="grid grid-cols-3 gap-6">
 
-      {/* LOADING */}
-      {isLoading && <p>Loading dashboard...</p>}
+        {/* LEFT SECTION */}
+        <div className="col-span-2 space-y-6">
 
-      {/* METRIC CARDS */}
-      <div className="grid grid-cols-4 gap-4">
+          {/* METRICS */}
+          <div className="grid grid-cols-4 gap-4">
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Users</CardTitle>
-          </CardHeader>
-          <CardContent>{metrics.totalUsers}</CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Total</CardTitle></CardHeader>
+              <CardContent>{metrics.totalUsers}</CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Today</CardTitle>
-          </CardHeader>
-          <CardContent>{metrics.activeToday}</CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Active</CardTitle></CardHeader>
+              <CardContent>{metrics.activeToday}</CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance</CardTitle>
-          </CardHeader>
-          <CardContent>{metrics.performanceScore.toFixed(1)}%</CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Engagement</CardTitle></CardHeader>
+              <CardContent>{engagement}%</CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Engagement</CardTitle>
-          </CardHeader>
-          <CardContent>{engagement}%</CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Score</CardTitle></CardHeader>
+              <CardContent>{metrics.performanceScore}%</CardContent>
+            </Card>
 
-      </div>
+          </div>
 
-      {/* ALERTS */}
-      {alerts.map(alert => (
-        <div key={alert.id} className="text-red-400">
-          {alert.message}
+          {/* TABLE */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Activity Table</CardTitle>
+              <CardDescription>Live attendance data</CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      <td>Admin {i + 1}</td>
+                      <td>
+                        <Badge>{i % 2 === 0 ? "Present" : "Absent"}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+
         </div>
-      ))}
 
-      {/* TABS */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* RIGHT SIDEBAR */}
+        <div className="space-y-6">
 
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="system">System</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* SYSTEM TAB */}
-        <TabsContent value="system">
-
+          {/* SYSTEM HEALTH */}
           <Card>
             <CardHeader>
               <CardTitle>System Health</CardTitle>
@@ -228,48 +239,45 @@ const StrategicCommandCenter: React.FC = () => {
 
             <CardContent>
 
-              <p>CPU: {systemHealth.cpuUsage.toFixed(1)}%</p>
+              <p>CPU: {systemHealth.cpuUsage}%</p>
               <Progress value={systemHealth.cpuUsage} />
 
-              <p>Memory: {systemHealth.memoryUsage.toFixed(1)}%</p>
+              <p>Memory: {systemHealth.memoryUsage}%</p>
               <Progress value={systemHealth.memoryUsage} />
 
             </CardContent>
-
           </Card>
 
-        </TabsContent>
-
-        {/* ANALYTICS */}
-        <TabsContent value="analytics">
-
+          {/* LOGS */}
           <Card>
             <CardHeader>
-              <CardTitle>Analytics Summary</CardTitle>
-              <CardDescription>Advanced insights</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Terminal /> Activity Logs
+              </CardTitle>
             </CardHeader>
 
             <CardContent>
-
-              <p>Attendance Rate: {metrics.performanceScore.toFixed(1)}%</p>
-              <p>Engagement: {engagement}%</p>
-              <p>Late Users: {metrics.lateCount}</p>
-              <p>Absent Users: {metrics.absentCount}</p>
-
+              <ScrollArea className="h-64">
+                {filteredLogs.map(log => (
+                  <div key={log.id} className="text-xs border-b py-2">
+                    <p>{log.message}</p>
+                    <span>{log.time}</span>
+                  </div>
+                ))}
+              </ScrollArea>
             </CardContent>
-
           </Card>
 
-        </TabsContent>
+        </div>
 
-      </Tabs>
+      </div>
 
-      {/* SETTINGS */}
+      {/* DIALOG */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
-            <DialogDescription>Configure system</DialogDescription>
+            <DialogDescription>Advanced config</DialogDescription>
           </DialogHeader>
 
           <DialogFooter>
