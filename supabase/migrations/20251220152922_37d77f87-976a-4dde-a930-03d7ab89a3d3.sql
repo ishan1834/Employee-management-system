@@ -123,3 +123,27 @@ AS $$
       AND is_active = true
   )
 $$;
+-- Admins
+CREATE POLICY "Admins can view admins"
+ON public.admins FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Super admins manage admins"
+ON public.admins FOR ALL
+TO authenticated
+USING (public.is_super_admin(auth.uid()));
+
+-- Betting
+CREATE POLICY "Admins view betting"
+ON public.betting_events FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Betting admins manage betting"
+ON public.betting_events FOR ALL
+TO authenticated
+USING (
+  public.has_admin_role(auth.uid(), 'betting_admin')
+  OR public.is_super_admin(auth.uid())
+);
