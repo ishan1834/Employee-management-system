@@ -40,3 +40,23 @@ CREATE TABLE public.esports_players (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+CREATE TABLE public.social_media_orders (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_account_link TEXT NOT NULL,
+  service_type TEXT NOT NULL,
+  order_type TEXT NOT NULL,
+  payment_received BOOLEAN NOT NULL DEFAULT false,
+  quantity INTEGER NOT NULL DEFAULT 0,
+  payment_amount NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.trading_users (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  wallet_balance NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
