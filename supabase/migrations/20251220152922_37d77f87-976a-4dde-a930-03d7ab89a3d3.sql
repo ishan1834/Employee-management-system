@@ -147,3 +147,30 @@ USING (
   public.has_admin_role(auth.uid(), 'betting_admin')
   OR public.is_super_admin(auth.uid())
 );
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = public;
+
+CREATE TRIGGER update_admins_updated_at
+BEFORE UPDATE ON public.admins
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_betting_events_updated_at
+BEFORE UPDATE ON public.betting_events
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_esports_players_updated_at
+BEFORE UPDATE ON public.esports_players
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_social_media_orders_updated_at
+BEFORE UPDATE ON public.social_media_orders
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_trading_users_updated_at
+BEFORE UPDATE ON public.trading_users
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
