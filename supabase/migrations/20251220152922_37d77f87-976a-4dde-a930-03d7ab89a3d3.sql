@@ -81,3 +81,45 @@ ALTER TABLE public.social_media_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trading_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+CREATE OR REPLACE FUNCTION public.is_admin(_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admins
+    WHERE user_id = _user_id AND is_active = true
+  )
+$$;
+
+CREATE OR REPLACE FUNCTION public.has_admin_role(_user_id UUID, _role admin_role)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admins
+    WHERE user_id = _user_id
+      AND role = _role
+      AND is_active = true
+  )
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_super_admin(_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admins
+    WHERE user_id = _user_id
+      AND role = 'super_admin'
+      AND is_active = true
+  )
+$$;
