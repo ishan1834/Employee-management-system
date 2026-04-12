@@ -1,14 +1,12 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 
-/* ---------------- UI COMPONENTS ---------------- */
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter
+  Card, CardContent, CardHeader, CardTitle, CardDescription
 } from '@/components/ui/card';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
   Tabs, TabsContent, TabsList, TabsTrigger
@@ -18,23 +16,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
 
-/* ---------------- ICONS ---------------- */
 import {
-  Users,
-  Activity,
-  TrendingUp,
-  Clock,
-  AlertCircle,
-  ShieldCheck,
-  Settings,
-  RefreshCw,
-  Bell,
-  Search
+  ShieldCheck, RefreshCw, Search, Users, Activity, TrendingUp
 } from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
 
-// Stores all dashboard metrics
 interface DashboardMetrics {
   totalUsers: number;
   activeToday: number;
@@ -43,14 +30,12 @@ interface DashboardMetrics {
   performanceScore: number;
 }
 
-// Stores system health values
 interface SystemHealth {
   cpuUsage: number;
   memoryUsage: number;
   uptime: number;
 }
 
-// Alerts structure
 interface SystemAlert {
   id: string;
   message: string;
@@ -59,144 +44,87 @@ interface SystemAlert {
 
 /* ---------------- CONSTANTS ---------------- */
 
-// Performance thresholds
-const PERFORMANCE_THRESHOLDS = {
-  excellent: 85,
-  good: 70,
-  average: 50,
-};
-
-// Auto refresh interval
 const REFRESH_INTERVAL = 30000;
 
-/* ---------------- HELPER FUNCTIONS ---------------- */
-
-// Returns performance label
-const getPerformanceLabel = (value: number): string => {
-  if (value >= PERFORMANCE_THRESHOLDS.excellent) return "Excellent";
-  if (value >= PERFORMANCE_THRESHOLDS.good) return "Good";
-  if (value >= PERFORMANCE_THRESHOLDS.average) return "Average";
-  return "Poor";
-};
-
-// Returns badge color
-const getPerformanceBadge = (value: number): string => {
-  if (value >= 85) return "bg-green-500";
-  if (value >= 70) return "bg-blue-500";
-  if (value >= 50) return "bg-yellow-500";
-  return "bg-red-500";
-};
-
-/* ---------------- MAIN COMPONENT ---------------- */
+/* ---------------- COMPONENT ---------------- */
 
 const StrategicCommandCenter: React.FC = () => {
 
-  /* -------- STATE MANAGEMENT -------- */
+  /* ---------------- STATE ---------------- */
 
-  // Dashboard metrics state
   const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalUsers: 0,
-    activeToday: 0,
-    lateCount: 0,
-    absentCount: 0,
-    performanceScore: 0,
+    totalUsers: 120,
+    activeToday: 95,
+    lateCount: 10,
+    absentCount: 15,
+    performanceScore: 82,
   });
 
-  // Alerts state
-  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
-
-  // System health state
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
-    cpuUsage: 0,
-    memoryUsage: 0,
-    uptime: 0,
+    cpuUsage: 45,
+    memoryUsage: 60,
+    uptime: 99.9,
   });
 
-  // UI states
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<string>("overview");
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Global search state
-  const [globalSearch, setGlobalSearch] = useState<string>("");
-
-  /* -------- DATA FETCHING -------- */
+  /* ---------------- LIVE DATA SIMULATION ---------------- */
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      setMetrics(prev => ({
+        ...prev,
+        activeToday: prev.activeToday + Math.floor(Math.random() * 3),
+        performanceScore: Math.min(prev.performanceScore + Math.random() * 2, 100)
+      }));
 
-    // Simulating API call
-    const fetchData = () => {
+      setSystemHealth(prev => ({
+        ...prev,
+        cpuUsage: Math.min(prev.cpuUsage + Math.random() * 3, 100),
+        memoryUsage: Math.min(prev.memoryUsage + Math.random() * 2, 100)
+      }));
 
-      setMetrics({
-        totalUsers: 120,
-        activeToday: 95,
-        lateCount: 10,
-        absentCount: 15,
-        performanceScore: 82,
-      });
+    }, 3000);
 
-      setSystemHealth({
-        cpuUsage: 45,
-        memoryUsage: 60,
-        uptime: 99.9,
-      });
-
-      setIsLoading(false);
-    };
-
-    fetchData();
-
-    // Auto refresh
-    const interval = setInterval(fetchData, REFRESH_INTERVAL);
     return () => clearInterval(interval);
-
   }, []);
 
-  /* -------- ALERT SYSTEM -------- */
+  /* ---------------- LOADING ---------------- */
 
   useEffect(() => {
+    setTimeout(() => setIsLoading(false), 1000);
+  }, []);
 
+  /* ---------------- ALERT SYSTEM ---------------- */
+
+  useEffect(() => {
     const newAlerts: SystemAlert[] = [];
 
     if (systemHealth.cpuUsage > 80) {
-      newAlerts.push({
-        id: 'cpu',
-        message: 'High CPU usage detected',
-        severity: 'warning',
-      });
+      newAlerts.push({ id: 'cpu', message: 'High CPU usage', severity: 'warning' });
     }
 
     if (systemHealth.cpuUsage > 90) {
-      newAlerts.push({
-        id: 'critical',
-        message: 'System nearing overload',
-        severity: 'critical',
-      });
-    }
-
-    if (metrics.activeToday < metrics.totalUsers * 0.5) {
-      newAlerts.push({
-        id: 'attendance',
-        message: 'Low attendance detected',
-        severity: 'info',
-      });
+      newAlerts.push({ id: 'critical', message: 'Critical CPU load', severity: 'critical' });
     }
 
     setAlerts(newAlerts);
 
-  }, [systemHealth, metrics]);
+  }, [systemHealth]);
 
-  /* -------- MEMOIZED VALUES -------- */
+  /* ---------------- DERIVED VALUES ---------------- */
 
-  // Optimized performance label
-  const performanceLabel = useMemo(
-    () => getPerformanceLabel(metrics.performanceScore),
-    [metrics.performanceScore]
-  );
+  const engagement = useMemo(() => {
+    return Math.round((metrics.activeToday / metrics.totalUsers) * 100);
+  }, [metrics]);
 
-  /* -------- HANDLERS -------- */
+  /* ---------------- HANDLERS ---------------- */
 
-  // Manual refresh button
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 1000);
@@ -210,8 +138,7 @@ const StrategicCommandCenter: React.FC = () => {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ShieldCheck className="text-blue-500" />
-          Strategic Command Center
+          <ShieldCheck /> Command Center
         </h1>
 
         <Button onClick={handleRefresh}>
@@ -220,16 +147,67 @@ const StrategicCommandCenter: React.FC = () => {
         </Button>
       </div>
 
-      {/* SEARCH BAR */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" />
+      {/* SEARCH + FILTER */}
+      <div className="flex gap-4">
         <input
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
           placeholder="Search..."
-          className="border rounded-lg pl-10 pr-4 py-2 w-64"
+          className="border px-3 py-2 rounded"
         />
+
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="all">All</option>
+          <option value="active">Active</option>
+        </select>
       </div>
+
+      {/* LOADING */}
+      {isLoading && <p>Loading dashboard...</p>}
+
+      {/* METRIC CARDS */}
+      <div className="grid grid-cols-4 gap-4">
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Users</CardTitle>
+          </CardHeader>
+          <CardContent>{metrics.totalUsers}</CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Today</CardTitle>
+          </CardHeader>
+          <CardContent>{metrics.activeToday}</CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance</CardTitle>
+          </CardHeader>
+          <CardContent>{metrics.performanceScore.toFixed(1)}%</CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Engagement</CardTitle>
+          </CardHeader>
+          <CardContent>{engagement}%</CardContent>
+        </Card>
+
+      </div>
+
+      {/* ALERTS */}
+      {alerts.map(alert => (
+        <div key={alert.id} className="text-red-400">
+          {alert.message}
+        </div>
+      ))}
 
       {/* TABS */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -240,28 +218,7 @@ const StrategicCommandCenter: React.FC = () => {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
-        {/* OVERVIEW */}
-        <TabsContent value="overview">
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance</CardTitle>
-              <CardDescription>System efficiency</CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <Badge className={getPerformanceBadge(metrics.performanceScore)}>
-                {performanceLabel}
-              </Badge>
-
-              <Progress value={metrics.performanceScore} />
-            </CardContent>
-
-          </Card>
-
-        </TabsContent>
-
-        {/* SYSTEM */}
+        {/* SYSTEM TAB */}
         <TabsContent value="system">
 
           <Card>
@@ -269,29 +226,45 @@ const StrategicCommandCenter: React.FC = () => {
               <CardTitle>System Health</CardTitle>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent>
 
-              <div>CPU: {systemHealth.cpuUsage}%</div>
+              <p>CPU: {systemHealth.cpuUsage.toFixed(1)}%</p>
               <Progress value={systemHealth.cpuUsage} />
 
-              <div>Memory: {systemHealth.memoryUsage}%</div>
+              <p>Memory: {systemHealth.memoryUsage.toFixed(1)}%</p>
               <Progress value={systemHealth.memoryUsage} />
 
-              <div>Uptime: {systemHealth.uptime}%</div>
+            </CardContent>
 
-              {/* ALERTS */}
-              {alerts.map(alert => (
-                <div key={alert.id}>{alert.message}</div>
-              ))}
+          </Card>
+
+        </TabsContent>
+
+        {/* ANALYTICS */}
+        <TabsContent value="analytics">
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics Summary</CardTitle>
+              <CardDescription>Advanced insights</CardDescription>
+            </CardHeader>
+
+            <CardContent>
+
+              <p>Attendance Rate: {metrics.performanceScore.toFixed(1)}%</p>
+              <p>Engagement: {engagement}%</p>
+              <p>Late Users: {metrics.lateCount}</p>
+              <p>Absent Users: {metrics.absentCount}</p>
 
             </CardContent>
+
           </Card>
 
         </TabsContent>
 
       </Tabs>
 
-      {/* SETTINGS DIALOG */}
+      {/* SETTINGS */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
