@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter
+  Card, CardContent, CardHeader, CardTitle, CardDescription
 } from '@/components/ui/card';
 
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,11 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger
-} from "@/components/ui/tabs";
-
-import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
 
 import {
-  ShieldCheck, RefreshCw, Terminal, Bell, Power, Users
+  ShieldCheck, Terminal, Brain, AlertTriangle
 } from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
@@ -34,25 +30,17 @@ interface DashboardMetrics {
 interface SystemHealth {
   cpuUsage: number;
   memoryUsage: number;
-  uptime: number;
 }
 
-interface Log {
-  id: string;
-  message: string;
-  time: string;
-}
-
-interface Notification {
+interface Insight {
   id: string;
   text: string;
 }
 
-/* ---------------- MOCK ---------------- */
-
-const generateLogs = (): Log[] => [
-  { id: "1", message: "System initialized", time: "22:00" }
-];
+interface Prediction {
+  id: string;
+  risk: string;
+}
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -71,58 +59,93 @@ const StrategicCommandCenter: React.FC = () => {
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
     cpuUsage: 45,
     memoryUsage: 60,
-    uptime: 99.9,
   });
 
-  const [logs, setLogs] = useState<Log[]>(generateLogs());
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [role, setRole] = useState<'admin' | 'viewer'>('admin');
-
-  const [activeTab, setActiveTab] = useState("overview");
-  const [search, setSearch] = useState("");
-  const [isLockdown, setIsLockdown] = useState(false);
+  const [history, setHistory] = useState<number[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   /* ---------------- LIVE SYSTEM ---------------- */
 
   useEffect(() => {
     const interval = setInterval(() => {
 
-      // Metrics update
-      setMetrics(prev => ({
-        ...prev,
-        activeToday: prev.activeToday + Math.floor(Math.random() * 2)
+      // Simulate performance trend
+      setMetrics(prev => {
+        const newScore = Math.min(prev.performanceScore + (Math.random() * 4 - 2), 100);
+        setHistory(h => [...h.slice(-20), newScore]);
+        return { ...prev, performanceScore: newScore };
+      });
+
+      // Simulate system load
+      setSystemHealth(prev => ({
+        cpuUsage: Math.min(prev.cpuUsage + Math.random() * 5, 100),
+        memoryUsage: Math.min(prev.memoryUsage + Math.random() * 3, 100)
       }));
 
-      // Logs update
+      // Logs
       setLogs(prev => [
-        {
-          id: Date.now().toString(),
-          message: "Auto process executed",
-          time: new Date().toLocaleTimeString()
-        },
+        `System tick at ${new Date().toLocaleTimeString()}`,
         ...prev
       ].slice(0, 15));
-
-      // Notifications
-      if (Math.random() > 0.7) {
-        setNotifications(prev => [
-          { id: Date.now().toString(), text: "New system event detected" },
-          ...prev
-        ].slice(0, 5));
-      }
 
     }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
-  /* ---------------- FILTER ---------------- */
+  /* ---------------- AI INSIGHTS ---------------- */
 
-  const filteredLogs = useMemo(() => {
-    return logs.filter(l =>
-      l.message.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [logs, search]);
+  useEffect(() => {
+
+    const newInsights: Insight[] = [];
+
+    if (metrics.performanceScore < 60) {
+      newInsights.push({
+        id: 'low_perf',
+        text: 'Performance dropping. Investigate attendance.'
+      });
+    }
+
+    if (systemHealth.cpuUsage > 80) {
+      newInsights.push({
+        id: 'cpu_high',
+        text: 'CPU usage high. Optimize backend services.'
+      });
+    }
+
+    setInsights(newInsights);
+
+  }, [metrics, systemHealth]);
+
+  /* ---------------- PREDICTIONS ---------------- */
+
+  useEffect(() => {
+
+    const newPredictions: Prediction[] = [];
+
+    const avg =
+      history.reduce((a, b) => a + b, 0) / (history.length || 1);
+
+    if (avg < 70) {
+      newPredictions.push({
+        id: 'risk_low',
+        risk: 'Performance may fall below threshold soon'
+      });
+    }
+
+    if (systemHealth.cpuUsage > 75) {
+      newPredictions.push({
+        id: 'cpu_risk',
+        risk: 'Potential system overload in near future'
+      });
+    }
+
+    setPredictions(newPredictions);
+
+  }, [history, systemHealth]);
 
   /* ---------------- DERIVED ---------------- */
 
@@ -130,181 +153,111 @@ const StrategicCommandCenter: React.FC = () => {
     (metrics.activeToday / metrics.totalUsers) * 100
   );
 
-  const systemStatus = useMemo(() => {
-    if (systemHealth.cpuUsage > 85) return "CRITICAL";
-    if (systemHealth.cpuUsage > 60) return "WARNING";
-    return "OPTIMAL";
-  }, [systemHealth]);
-
-  /* ---------------- HANDLERS ---------------- */
-
-  const handleLockdown = () => {
-    if (role !== 'admin') return;
-    setIsLockdown(true);
-  };
-
-  const handleReset = () => {
-    if (role !== 'admin') return;
-    setMetrics({
-      totalUsers: 120,
-      activeToday: 90,
-      lateCount: 5,
-      absentCount: 10,
-      performanceScore: 75,
-    });
-  };
-
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="min-h-screen p-6 bg-black text-gray-300 space-y-6">
+    <div className="min-h-screen bg-black text-gray-300 p-6 space-y-6">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ShieldCheck className="text-blue-500" />
-          Super Admin Panel
+      <div className="flex justify-between">
+        <h1 className="text-3xl font-bold flex gap-2 items-center">
+          <ShieldCheck /> Ultra System
         </h1>
 
-        <div className="flex gap-3">
-          <Badge>{role.toUpperCase()}</Badge>
-          <Button onClick={() => setRole(role === 'admin' ? 'viewer' : 'admin')}>
-            Switch Role
-          </Button>
-        </div>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          Open Control
+        </Button>
       </div>
 
-      {/* GRID */}
-      <div className="grid grid-cols-4 gap-6">
+      {/* METRICS */}
+      <div className="grid grid-cols-5 gap-4">
 
-        {/* MAIN AREA */}
-        <div className="col-span-3 space-y-6">
-
-          {/* METRICS */}
-          <div className="grid grid-cols-4 gap-4">
-            <Card><CardContent>Total: {metrics.totalUsers}</CardContent></Card>
-            <Card><CardContent>Active: {metrics.activeToday}</CardContent></Card>
-            <Card><CardContent>Engagement: {engagement}%</CardContent></Card>
-            <Card><CardContent>Status: {systemStatus}</CardContent></Card>
-          </div>
-
-          {/* CONTROL PANEL */}
-          <Card>
-            <CardHeader>
-              <CardTitle>System Controls</CardTitle>
-            </CardHeader>
-
-            <CardContent className="flex gap-4">
-
-              <Button onClick={handleLockdown} className="bg-red-600">
-                <Power className="mr-2 h-4 w-4" />
-                Lockdown
-              </Button>
-
-              <Button onClick={handleReset}>
-                Reset System
-              </Button>
-
-            </CardContent>
-          </Card>
-
-          {/* TABLE */}
-          <Card>
-            <CardHeader>
-              <CardTitle>User Table</CardTitle>
-            </CardHeader>
-
-            <CardContent>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i}>
-                      <td>User {i + 1}</td>
-                      <td>
-                        <Badge>{i % 2 ? "Active" : "Inactive"}</Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-
-        </div>
-
-        {/* SIDEBAR */}
-        <div className="space-y-6">
-
-          {/* SYSTEM HEALTH */}
-          <Card>
-            <CardHeader>
-              <CardTitle>System Health</CardTitle>
-            </CardHeader>
-
-            <CardContent>
-              <p>CPU: {systemHealth.cpuUsage}%</p>
-              <Progress value={systemHealth.cpuUsage} />
-              <p>Memory: {systemHealth.memoryUsage}%</p>
-              <Progress value={systemHealth.memoryUsage} />
-            </CardContent>
-          </Card>
-
-          {/* NOTIFICATIONS */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell /> Notifications
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent>
-              {notifications.map(n => (
-                <p key={n.id} className="text-xs">{n.text}</p>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* LOGS */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Terminal /> Logs
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent>
-              <ScrollArea className="h-64">
-                {filteredLogs.map(log => (
-                  <div key={log.id} className="text-xs py-1">
-                    {log.message} - {log.time}
-                  </div>
-                ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-        </div>
+        <Card><CardContent>Total: {metrics.totalUsers}</CardContent></Card>
+        <Card><CardContent>Active: {metrics.activeToday}</CardContent></Card>
+        <Card><CardContent>Engagement: {engagement}%</CardContent></Card>
+        <Card><CardContent>CPU: {systemHealth.cpuUsage.toFixed(1)}%</CardContent></Card>
+        <Card><CardContent>Score: {metrics.performanceScore.toFixed(1)}%</CardContent></Card>
 
       </div>
 
-      {/* LOCKDOWN MODAL */}
-      <Dialog open={isLockdown} onOpenChange={setIsLockdown}>
+      {/* ANALYTICS PANEL */}
+      <div className="grid grid-cols-3 gap-6">
+
+        {/* HISTORY */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Trend</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            {history.map((h, i) => (
+              <div key={i} className="text-xs">{h.toFixed(1)}</div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* INSIGHTS */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain /> AI Insights
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            {insights.map(i => (
+              <p key={i.id} className="text-sm">{i.text}</p>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* PREDICTIONS */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle /> Predictions
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            {predictions.map(p => (
+              <p key={p.id} className="text-sm text-yellow-400">{p.risk}</p>
+            ))}
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* LOG TERMINAL */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Terminal /> System Logs
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <ScrollArea className="h-64">
+            {logs.map((log, i) => (
+              <div key={i} className="text-xs">{log}</div>
+            ))}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* CONTROL PANEL */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>System Locked</DialogTitle>
+            <DialogTitle>System Control</DialogTitle>
             <DialogDescription>
-              Emergency lockdown activated.
+              Advanced system operations
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter>
-            <Button onClick={() => setIsLockdown(false)}>Close</Button>
+            <Button>Restart</Button>
+            <Button variant="destructive">Shutdown</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
