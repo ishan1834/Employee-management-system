@@ -1,4 +1,4 @@
-    -- Create attendance table
+-- Create attendance table
 CREATE TABLE public.attendance (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     admin_id UUID REFERENCES public.admins(id) ON DELETE CASCADE NOT NULL,
@@ -9,6 +9,7 @@ CREATE TABLE public.attendance (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
 -- Create payment_verifications table
 CREATE TABLE public.payment_verifications (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -21,6 +22,7 @@ CREATE TABLE public.payment_verifications (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
 -- Create certificates table
 CREATE TABLE public.certificates (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -32,6 +34,7 @@ CREATE TABLE public.certificates (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
 -- Create internships table
 CREATE TABLE public.internships (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -45,6 +48,7 @@ CREATE TABLE public.internships (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
 -- Create files table
 CREATE TABLE public.files (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -55,6 +59,7 @@ CREATE TABLE public.files (
     uploaded_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
 -- Create notifications table
 CREATE TABLE public.notifications (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -65,6 +70,7 @@ CREATE TABLE public.notifications (
     is_read BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
 -- Enable RLS
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_verifications ENABLE ROW LEVEL SECURITY;
@@ -72,7 +78,8 @@ ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
--- Attendance policies
+
+-- RLS Policies for attendance
 CREATE POLICY "Admins can view attendance"
 ON public.attendance FOR SELECT
 TO authenticated
@@ -83,7 +90,7 @@ ON public.attendance FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
 
--- Payment verification policies
+-- RLS Policies for payment_verifications
 CREATE POLICY "Admins can view payment verifications"
 ON public.payment_verifications FOR SELECT
 TO authenticated
@@ -94,7 +101,7 @@ ON public.payment_verifications FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
 
--- Certificate policies
+-- RLS Policies for certificates
 CREATE POLICY "Admins can view certificates"
 ON public.certificates FOR SELECT
 TO authenticated
@@ -105,7 +112,7 @@ ON public.certificates FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
 
--- Internship policies
+-- RLS Policies for internships
 CREATE POLICY "Admins can view internships"
 ON public.internships FOR SELECT
 TO authenticated
@@ -116,7 +123,7 @@ ON public.internships FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
 
--- File policies
+-- RLS Policies for files
 CREATE POLICY "Admins can view files"
 ON public.files FOR SELECT
 TO authenticated
@@ -127,18 +134,17 @@ ON public.files FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
 
--- Notification policies
+-- RLS Policies for notifications
 CREATE POLICY "Users can view their own notifications"
 ON public.notifications FOR SELECT
 TO authenticated
-USING (admin_id IN (
-    SELECT id FROM public.admins WHERE user_id = auth.uid()
-));
+USING (admin_id IN (SELECT id FROM public.admins WHERE user_id = auth.uid()));
 
 CREATE POLICY "System can manage notifications"
 ON public.notifications FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
+
 -- Triggers for updated_at
 CREATE TRIGGER update_attendance_updated_at
     BEFORE UPDATE ON public.attendance
