@@ -1,22 +1,43 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+// React Core Hooks
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback
+} from 'react';
 
+// UI Components - Cards
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 
+// UI Components - Basic Elements
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+// UI Components - Dialog
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
 } from "@/components/ui/dialog";
 
+// Icons (Lucide)
 import {
-  ShieldCheck, Terminal, Brain, AlertTriangle
+  ShieldCheck,
+  Terminal,
+  Brain,
+  AlertTriangle
 } from "lucide-react";
-
 /* ---------------- TYPES ---------------- */
 
 interface DashboardMetrics {
