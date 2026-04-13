@@ -9,3 +9,15 @@ CREATE TABLE public.attendance (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+-- Create payment_verifications table
+CREATE TABLE public.payment_verifications (
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_name TEXT NOT NULL,
+    amount NUMERIC NOT NULL DEFAULT 0,
+    transaction_id TEXT NOT NULL,
+    payment_received BOOLEAN NOT NULL DEFAULT false,
+    verified_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
+    verified_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
