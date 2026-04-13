@@ -21,3 +21,14 @@ CREATE TABLE public.payment_verifications (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+-- Create certificates table
+CREATE TABLE public.certificates (
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    recipient_name TEXT NOT NULL,
+    certificate_type TEXT NOT NULL,
+    issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    issued_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
+    certificate_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
