@@ -32,3 +32,16 @@ CREATE TABLE public.certificates (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+-- Create internships table
+CREATE TABLE public.internships (
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    intern_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    department TEXT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    status TEXT NOT NULL DEFAULT 'active',
+    mentor_id UUID REFERENCES public.admins(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
