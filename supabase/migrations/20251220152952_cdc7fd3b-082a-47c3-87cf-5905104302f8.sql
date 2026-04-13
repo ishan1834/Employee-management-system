@@ -45,3 +45,13 @@ CREATE TABLE public.internships (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+-- Create files table
+CREATE TABLE public.files (
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_type TEXT,
+    file_size INTEGER,
+    uploaded_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
