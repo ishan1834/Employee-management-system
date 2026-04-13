@@ -82,3 +82,30 @@ export default useDashboardCardLogic;
 };
 
 export default DashboardCard;
+import { Card } from '@/components/ui/card';
+
+const CardContainer = ({ children, isDisabled, dynamicShadow, handleClick }: any) => {
+  return (
+    <Card
+      className={`
+        relative overflow-hidden group rounded-2xl
+        bg-black/60 backdrop-blur-xl
+        border border-white/10
+        transition-all duration-500
+        ${!isDisabled ? 'cursor-pointer' : 'opacity-40'}
+      `}
+      style={{ boxShadow: !isDisabled ? dynamicShadow : 'none' }}
+      onClick={handleClick}
+    >
+      {/* Background Effects */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-br from-primary/10 to-secondary/10" />
+
+      <div className="absolute -top-20 -right-20 w-52 h-52 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute -bottom-20 -left-20 w-52 h-52 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+
+      {children}
+    </Card>
+  );
+};
+
+export default CardContainer;
