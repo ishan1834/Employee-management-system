@@ -139,3 +139,23 @@ CREATE POLICY "System can manage notifications"
 ON public.notifications FOR ALL
 TO authenticated
 USING (public.is_admin(auth.uid()));
+-- Triggers for updated_at
+CREATE TRIGGER update_attendance_updated_at
+    BEFORE UPDATE ON public.attendance
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_payment_verifications_updated_at
+    BEFORE UPDATE ON public.payment_verifications
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_certificates_updated_at
+    BEFORE UPDATE ON public.certificates
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_internships_updated_at
+    BEFORE UPDATE ON public.internships
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
