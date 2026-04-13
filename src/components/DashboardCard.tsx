@@ -107,5 +107,39 @@ const CardContainer = ({ children, isDisabled, dynamicShadow, handleClick }: any
     </Card>
   );
 };
+import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { Star } from 'lucide-react';
 
+const HeaderSection = ({ iconSrc, title, hovered, badge, isFav, setIsFav }: any) => {
+  return (
+    <div className="flex justify-between items-start mb-4">
+      <motion.img
+        src={iconSrc}
+        alt={title}
+        className="h-16 w-16 object-contain"
+        animate={{ rotate: hovered ? 5 : 0 }}
+      />
+
+      <div className="flex gap-2">
+        {badge && (
+          <Badge className="bg-gradient-to-r from-primary to-secondary animate-pulse">
+            {badge}
+          </Badge>
+        )}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsFav((prev: boolean) => !prev);
+          }}
+        >
+          <Star className={`w-5 h-5 ${isFav ? 'text-yellow-400' : 'text-muted-foreground'}`} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default HeaderSection;
 export default CardContainer;
