@@ -72,3 +72,70 @@ ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+-- Attendance policies
+CREATE POLICY "Admins can view attendance"
+ON public.attendance FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Admins can manage attendance"
+ON public.attendance FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+-- Payment verification policies
+CREATE POLICY "Admins can view payment verifications"
+ON public.payment_verifications FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Admins can manage payment verifications"
+ON public.payment_verifications FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+-- Certificate policies
+CREATE POLICY "Admins can view certificates"
+ON public.certificates FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Admins can manage certificates"
+ON public.certificates FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+-- Internship policies
+CREATE POLICY "Admins can view internships"
+ON public.internships FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Admins can manage internships"
+ON public.internships FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+-- File policies
+CREATE POLICY "Admins can view files"
+ON public.files FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Admins can manage files"
+ON public.files FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+-- Notification policies
+CREATE POLICY "Users can view their own notifications"
+ON public.notifications FOR SELECT
+TO authenticated
+USING (admin_id IN (
+    SELECT id FROM public.admins WHERE user_id = auth.uid()
+));
+
+CREATE POLICY "System can manage notifications"
+ON public.notifications FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
