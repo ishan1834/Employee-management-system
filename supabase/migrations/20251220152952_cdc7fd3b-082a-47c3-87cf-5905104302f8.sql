@@ -55,3 +55,13 @@ CREATE TABLE public.files (
     uploaded_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+-- Create notifications table
+CREATE TABLE public.notifications (
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'info',
+    admin_id UUID REFERENCES public.admins(id) ON DELETE CASCADE,
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
