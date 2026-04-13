@@ -3,15 +3,22 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
+// Request type definition for better clarity
 interface SendOTPRequest {
   email: string;
 }
 
+// Generate a 6-digit OTP (same logic, just cleaner)
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const min = 100000;
+  const max = 999999;
+
+  const otp = Math.floor(min + Math.random() * (max - min + 1));
+  return otp.toString();
 }
 
 async function sendEmailViaBrevo(to: string, subject: string, htmlContent: string) {
