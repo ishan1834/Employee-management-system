@@ -1,26 +1,46 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/4e805623-2f52-4b59-9a46-f51c651fe65e" alt="THRYLOS INDIA" width="320" />
-
-<br/><br/>
-
-# THRYLOS INDIA
-
-### Internal Admin Management Portal
+<img src="https://github.com/user-attachments/assets/4e805623-2f52-4b59-9a46-f51c651fe65e" alt="THRYLOS INDIA" width="280" />
 
 <br/>
 
-[![Status](https://img.shields.io/badge/STATUS-LIVE-00ff88?style=flat-square&labelColor=0d0d0d)](https://admin.thrylos.in)
-[![Stack](https://img.shields.io/badge/STACK-React_·_Supabase_·_Brevo-61dafb?style=flat-square&labelColor=0d0d0d)](#tech-stack)
-[![Country](https://img.shields.io/badge/MSME_Registered-India-ff9933?style=flat-square&labelColor=0d0d0d)](#company)
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║    ████████╗██╗  ██╗██████╗ ██╗   ██╗██╗      ██████╗ ███████╗             ║
+║       ██║   ██║  ██║██╔══██╗╚██╗ ██╔╝██║     ██╔═══██╗██╔════╝             ║
+║       ██║   ███████║██████╔╝ ╚████╔╝ ██║     ██║   ██║███████╗             ║
+║       ██║   ██╔══██║██╔══██╗  ╚██╔╝  ██║     ██║   ██║╚════██║             ║
+║       ██║   ██║  ██║██║  ██║   ██║   ███████╗╚██████╔╝███████║             ║
+║       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝ ╚═════╝ ╚══════╝             ║
+║                                                                              ║
+║                          I · N · D · I · A                                  ║
+║                                                                              ║
+║        "Where Champions Are Made, Managed & Recognised."                    ║
+║                                                                              ║
+║   ◆ admin.thrylos.in   ◆ MSME / UDYAM Registered   ◆ India 🇮🇳              ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
 
 <br/>
 
-**[Admin Portal](https://admin.thrylos.in)** &nbsp;·&nbsp; **[Main Site](https://thrylos.in)** &nbsp;·&nbsp; **[Auth Portal](https://thrylosauth.in)** &nbsp;·&nbsp; **[Alt Domain](https://thrylosindia.in)** &nbsp;·&nbsp; **[Support](mailto:support@thrylos.in)**
+[![Status](https://img.shields.io/badge/STATUS-LIVE-00ff88?style=flat-square&labelColor=111111)](https://admin.thrylos.in)
+[![Portal](https://img.shields.io/badge/PORTAL-ADMIN_ONLY-e0a800?style=flat-square&labelColor=111111)](https://admin.thrylos.in)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white&labelColor=111111)](#tech-stack)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=111111)](#tech-stack)
+[![Supabase](https://img.shields.io/badge/Supabase-Edge_Functions-3ECF8E?style=flat-square&logo=supabase&logoColor=white&labelColor=111111)](#tech-stack)
+[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white&labelColor=111111)](#tech-stack)
+[![Framer](https://img.shields.io/badge/Framer_Motion-11-FF0055?style=flat-square&logo=framer&logoColor=white&labelColor=111111)](#tech-stack)
+[![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=flat-square&logo=netlify&logoColor=white&labelColor=111111)](#live-platform)
+[![Brevo](https://img.shields.io/badge/Brevo-Email_API-0B996E?style=flat-square&labelColor=111111)](#email-infrastructure)
+[![MSME](https://img.shields.io/badge/🇮🇳_MSME-UDYAM_Certified-ff9933?style=flat-square&labelColor=111111)](#company)
 
 <br/>
 
-*"Where Champions Are Made, Managed & Recognised."*
+**[Admin Portal](https://admin.thrylos.in)** &ensp;·&ensp; **[Main Site](https://thrylos.in)** &ensp;·&ensp; **[Auth Portal](https://thrylosauth.in)** &ensp;·&ensp; **[Alt Domain](https://thrylosindia.in)** &ensp;·&ensp; **[Support](mailto:support@thrylos.in)**
+
+*Internal use only. Authorized admins should access the portal using their registered company email.*
 
 </div>
 
@@ -50,20 +70,18 @@ This is not a template. This is a **live, operational platform** running India's
 
 > **Skill-Games Only** — THRYLOS operates exclusively with skill-based competitive games. No gambling, no betting, no chance-based mechanics. Fully compliant with Indian gaming law and MSME regulations.
 
-**Ecosystem Overview**
+**Platform Ecosystem**
 
 ```
-                         THRYLOS ADMIN ECOSYSTEM
-
-        Tournament          Employee            Esports           Analytics
-        Management          Operations          Platform          & Reports
-             │                  │                  │                  │
-             └──────────────────┴──────────┬───────┴──────────────────┘
-                                           │
-                              ┌────────────▼────────────┐
-                              │    SUPER ADMIN PORTAL   │
-                              │     admin.thrylos.in    │
-                              └─────────────────────────┘
+  Tournament       Employee        Esports        Analytics
+  Management       Operations      Platform       & Reports
+      │                │               │               │
+      └────────────────┴───────┬───────┴───────────────┘
+                               │
+                  ┌────────────▼────────────┐
+                  │   SUPER ADMIN PORTAL    │
+                  │    admin.thrylos.in     │
+                  └─────────────────────────┘
 ```
 
 ---
@@ -91,16 +109,12 @@ The admin portal uses a **zero-password, OTP-based authentication pipeline** —
 **Login Flow**
 
 ```
-  1. Email Input           Enter registered admin email
-          ↓
-  2. Location Capture      Browser Geolocation API → Lat, Long, City, IP stored per session
-          ↓
-  3. OTP Dispatch          Supabase Edge Function calls Brevo REST API
-                           → 6-digit OTP via email, expires in 5 minutes
-          ↓
-  4. OTP Verification      Single-use, server-side validated by Edge Function
-          ↓
-  5. Session Established   Role assigned from DB · Supabase JWT issued
+  1. Email Input        →   Enter registered admin email
+  2. Location Capture   →   Browser Geolocation API → Lat, Long, City, IP stored per session
+  3. OTP Dispatch       →   Supabase Edge Function calls Brevo REST API
+                            6-digit OTP via email · expires in 5 minutes
+  4. OTP Verification   →   Single-use, server-side validated by Edge Function
+  5. Session Created    →   Role assigned from DB · Supabase JWT issued · Admin lands on Dashboard
 ```
 
 **Auth Architecture**
@@ -134,7 +148,7 @@ Upon login, the Super Admin lands on a live, data-rich command dashboard with re
 | **Formal Reviews** | Monthly performance review tracking |
 | **Recent Work Logs** | Latest 6 work log entries across the team |
 
-**User Statistics (Live)**
+**Live User Statistics**
 
 | Metric | Value |
 |---|---|
@@ -282,18 +296,18 @@ All outbound email is powered by **Brevo API** invoked through **Supabase Edge F
 **Email Flow**
 
 ```
-  Admin composes email
+  Admin composes email in portal
           ↓
   Supabase Edge Function
   → Checks admin's daily quota
           ↓
-  Under 15           At / Over 15
-     ↓                    ↓
-  Brevo API called     Blocked — admin notified
-     ↓
+  Under limit                         At / Over limit
+      ↓                                    ↓
+  Brevo REST API called               Blocked — admin notified
+      ↓
   Email delivered to recipient
-     ↓
-  DB log updated (send count incremented)
+      ↓
+  DB log updated · send count incremented
 ```
 
 **Email Types**
@@ -335,13 +349,13 @@ admin.thrylos.in/
 ├── public/                          # Static assets, icons, fonts
 │
 ├── src/
-│   ├── components/                  # Reusable UI components
+│   ├── components/
 │   │   ├── common/                  # Button, Badge, Modal, Card
 │   │   ├── layout/                  # Header, Sidebar, PageWrapper
 │   │   ├── forms/                   # Form fields, validators, inputs
 │   │   └── ui/                      # Shadcn/UI base components
 │   │
-│   ├── pages/                       # Route-based page components
+│   ├── pages/
 │   │   ├── auth/                    # Login, OTP verification
 │   │   ├── dashboard/               # Main admin dashboard
 │   │   ├── esports/                 # Players & tournaments
@@ -423,8 +437,6 @@ All policies comply with the **Indian IT Act, 2000**, **Consumer Protection (E-C
 
 This is a proprietary internal platform. External contributions require explicit written approval from THRYLOS INDIA leadership.
 
-For approved contributors:
-
 ```bash
 # 1. Clone the repository
 git clone https://github.com/thrylosindia/admin-portal
@@ -445,13 +457,13 @@ All PRs require Super Admin review before merge. Branch protection enforced on `
 
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/160c433a-e006-42ee-8923-f6360223e116" alt="THRYLOS INDIA" width="160" />
+<img src="https://github.com/user-attachments/assets/160c433a-e006-42ee-8923-f6360223e116" alt="THRYLOS INDIA" width="140" />
 
 <br/><br/>
 
-[![Made in India](https://img.shields.io/badge/Made_with_❤️_in-India-ff9933?style=flat-square&labelColor=0d0d0d)](#)
-[![Skill Games](https://img.shields.io/badge/Skill_Games_Only-No_Gambling-00ff88?style=flat-square&labelColor=0d0d0d)](#)
-[![MSME](https://img.shields.io/badge/MSME-UDYAM_Certified-e0a800?style=flat-square&labelColor=0d0d0d)](#)
+[![Made in India](https://img.shields.io/badge/Made_with_❤️_in-India-ff9933?style=flat-square&labelColor=111111)](#)
+[![Skill Games](https://img.shields.io/badge/Skill_Games_Only-No_Gambling-00ff88?style=flat-square&labelColor=111111)](#)
+[![MSME](https://img.shields.io/badge/MSME-UDYAM_Certified-e0a800?style=flat-square&labelColor=111111)](#)
 
 <br/>
 
