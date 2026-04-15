@@ -1,16 +1,18 @@
+"use client"
+
 import * as React from "react"
 import * as AccordionPrimitive from "@radix-ui/react-accordion"
-import { ChevronDownIcon } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 /**
- * Root Accordion Component
+ * Accordion Root
  */
 const Accordion = AccordionPrimitive.Root
 
 /**
- * Accordion Item: Individual section wrapper
+ * Accordion Item
  */
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
@@ -18,14 +20,14 @@ const AccordionItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn("border-b border-muted", className)}
+    className={cn("border-b border-border/50", className)}
     {...props}
   />
 ))
 AccordionItem.displayName = "AccordionItem"
 
 /**
- * Accordion Trigger: The clickable header that toggles the content
+ * Accordion Trigger
  */
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
@@ -35,23 +37,22 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between py-4 text-sm font-medium transition-all hover:underline",
-        // Using group-data for more robust icon rotation if needed, 
-        // but keeping your original selector logic for simplicity.
-        "[&[data-state=open]>svg]:rotate-180", 
+        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "[&[data-state=open]>svg]:rotate-180",
         className
       )}
       {...props}
     >
       {children}
-      <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-300 text-muted-foreground" />
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ))
 AccordionTrigger.displayName = "AccordionTrigger"
 
 /**
- * Accordion Content: The expandable area
+ * Accordion Content
  */
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
@@ -66,7 +67,7 @@ const AccordionContent = React.forwardRef<
     )}
     {...props}
   >
-    <div className="pb-4 pt-0">{children}</div>
+    <div className={cn("pb-4 pt-0", className)}>{children}</div>
   </AccordionPrimitive.Content>
 ))
 AccordionContent.displayName = "AccordionContent"
