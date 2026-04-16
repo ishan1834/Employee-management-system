@@ -1,314 +1,291 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { 
-  AlertCircle, AlertTriangle, Bell, Info, Send, User, 
-  Users, BellRing, CheckCheck, X, Clock 
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import { 
+  LogOut, ChevronRight, Home, Settings, User, 
+  Zap, Users, Shield, Circle, Moon, Coffee, 
+  Search, Bell 
+} from 'lucide-react';
 
-// UI Components
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-
-// Integrations & Hooks
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { useNotificationSound } from '@/hooks/useNotificationSound';
+import { roleNames } from '@/types/auth';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuShortcut,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import NotificationBell from '@/components/NotificationBell';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  sender_id: string | null;
-  recipient_type: string;
-  recipients: string[];
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  is_read_by: string[];
-  created_at: string;
-}
+// ─── Types & Constants ────────────────────────────────────────────────────────
 
-const NotificationBell: React.FC = () => {
-  const { adminProfile } = useAuth();
-  const { isSupported, permission, requestPermission, showNotification } = usePushNotifications();
-  const { playSound } = useNotificationSound();
+export const ADMIN_STATUSES = ['online', 'away', 'busy'] as const;
+export type AdminStatus = typeof ADMIN_STATUSES[number];
+
+const ROUTE_LABELS: Record<string, string> = {
+  esports: 'eSports Management',
+  users: 'User Directory',
+  settings: 'System Settings',
+  analytics: 'Data Insights',
+};
+
+const QUICK_ACTIONS = [
+  { label: 'Dashboard', shortcut: 'G D', keys: ['g', 'd'], icon: <Home className="w-3.5 h-3.5" />, path: '/' },
+  { label: 'eSports', shortcut: 'G E', keys: ['g', 'e'], icon: <Zap className="w-3.5 h-3.5" />, path: '/esports' },
+  { label: 'Admins', shortcut: 'G A', keys: ['g', 'a'], icon: <Shield className="w-3.5 h-3.5" />, path: '/admins' },
+  { label: 'Settings', shortcut: 'G S', keys: ['g', 's'], icon: <Settings className="w-3.5 h-3.5" />, path: '/settings' },
+];
+
+const STATUS_CONFIG: Record<AdminStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  online: { label: 'Online', color: 'bg-green-500', icon: <Circle className="w-3 h-3 fill-green-500 text-green-500" /> },
+  away: { label: 'Away', color: 'bg-yellow-500', icon: <Moon className="w-3 h-3 text-yellow-500" /> },
+  busy: { label: 'DND', color: 'bg-red-500', icon: <Coffee className="w-3 h-3 text-red-500" /> },
+};
+
+// ─── Styled Components ────────────────────────────────────────────────────────
+
+const AnimatedLogo = memo(() => (
+  <div className="flex items-center gap-3 group cursor-pointer">
+    <div className="relative">
+      <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-md group-hover:bg-orange-500/40 transition-all" />
+      <img
+        src="/thrylosindia.png"
+        alt="Logo"
+        className="relative w-9 h-9 rounded-full border border-white/10 shadow-2xl transition-transform group-hover:scale-105"
+      />
+    </div>
+    <div className="flex flex-col leading-none">
+      <span className="text-xl font-black tracking-tighter italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-orange-400 to-orange-600">
+        ThryLos
+      </span>
+      <span className="text-[9px] font-bold tracking-[0.2em] text-zinc-500 uppercase">
+        Admin Core
+      </span>
+    </div>
+  </div>
+));
+AnimatedLogo.displayName = 'AnimatedLogo';
+
+// ─── Main Header Component ────────────────────────────────────────────────────
+
+const Header: React.FC = () => {
+  const { user, adminProfile, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
-  const [showSendDialog, setShowSendDialog] = useState(false);
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [selectedAdmins, setSelectedAdmins] = useState<string[]>([]);
-  const [sending, setSending] = useState(false);
-  const [markingRead, setMarkingRead] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    title: '',
-    message: '',
-    recipientType: 'all',
-    priority: 'normal' as const,
-  });
+  const [status, setStatus] = useState<AdminStatus>(
+    () => (localStorage.getItem('adminStatus') as AdminStatus) || 'online'
+  );
 
-  const fetchNotifications = useCallback(async () => {
-    if (!adminProfile) return;
-    try {
-      const { data, error } = await supabase
-        .from('admin_notifications')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(30);
+  const handleStatusChange = useCallback((newStatus: AdminStatus) => {
+    setStatus(newStatus);
+    localStorage.setItem('adminStatus', newStatus);
+  }, []);
 
-      if (error) throw error;
-
-      const myNotifications = (data || []).filter((n: any) =>
-        n.recipient_type === 'all' || (n.recipients && n.recipients.includes(adminProfile.id))
-      );
-      
-      const unread = myNotifications.filter((n: any) => 
-        !n.is_read_by || !n.is_read_by.includes(adminProfile.id)
-      ).length;
-      
-      setUnreadCount(unread);
-      setNotifications(myNotifications as Notification[]);
-    } catch (error) {
-      console.error('Fetch error:', error);
-    }
-  }, [adminProfile]);
-
+  // Keyboard Shortcuts (G + key)
   useEffect(() => {
-    if (!adminProfile) return;
-    fetchNotifications();
+    let lastKey = '';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-    const channel = supabase
-      .channel('notifications-live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_notifications' }, (payload) => {
-        const newN = payload.new as any;
-        const isForMe = newN.recipient_type === 'all' || newN.recipients?.includes(adminProfile.id);
-        
-        if (isForMe && newN.sender_id !== adminProfile.id) {
-          playSound();
-          fetchNotifications();
-          showNotification({
-            title: newN.priority === 'urgent' ? `🚨 ${newN.title}` : newN.title,
-            body: newN.message,
-            icon: '/notification-icon.png'
-          });
+      const key = e.key.toLowerCase();
+      if (lastKey === 'g') {
+        const action = QUICK_ACTIONS.find(a => a.keys[1] === key);
+        if (action) {
+          e.preventDefault();
+          navigate(action.path);
         }
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [adminProfile, fetchNotifications, playSound, showNotification]);
-
-  const markAllAsRead = async () => {
-    if (!adminProfile || unreadCount === 0) return;
-    setMarkingRead(true);
-    try {
-      const unreadIds = notifications
-        .filter(n => !n.is_read_by?.includes(adminProfile.id))
-        .map(n => n.id);
-
-      // Optimistic update for UI feel
-      setUnreadCount(0);
-      
-      // Batch update logic
-      for (const id of unreadIds) {
-        const notification = notifications.find(n => n.id === id);
-        const newReadBy = [...(notification?.is_read_by || []), adminProfile.id];
-        await supabase
-          .from('admin_notifications')
-          .update({ is_read_by: newReadBy })
-          .eq('id', id);
       }
-      
-      toast({ title: 'Inbox Cleared', description: 'All notifications marked as read.' });
-      fetchNotifications();
-    } catch (err) {
-      toast({ title: 'Error', description: 'Failed to sync read status.', variant: 'destructive' });
-    } finally {
-      setMarkingRead(false);
-    }
-  };
+      lastKey = key;
+      setTimeout(() => { if (lastKey === key) lastKey = ''; }, 500);
+    };
 
-  const handleSend = async () => {
-    if (!formData.title || !formData.message) return;
-    setSending(true);
-    try {
-      const { error } = await supabase.from('admin_notifications').insert({
-        ...formData,
-        sender_id: adminProfile?.id,
-        recipients: formData.recipientType === 'selected' ? selectedAdmins : [],
-      });
-      if (error) throw error;
-      setShowSendDialog(false);
-      setFormData({ title: '', message: '', recipientType: 'all', priority: 'normal' });
-      toast({ title: 'Notification Dispatched' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    } finally {
-      setSending(false);
-    }
-  };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
-  const getPriorityStyles = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return { icon: <AlertCircle className="w-4 h-4 text-red-500" />, border: 'border-l-red-600 bg-red-500/5' };
-      case 'high': return { icon: <AlertTriangle className="w-4 h-4 text-orange-500" />, border: 'border-l-orange-500 bg-orange-500/5' };
-      default: return { icon: <Info className="w-4 h-4 text-blue-500" />, border: 'border-l-zinc-700 bg-zinc-800/10' };
-    }
-  };
+  // Breadcrumb Logic
+  const breadcrumbs = useMemo(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    return segments.map((seg, i) => ({
+      label: ROUTE_LABELS[seg] || seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
+      path: '/' + segments.slice(0, i + 1).join('/'),
+    }));
+  }, [location.pathname]);
 
   return (
-    <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-lg border border-white/5 shadow-inner">
-      {/* Super Admin Send Action */}
-      {adminProfile?.role === 'super_admin' && (
-        <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
-              <Send className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 shadow-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold tracking-tight">Broadcast Notification</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label className="text-zinc-500 text-[10px] uppercase tracking-widest">Subject</Label>
-                <Input 
-                  value={formData.title} 
-                  onChange={e => setFormData({...formData, title: e.target.value})}
-                  className="bg-zinc-900 border-zinc-800 focus:ring-blue-500" 
-                  placeholder="System Maintenance..."
-                />
+    <TooltipProvider>
+      <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Left Section: Branding & Navigation */}
+            <div className="flex items-center gap-8 min-w-0">
+              <div onClick={() => navigate('/')}>
+                <AnimatedLogo />
               </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-500 text-[10px] uppercase tracking-widest">Priority & Group</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Select value={formData.priority} onValueChange={(v: any) => setFormData({...formData, priority: v})}>
-                    <SelectTrigger className="bg-zinc-900 border-zinc-800"><SelectValue /></SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={formData.recipientType} onValueChange={v => setFormData({...formData, recipientType: v})}>
-                    <SelectTrigger className="bg-zinc-900 border-zinc-800"><SelectValue /></SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                      <SelectItem value="all">All Staff</SelectItem>
-                      <SelectItem value="selected">Select Specific</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-500 text-[10px] uppercase tracking-widest">Content</Label>
-                <Textarea 
-                  value={formData.message} 
-                  onChange={e => setFormData({...formData, message: e.target.value})}
-                  className="bg-zinc-900 border-zinc-800 min-h-[100px]" 
-                  placeholder="Detailed message here..."
-                />
-              </div>
-              <Button onClick={handleSend} disabled={sending} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold h-11">
-                {sending ? <Loader2 className="animate-spin mr-2" /> : 'Dispatch Notification'}
-              </Button>
+
+              <nav className="hidden lg:flex items-center gap-2 text-sm">
+                <div className="h-4 w-[1px] bg-zinc-800 mx-2" />
+                <Home className="w-4 h-4 text-zinc-600" />
+                {breadcrumbs.map((crumb, i) => (
+                  <React.Fragment key={crumb.path}>
+                    <ChevronRight className="w-3.5 h-3.5 text-zinc-700" />
+                    <button
+                      onClick={() => navigate(crumb.path)}
+                      className={`transition-colors truncate max-w-[150px] ${
+                        i === breadcrumbs.length - 1 
+                          ? 'text-zinc-200 font-semibold' 
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {crumb.label}
+                    </button>
+                  </React.Fragment>
+                ))}
+              </nav>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
-      {/* Main Bell UI */}
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative h-9 w-9 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all">
-            <Bell className={`h-5 w-5 ${unreadCount > 0 ? 'animate-[bell-shake_0.5s_infinite]' : ''}`} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 flex h-4 w-4">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-500 text-[10px] font-bold text-white items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              </span>
-            )}
-          </Button>
-        </PopoverTrigger>
+            {/* Right Section: System Actions */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {user && adminProfile ? (
+                <>
+                  <Button variant="ghost" size="icon" className="hidden sm:flex h-9 w-9 text-zinc-400 hover:bg-white/5 rounded-xl">
+                    <Search className="w-4 h-4" />
+                  </Button>
 
-        <PopoverContent className="w-80 sm:w-96 p-0 bg-zinc-950/95 backdrop-blur-xl border-zinc-800 shadow-2xl rounded-xl mr-4 overflow-hidden" align="end">
-          <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-sm text-zinc-100">Updates</h3>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-tighter">System & Admin Logs</p>
-            </div>
-            {unreadCount > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={markAllAsRead}
-                disabled={markingRead}
-                className="h-7 text-[10px] font-bold text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 uppercase tracking-widest"
-              >
-                {markingRead ? 'Syncing...' : 'Mark All Read'}
-              </Button>
-            )}
-          </div>
+                  <DropdownMenu>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-orange-500 hover:bg-orange-500/10 rounded-xl">
+                            <Zap className="w-4 h-4 fill-orange-500/20" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="bg-zinc-900 border-zinc-800 text-[10px] font-bold">
+                        QUICK NAV
+                      </TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent align="end" className="w-56 bg-zinc-950 border-white/5 shadow-2xl">
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-500">Jump To</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-white/5" />
+                      {QUICK_ACTIONS.map((action) => (
+                        <DropdownMenuItem key={action.path} onClick={() => navigate(action.path)} className="gap-3 py-2 cursor-pointer">
+                          <span className="p-1.5 bg-zinc-900 rounded-lg text-zinc-400">{action.icon}</span>
+                          <span className="text-sm font-medium">{action.label}</span>
+                          <DropdownMenuShortcut className="font-mono text-[10px] opacity-50">{action.shortcut}</DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-          <ScrollArea className="h-[400px]">
-            <AnimatePresence>
-              {notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-zinc-600">
-                  <Bell className="w-10 h-10 mb-2 opacity-20" />
-                  <p className="text-xs font-medium uppercase tracking-widest opacity-50">Clear Skies</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-white/5">
-                  {notifications.map((n) => {
-                    const isRead = n.is_read_by?.includes(adminProfile?.id || '');
-                    const { icon, border } = getPriorityStyles(n.priority);
-                    return (
-                      <motion.div
-                        key={n.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className={`p-4 border-l-4 transition-all hover:bg-white/5 cursor-default group ${border} ${isRead ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}
-                      >
-                        <div className="flex gap-3">
-                          <div className="mt-1 shrink-0">{icon}</div>
-                          <div className="flex-1 space-y-1">
-                            <div className="flex justify-between items-start gap-2">
-                              <h4 className="text-xs font-bold text-zinc-100 leading-none">{n.title}</h4>
-                              <span className="text-[9px] text-zinc-500 font-mono whitespace-nowrap flex items-center gap-1">
-                                <Clock className="w-2.5 h-2.5" />
-                                {format(new Date(n.created_at), 'HH:mm')}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-zinc-400 leading-normal line-clamp-3 group-hover:line-clamp-none transition-all">
-                              {n.message}
-                            </p>
-                          </div>
+                  <NotificationBell />
+
+                  <div className="w-[1px] h-6 bg-white/5 mx-1 hidden sm:block" />
+
+                  {/* Profile Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-10 pl-1 pr-3 gap-3 hover:bg-white/5 rounded-2xl transition-all group">
+                        <div className="relative">
+                          <Avatar className="h-8 w-8 border border-white/10 group-hover:border-orange-500/50 transition-colors">
+                            <AvatarImage src={adminProfile.avatar || undefined} />
+                            <AvatarFallback className="bg-zinc-800 text-[10px] font-bold">
+                              {adminProfile.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#050505] ${STATUS_CONFIG[status].color}`} />
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                        <div className="text-left hidden md:block">
+                          <p className="text-xs font-bold leading-none text-zinc-200">{adminProfile.name}</p>
+                          <p className="text-[9px] text-zinc-500 mt-1 uppercase tracking-tighter">
+                            {roleNames[adminProfile.role] || 'Administrator'}
+                          </p>
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-64 bg-zinc-950 border-white/5 p-2 shadow-2xl rounded-2xl">
+                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl mb-2">
+                        <Avatar className="h-10 w-10 border border-white/10">
+                          <AvatarImage src={adminProfile.avatar || undefined} />
+                          <AvatarFallback>{adminProfile.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate text-white">{adminProfile.name}</p>
+                          <p className="text-[10px] text-zinc-500 truncate">{adminProfile.email}</p>
+                        </div>
+                      </div>
+
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-500 px-2 py-1">Availability</DropdownMenuLabel>
+                      <div className="grid grid-cols-3 gap-1 px-1 mb-2">
+                        {(Object.entries(STATUS_CONFIG) as [AdminStatus, any][]).map(([key, cfg]) => (
+                          <button
+                            key={key}
+                            onClick={() => handleStatusChange(key)}
+                            className={`flex flex-col items-center gap-1.5 py-2 rounded-lg transition-all border ${
+                              status === key ? 'bg-orange-500/10 border-orange-500/50 text-orange-500' : 'border-transparent text-zinc-500 hover:bg-white/5'
+                            }`}
+                          >
+                            {cfg.icon}
+                            <span className="text-[9px] font-bold uppercase">{cfg.label}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <DropdownMenuSeparator className="bg-white/5" />
+                      
+                      <DropdownMenuGroup className="p-1">
+                        <DropdownMenuItem onClick={() => navigate('/profile')} className="gap-3 py-2 rounded-lg cursor-pointer">
+                          <User className="w-4 h-4 text-zinc-400" />
+                          <span className="text-sm font-medium">Profile Settings</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2 rounded-lg cursor-pointer">
+                          <Settings className="w-4 h-4 text-zinc-400" />
+                          <span className="text-sm font-medium">System Settings</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+
+                      <DropdownMenuSeparator className="bg-white/5" />
+                      
+                      <DropdownMenuItem 
+                        onClick={logout} 
+                        className="gap-3 py-2 text-red-400 focus:text-red-400 focus:bg-red-400/10 rounded-lg cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm font-bold">Terminate Session</span>
+                        <DropdownMenuShortcut className="text-red-900 opacity-50 font-mono">⇧ Q</DropdownMenuShortcut>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                <Button 
+                  onClick={() => navigate('/login')} 
+                  className="bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl px-6 h-9 transition-all active:scale-95"
+                >
+                  Sign In
+                </Button>
               )}
-            </AnimatePresence>
-          </ScrollArea>
-        </PopoverContent>
-      </Popover>
-    </div>
+            </div>
+          </div>
+        </div>
+      </header>
+    </TooltipProvider>
   );
 };
 
-export default NotificationBell;
+export default Header;
