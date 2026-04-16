@@ -10,3 +10,13 @@ CREATE TABLE public.uploaded_files (
 );
 -- Enable RLS
 ALTER TABLE public.uploaded_files ENABLE ROW LEVEL SECURITY;
+-- RLS Policies for uploaded_files
+CREATE POLICY "Admins can view uploaded files"
+ON public.uploaded_files FOR SELECT
+TO authenticated
+USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Admins can manage uploaded files"
+ON public.uploaded_files FOR ALL
+TO authenticated
+USING (public.is_admin(auth.uid()));
