@@ -1,23 +1,28 @@
 {
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "modern",
-  "rsc": false,
-  "tsx": true,
+  "aliases": {
+    /* UI Layer */
+    "ui": "@/components/ui",
+    "components": "@/components",
+    "layouts": "@/components/layouts",
 
-  "theme": {
-    "baseColor": "slate",
-    "radius": "lg",
-    "cssVariables": true,
-    "darkMode": true
+    /* Logic Layer */
+    "utils": "@/lib/utils",
+    "lib": "@/lib",
+    "hooks": "@/hooks",
+    "services": "@/services",
+
+    /* State & Config */
+    "store": "@/store",
+    "config": "@/config",
+
+    /* Assets */
+    "assets": "@/assets",
+    "styles": "@/styles"
   },
 
-  "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "src/index.css",
-    "prefix": "",
-    "container": {
-      "center": true,
-      "padding": "2rem"
-    }
+  "bestPractices": {
+    "separation": "UI, logic, and state are modular",
+    "scalability": "Aliases reduce import complexity",
+    "maintainability": "Clear folder boundaries"
   }
 }
