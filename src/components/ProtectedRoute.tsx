@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Navigate, useLocation as useRouteLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ShieldCheck, Loader2, MapPin, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, Loader2, Lock, MapPin, AlertCircle, Fingerprint } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { checkGeolocationAccess, getGeolocationGrantedFlag } from '@/utils/geolocation';
@@ -18,13 +18,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const checkInProgress = useRef(false);
 
   useEffect(() => {
-    // Stage 1: Auth Check
+    // 1. Initial Auth Barrier
     if (!user || !session) {
       setStatus('denied');
       return;
     }
 
-    // Prevent duplicate triggers if the component re-renders
+    // 2. Prevent Re-verification if already cleared or currently processing
     if (checkInProgress.current || status === 'allowed') return;
 
     let isMounted = true;
@@ -33,45 +33,41 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const verifySecurityGate = async () => {
       setStatus('checking');
 
-      // Fast Path: Check the local storage flag first
+      // Step A: Fast-Path Cache Check
       if (!getGeolocationGrantedFlag()) {
         if (isMounted) {
-          toast({
-            title: 'Security Gate Locked',
-            description: 'Location authorization is required for dashboard access.',
-            variant: 'destructive',
-          });
-          await logout();
-          setStatus('denied');
+          handleSecurityFailure('Security Gate Locked', 'Location authorization is required for access.');
         }
         return;
       }
 
-      // Deep Path: Actual hardware/browser permission check
+      // Step B: Hardware/Signal Verification
       try {
         const result = await checkGeolocationAccess({ attemptPosition: true });
 
         if (!isMounted) return;
 
         if (!result.allowed) {
-          toast({
-            title: 'Location Verification Failed',
-            description: result.message || 'Please enable GPS to proceed.',
-            variant: 'destructive',
-          });
-          await logout();
-          setStatus('denied');
+          handleSecurityFailure('Verification Failed', result.message || 'GPS signal required.');
         } else {
+          // Success: Grant Access
           setStatus('allowed');
         }
       } catch (error) {
-        if (isMounted) {
-          await logout();
-          setStatus('denied');
-        }
+        if (isMounted) handleSecurityFailure('System Error', 'Verification service unavailable.');
       } finally {
         checkInProgress.current = false;
       }
+    };
+
+    const handleSecurityFailure = async (title: string, description: string) => {
+      toast({
+        title,
+        description,
+        variant: 'destructive',
+      });
+      await logout();
+      setStatus('denied');
     };
 
     verifySecurityGate();
@@ -82,44 +78,43 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     };
   }, [user, session, logout, status]);
 
-  // Handle Redirection for Unauthenticated Users
+  // --- Render Logic ---
+
+  // 1. Unauthenticated Redirect
   if (!user || !session) {
     return <Navigate to="/login" state={{ from: routeLocation }} replace />;
   }
 
-  // Security Loading Screen
+  // 2. Security Loading Overlay
   if (status === 'checking' || status === 'idle') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white p-6 overflow-hidden">
+        {/* Background Ambient Glow */}
+        <div className="absolute inset-0 bg-orange-500/5 radial-gradient pointer-events-none" />
+        
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center space-y-8 max-w-xs text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 flex flex-col items-center w-full max-w-md"
         >
-          {/* Animated Shield/Radar UI */}
-          <div className="relative">
-            <motion.div 
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="absolute inset-0 bg-orange-500/20 rounded-full blur-2xl"
-            />
-            <div className="relative bg-zinc-900 border border-white/5 p-6 rounded-3xl shadow-2xl">
-              <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
-            </div>
-            <motion.div 
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-              className="absolute -top-2 -right-2"
-            >
-              <ShieldCheck className="w-6 h-6 text-blue-500 bg-zinc-950 rounded-full p-1" />
-            </motion.div>
-          </div>
+          {/* Main Visual: Scanning UI */}
+          <div className="relative mb-12">
+            {/* Pulsing Radar Rings */}
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: [0, 0.2, 0], scale: [0.8, 2, 2.5] }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 3, 
+                  delay: i * 0.8,
+                  ease: "easeOut" 
+                }}
+                className="absolute inset-0 border border-orange-500/30 rounded-full"
+              />
+            ))}
 
-          <div className="space-y-2">
-            <h2 className="text-lg font-bold tracking-tighter uppercase italic">
-              Verification <span className="text-orange-500">In Progress</span>
-            </h2>
-            <p className="text-xs text-zinc-500 leading-relaxed font-medium uppercase tracking-widest">
-              Confirming Secure Geo-Location Handshake...
-            </p>
+            {/* Core Hexagon/Shield Container */}
+            <div className="relative bg-zinc-900 border border-white/10 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(249,115,22,0.1)]">
+              <div className="absolute inset-0 bg
