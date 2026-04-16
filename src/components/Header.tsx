@@ -1,9 +1,14 @@
-
-
-
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  LogOut, ChevronRight, Home, Settings, User, 
+  Zap, Users, Shield, Circle, Moon, Coffee, 
+  Command, Search, Bell
+} from 'lucide-react';
+
+import { useAuth } from '@/contexts/AuthContext';
+import { roleNames } from '@/types/auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -23,530 +28,224 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useAuth } from '@/contexts/AuthContext';
-import { roleNames } from '@/types/auth';
-import {
-  LogOut, ChevronRight, Home, Settings, User,
-  Zap, Users, BarChart3, Calendar, Shield,
-  Circle, Moon, Coffee,
-} from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-// Use a const assertion for stronger type inference if reused elsewhere
+// ─── Types & Constants ────────────────────────────────────────────────────────
+
 export const ADMIN_STATUSES = ['online', 'away', 'busy'] as const;
 export type AdminStatus = typeof ADMIN_STATUSES[number];
 
-// Optional: reusable Tailwind class type for better semantics
-type TailwindClass = string;
+const ROUTE_LABELS: Record<string, string> = {
+  esports: 'eSports Management',
+  users: 'User Directory',
+  settings: 'System Settings',
+  analytics: 'Data Insights',
+};
 
-// Centralized icon type (helps if you later swap icon systems)
-type IconType = React.ReactNode;
+const QUICK_ACTIONS = [
+  { label: 'Dashboard', shortcut: 'G D', keys: ['g', 'd'], icon: <Home className="w-3.5 h-3.5" />, path: '/' },
+  { label: 'eSports', shortcut: 'G E', keys: ['g', 'e'], icon: <Zap className="w-3.5 h-3.5" />, path: '/esports' },
+  { label: 'Admins', shortcut: 'G A', keys: ['g', 'a'], icon: <Shield className="w-3.5 h-3.5" />, path: '/admins' },
+  { label: 'Settings', shortcut: 'G S', keys: ['g', 's'], icon: <Settings className="w-3.5 h-3.5" />, path: '/settings' },
+];
 
-export interface StatusConfig {
-  /** Display label for the status */
-  readonly label: string;
+const STATUS_CONFIG: Record<AdminStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  online: { label: 'Online', color: 'bg-green-500', icon: <Circle className="w-3 h-3 fill-green-500 text-green-500" /> },
+  away: { label: 'Away', color: 'bg-yellow-500', icon: <Moon className="w-3 h-3 text-yellow-500" /> },
+  busy: { label: 'DND', color: 'bg-red-500', icon: <Coffee className="w-3 h-3 text-red-500" /> },
+};
 
-  /** Tailwind background color class */
-  readonly color: TailwindClass;
-
-  /** Tailwind ring color class */
-  readonly ringColor: TailwindClass;
-
-  /** Icon representing the status */
-  readonly icon: IconType;
-
-  /** Tailwind classes for the status dot */
-  readonly dotClass: TailwindClass;
-}
-
-export interface QuickAction {
-  /** Display label for the action */
-  readonly label: string;
-
-  /** Human-readable shortcut (e.g. "⌘ + H") */
-  readonly shortcut: string;
-
-  /** Key combination to trigger the action (order-sensitive) */
-  readonly keys: ReadonlyArray<string>;
-
-  /** Icon for the action */
-  readonly icon: IconType;
-
-  /** Navigation path */
-  readonly path: string;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-// Optional: extract repeated Tailwind sizing into a constant
-const ICON_SIZE = 'w-3 h-3';
-
-// Optional: helper to build icon classes consistently
-const iconClass = (color: string, fill = false) =>
-  `${ICON_SIZE} ${fill ? `fill-${color}` : ''} text-${color}`.trim();
-
-export const STATUS_CONFIG: Readonly<Record<AdminStatus, StatusConfig>> = {
-  online: {
-    label: 'Online',
-    color: 'bg-green-500',
-    ringColor: 'ring-green-500',
-    icon: (
-      <Circle
-        className={iconClass('green-400', true)}
-        aria-label="Online status"
-      />
-    ),
-    dotClass: 'bg-green-400',
-  },
-
-  away: {
-    label: 'Away',
-    color: 'bg-yellow-500',
-    ringColor: 'ring-yellow-500',
-    icon: (
-      <Moon
-        className={iconClass('yellow-400')}
-        aria-label="Away status"
-      />
-    ),
-    dotClass: 'bg-yellow-400',
-  },
-
-  busy: {
-    label: 'Do Not Disturb',
-    color: 'bg-red-500',
-    ringColor: 'ring-red-500',
-    icon: (
-      <Coffee
-        className={iconClass('red-400')}
-        aria-label="Do Not Disturb status"
-      />
-    ),
-    dotClass: 'bg-red-400',
-  },
-} as const;
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getInitials(name: string) {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-}
-
-function useBreadcrumbs() {
-  const location = useLocation();
-  const segments = location.pathname.split('/').filter(Boolean);
-  const crumbs = [
-    { label: 'Dashboard', path: '/' },
-    ...segments.map((seg, i) => ({
-      label: ROUTE_LABELS[seg] ?? seg.charAt(0).toUpperCase() + seg.slice(1),
-      path:  '/' + segments.slice(0, i + 1).join('/'),
-    })),
-  ];
-  // Deduplicate if we're already at root
-  return segments.length === 0 ? [crumbs[0]] : crumbs;
-}
-
-/** Persist admin status in localStorage */
-function useAdminStatus() {
-  const [status, setStatusRaw] = useState<AdminStatus>(
-    () => (localStorage.getItem('adminStatus') as AdminStatus) || 'online'
-  );
-  const setStatus = (s: AdminStatus) => {
-    setStatusRaw(s);
-    localStorage.setItem('adminStatus', s);
-  };
-  return [status, setStatus] as const;
-}
-
-// ─── Animated gradient logo ───────────────────────────────────────────────────
+// ─── Styled Components ────────────────────────────────────────────────────────
 
 const AnimatedLogo: React.FC = () => (
-  <>
-    <style>{`
-      @keyframes gradientShift {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-      .thrylos-logo-text {
-        background: linear-gradient(
-          270deg,
-          #f97316, #ec4899, #a855f7, #3b82f6, #06b6d4, #f97316
-        );
-        background-size: 300% 300%;
-        animation: gradientShift 5s ease infinite;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      @keyframes pulseGlow {
-        0%, 100% { filter: drop-shadow(0 0 4px rgba(249,115,22,0.4)); }
-        50%       { filter: drop-shadow(0 0 10px rgba(236,72,153,0.6)); }
-      }
-      .thrylos-logo-img {
-        animation: pulseGlow 3s ease-in-out infinite;
-      }
-    `}</style>
-    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+  <div className="flex items-center gap-3 group cursor-pointer">
+    <div className="relative">
+      <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-md group-hover:bg-orange-500/40 transition-all" />
       <img
         src="/thrylosindia.png"
-        alt="THRYLOS logo"
-        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 thrylos-logo-img"
+        alt="Logo"
+        className="relative w-9 h-9 rounded-full border border-white/10 shadow-2xl transition-transform group-hover:scale-105"
       />
-      <div className="shrink-0">
-        <div
-          className="thrylos-logo-text text-lg sm:text-2xl font-extrabold tracking-wide"
-          style={{ fontFamily: "'Nixmat', sans-serif" }}
-        >
-          ThryLos
-        </div>
-        <p className="text-[10px] sm:text-xs text-gray-500 hidden sm:block -mt-0.5 tracking-widest uppercase">
-          Admin Dashboard
-        </p>
-      </div>
     </div>
-  </>
+    <div className="flex flex-col leading-none">
+      <span className="text-xl font-black tracking-tighter italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-orange-400 to-orange-600">
+        ThryLos
+      </span>
+      <span className="text-[9px] font-bold tracking-[0.2em] text-zinc-500 uppercase">
+        Admin Core
+      </span>
+    </div>
+  </div>
 );
 
-// ─── Breadcrumb ───────────────────────────────────────────────────────────────
-
-const Breadcrumb: React.FC = () => {
-  const navigate  = useNavigate();
-  const crumbs    = useBreadcrumbs();
-
-  if (crumbs.length <= 1) return null;
-
-  return (
-    <nav aria-label="Breadcrumb" className="hidden md:flex items-center gap-1 text-xs text-gray-500 ml-6 pl-6 border-l border-gray-800">
-      {crumbs.map((crumb, i) => {
-        const isLast = i === crumbs.length - 1;
-        return (
-          <React.Fragment key={crumb.path}>
-            {i > 0 && <ChevronRight className="w-3 h-3 text-gray-700 shrink-0" />}
-            {isLast ? (
-              <span className="text-white font-medium">{crumb.label}</span>
-            ) : (
-              <button
-                onClick={() => navigate(crumb.path)}
-                className="hover:text-gray-300 transition-colors"
-              >
-                {crumb.label}
-              </button>
-            )}
-          </React.Fragment>
-        );
-      })}
-    </nav>
-  );
-};
-
-// ─── Status Badge ─────────────────────────────────────────────────────────────
-
-const StatusBadgeButton: React.FC<{
-  status: AdminStatus;
-  onChange: (s: AdminStatus) => void;
-}> = ({ status, onChange }) => {
-  const cfg = STATUS_CONFIG[status];
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2 gap-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-800"
-        >
-          {cfg.icon}
-          <span className="hidden lg:inline">{cfg.label}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44 bg-black border-gray-800">
-        <DropdownMenuLabel className="text-xs text-gray-500">Set status</DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-gray-800" />
-        {(Object.entries(STATUS_CONFIG) as [AdminStatus, StatusConfig][]).map(([key, s]) => (
-          <DropdownMenuItem
-            key={key}
-            onClick={() => onChange(key)}
-            className={`gap-2 text-sm ${status === key ? 'bg-white/5' : ''} hover:bg-gray-800`}
-          >
-            <span className={`w-2 h-2 rounded-full shrink-0 ${s.dotClass}`} />
-            {s.label}
-            {status === key && <span className="ml-auto text-xs text-gray-600">active</span>}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-
-// ─── Quick Actions Panel ──────────────────────────────────────────────────────
-
-const QuickActionsMenu: React.FC = () => {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const gPressed = useRef(false);
-  const gTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Keyboard shortcut handler: "G then X"
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Don't fire inside inputs/textareas
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
-
-    if (e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey) {
-      gPressed.current = true;
-      if (gTimer.current) clearTimeout(gTimer.current);
-      gTimer.current = setTimeout(() => { gPressed.current = false; }, 1500);
-      return;
-    }
-
-    if (gPressed.current) {
-      const action = QUICK_ACTIONS.find(a => a.keys[1] === e.key.toLowerCase());
-      if (action) {
-        e.preventDefault();
-        gPressed.current = false;
-        navigate(action.path);
-      }
-    }
-
-    // ? to open the quick actions panel
-    if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
-      setOpen(v => !v);
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 gap-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-800"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">Quick Nav</span>
-                <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-gray-800 border border-gray-700 rounded text-gray-400">
-                  ?
-                </kbd>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-60 bg-black border-gray-800" sideOffset={8}>
-              <DropdownMenuLabel className="text-xs text-gray-500 flex items-center justify-between">
-                Quick Navigation
-                <span className="text-[10px] text-gray-600">Press G then key</span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gray-800" />
-              <DropdownMenuGroup>
-                {QUICK_ACTIONS.map(action => (
-                  <DropdownMenuItem
-                    key={action.path}
-                    onClick={() => { navigate(action.path); setOpen(false); }}
-                    className="gap-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
-                  >
-                    <span className="text-gray-500">{action.icon}</span>
-                    {action.label}
-                    <DropdownMenuShortcut className="font-mono text-[10px] text-gray-600">
-                      {action.shortcut}
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-gray-900 border-gray-700 text-xs">
-          Quick navigation — press <kbd className="font-mono bg-gray-800 px-1 rounded">?</kbd> to open
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-// ─── Status dot overlay on avatar ────────────────────────────────────────────
-
-const AvatarWithStatus: React.FC<{
-  src?: string; name: string; status: AdminStatus;
-}> = ({ src, name, status }) => {
-  const cfg = STATUS_CONFIG[status];
-  return (
-    <div className="relative">
-      <Avatar className="h-7 w-7 sm:h-8 sm:w-8 border border-gray-700">
-        <AvatarImage src={src} alt={name} className="object-cover" />
-        <AvatarFallback className="bg-gray-800 text-white text-xs font-semibold">
-          {getInitials(name)}
-        </AvatarFallback>
-      </Avatar>
-      {/* Status dot */}
-      <span
-        className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-black ${cfg.dotClass}`}
-        aria-label={cfg.label}
-      />
-    </div>
-  );
-};
-
-// ─── Main Header ─────────────────────────────────────────────────────────────
+// ─── Main Header Component ────────────────────────────────────────────────────
 
 const Header: React.FC = () => {
   const { user, adminProfile, logout } = useAuth();
   const navigate = useNavigate();
-  const [adminStatus, setAdminStatus] = useAdminStatus();
+  const location = useLocation();
+  
+  const [status, setStatus] = useState<AdminStatus>(
+    () => (localStorage.getItem('adminStatus') as AdminStatus) || 'online'
+  );
+
+  const handleStatusChange = (newStatus: AdminStatus) => {
+    setStatus(newStatus);
+    localStorage.setItem('adminStatus', newStatus);
+  };
+
+  // Breadcrumb Logic
+  const breadcrumbs = useMemo(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    return segments.map((seg, i) => ({
+      label: ROUTE_LABELS[seg] || seg.charAt(0).toUpperCase() + seg.slice(1),
+      path: '/' + segments.slice(0, i + 1).join('/'),
+    }));
+  }, [location.pathname]);
 
   return (
     <TooltipProvider>
-      <header className="sticky top-0 z-50 w-full border-b border-gray-800/80 bg-black/95 backdrop-blur-sm shadow-[0_1px_0_0_rgba(255,255,255,0.04)]">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-14 sm:h-16 gap-0">
+      <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Left Section: Branding & Navigation Context */}
+            <div className="flex items-center gap-8 min-w-0">
+              <div onClick={() => navigate('/')}>
+                <AnimatedLogo />
+              </div>
 
-            {/* ── Left: Logo + Breadcrumb ── */}
-            <div className="flex items-center min-w-0 flex-1">
-              <AnimatedLogo />
-              <Breadcrumb />
+              <nav className="hidden lg:flex items-center gap-2 text-sm">
+                <div className="h-4 w-[1px] bg-zinc-800 mx-2" />
+                <Home className="w-4 h-4 text-zinc-600" />
+                {breadcrumbs.map((crumb, i) => (
+                  <React.Fragment key={crumb.path}>
+                    <ChevronRight className="w-3.5 h-3.5 text-zinc-700" />
+                    <button
+                      onClick={() => navigate(crumb.path)}
+                      className={`transition-colors truncate max-w-[120px] ${
+                        i === breadcrumbs.length - 1 ? 'text-zinc-200 font-semibold' : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {crumb.label}
+                    </button>
+                  </React.Fragment>
+                ))}
+              </nav>
             </div>
 
-            {/* ── Right: Actions + User ── */}
+            {/* Right Section: System Actions */}
             {user && adminProfile ? (
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-4">
+                
+                {/* Global Search Trigger */}
+                <Button variant="ghost" size="icon" className="hidden sm:flex h-9 w-9 text-zinc-400 hover:bg-white/5 rounded-xl">
+                  <Search className="w-4 h-4" />
+                </Button>
 
-                {/* Quick Actions */}
-                <QuickActionsMenu />
+                {/* Quick Action Shortcuts */}
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-orange-500 hover:bg-orange-500/10 rounded-xl">
+                          <Zap className="w-4 h-4 fill-orange-500/20" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-zinc-900 border-zinc-800 text-[10px] font-bold">QUICK NAV</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent align="end" className="w-56 bg-zinc-950 border-white/5 shadow-2xl">
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-500">Jump To</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    {QUICK_ACTIONS.map((action) => (
+                      <DropdownMenuItem key={action.path} onClick={() => navigate(action.path)} className="gap-3 py-2 cursor-pointer">
+                        <span className="p-1.5 bg-zinc-900 rounded-lg text-zinc-400">{action.icon}</span>
+                        <span className="text-sm font-medium">{action.label}</span>
+                        <DropdownMenuShortcut className="font-mono text-[10px] opacity-50">{action.shortcut}</DropdownMenuShortcut>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-                {/* Status toggle */}
-                <StatusBadgeButton status={adminStatus} onChange={setAdminStatus} />
-
-                {/* Notification bell */}
                 <NotificationBell />
 
-                {/* Divider */}
-                <div className="w-px h-5 bg-gray-800 mx-1 hidden sm:block" />
+                <div className="w-[1px] h-6 bg-white/5 mx-1 hidden sm:block" />
 
-                {/* User dropdown */}
+                {/* Main User Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-8 sm:h-10 w-auto px-1 sm:px-3 hover:bg-gray-800/80 gap-2.5 focus-visible:ring-0"
-                    >
-                      {/* Name + role (hidden on mobile) */}
-                      <div className="text-right hidden sm:block">
-                        <p className="text-sm font-medium text-white leading-tight">{adminProfile.name}</p>
-                        <p className="text-[10px] text-gray-500 leading-tight">{roleNames[adminProfile.role]}</p>
+                    <Button variant="ghost" className="h-10 pl-1 pr-3 gap-3 hover:bg-white/5 rounded-2xl transition-all group">
+                      <div className="relative">
+                        <Avatar className="h-8 w-8 border border-white/10 group-hover:border-orange-500/50 transition-colors">
+                          <AvatarImage src={adminProfile.avatar || undefined} />
+                          <AvatarFallback className="bg-zinc-800 text-[10px] font-bold">
+                            {adminProfile.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#050505] ${STATUS_CONFIG[status].color}`} />
                       </div>
-                      {/* Avatar with status dot */}
-                      <AvatarWithStatus
-                        src={adminProfile.avatar || undefined}
-                        name={adminProfile.name}
-                        status={adminStatus}
-                      />
+                      <div className="text-left hidden md:block">
+                        <p className="text-xs font-bold leading-none text-zinc-200">{adminProfile.name}</p>
+                        <p className="text-[9px] text-zinc-500 mt-1 uppercase tracking-tighter">{roleNames[adminProfile.role]}</p>
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
 
-                  <DropdownMenuContent align="end" className="w-60 bg-black border-gray-800 shadow-xl" sideOffset={8}>
-                    {/* Profile summary */}
-                    <div className="px-3 py-3 flex items-center gap-3">
-                      <AvatarWithStatus
-                        src={adminProfile.avatar || undefined}
-                        name={adminProfile.name}
-                        status={adminStatus}
-                      />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{adminProfile.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{adminProfile.email}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-gray-700 text-gray-400 font-normal">
-                            {roleNames[adminProfile.role]}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className={`text-[10px] h-4 px-1.5 font-normal border-0 ${
-                              adminStatus === 'online' ? 'bg-green-500/15 text-green-400'
-                              : adminStatus === 'away' ? 'bg-yellow-500/15 text-yellow-400'
-                              : 'bg-red-500/15 text-red-400'
-                            }`}
-                          >
-                            {STATUS_CONFIG[adminStatus].label}
-                          </Badge>
-                        </div>
-                      </div>
+                  <DropdownMenuContent align="end" className="w-64 bg-zinc-950 border-white/5 p-2 shadow-2xl rounded-2xl">
+                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl mb-2">
+                       <Avatar className="h-10 w-10 border border-white/10">
+                          <AvatarImage src={adminProfile.avatar || undefined} />
+                          <AvatarFallback>{adminProfile.name[0]}</AvatarFallback>
+                       </Avatar>
+                       <div className="min-w-0">
+                          <p className="text-sm font-bold truncate text-white">{adminProfile.name}</p>
+                          <p className="text-[10px] text-zinc-500 truncate">{adminProfile.email}</p>
+                       </div>
                     </div>
 
-                    <DropdownMenuSeparator className="bg-gray-800" />
-
-                    {/* Navigation shortcuts */}
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-[10px] text-gray-600 uppercase tracking-widest px-3 py-1">
-                        Account
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem
-                        className="gap-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
-                        onClick={() => navigate('/profile')}
-                      >
-                        <User className="w-3.5 h-3.5 text-gray-500" />
-                        Profile
-                        <DropdownMenuShortcut className="font-mono text-[10px] text-gray-600">G P</DropdownMenuShortcut>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="gap-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
-                        onClick={() => navigate('/settings')}
-                      >
-                        <Settings className="w-3.5 h-3.5 text-gray-500" />
-                        Settings
-                        <DropdownMenuShortcut className="font-mono text-[10px] text-gray-600">G S</DropdownMenuShortcut>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-
-                    {/* Status submenu */}
-                    <DropdownMenuSeparator className="bg-gray-800" />
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-[10px] text-gray-600 uppercase tracking-widest px-3 py-1">
-                        Status
-                      </DropdownMenuLabel>
-                      {(Object.entries(STATUS_CONFIG) as [AdminStatus, StatusConfig][]).map(([key, s]) => (
-                        <DropdownMenuItem
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-500 px-2 py-1">Availability</DropdownMenuLabel>
+                    <div className="grid grid-cols-3 gap-1 px-1 mb-2">
+                      {(Object.entries(STATUS_CONFIG) as [AdminStatus, any][]).map(([key, cfg]) => (
+                        <button
                           key={key}
-                          onClick={() => setAdminStatus(key)}
-                          className={`gap-2.5 text-sm hover:bg-gray-800 cursor-pointer ${
-                            adminStatus === key ? 'text-white' : 'text-gray-400'
+                          onClick={() => handleStatusChange(key)}
+                          className={`flex flex-col items-center gap-1.5 py-2 rounded-lg transition-all border ${
+                            status === key ? 'bg-orange-500/10 border-orange-500/50 text-orange-500' : 'border-transparent text-zinc-500 hover:bg-white/5'
                           }`}
                         >
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${s.dotClass}`} />
-                          {s.label}
-                          {adminStatus === key && (
-                            <span className="ml-auto text-[10px] text-gray-600">current</span>
-                          )}
-                        </DropdownMenuItem>
+                          {cfg.icon}
+                          <span className="text-[9px] font-bold uppercase">{cfg.label}</span>
+                        </button>
                       ))}
+                    </div>
+
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    
+                    <DropdownMenuGroup className="p-1">
+                      <DropdownMenuItem onClick={() => navigate('/profile')} className="gap-3 py-2 rounded-lg cursor-pointer">
+                        <User className="w-4 h-4 text-zinc-400" />
+                        <span className="text-sm font-medium">Profile Settings</span>
+                      </DropdownMenuItem>
                     </DropdownMenuGroup>
 
-                    <DropdownMenuSeparator className="bg-gray-800" />
-
-                    {/* Logout */}
-                    <DropdownMenuItem
-                      className="gap-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-950/50 cursor-pointer"
-                      onClick={logout}
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    
+                    <DropdownMenuItem 
+                      onClick={logout} 
+                      className="gap-3 py-2 text-red-400 focus:text-red-400 focus:bg-red-400/10 rounded-lg cursor-pointer"
                     >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Sign out
-                      <DropdownMenuShortcut className="font-mono text-[10px] text-red-800">⇧ Q</DropdownMenuShortcut>
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-sm font-bold">Terminate Session</span>
+                      <DropdownMenuShortcut className="text-red-900 opacity-50 font-mono">⇧ Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
               </div>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/login')}
-                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white h-8"
-              >
-                Sign in
+              <Button onClick={() => navigate('/login')} className="bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl px-6 h-9">
+                Sign In
               </Button>
             )}
           </div>
@@ -555,9 +254,5 @@ const Header: React.FC = () => {
     </TooltipProvider>
   );
 };
-
-
-
-
 
 export default Header;
