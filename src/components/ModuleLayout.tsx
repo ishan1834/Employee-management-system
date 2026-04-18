@@ -15,27 +15,25 @@ interface ModuleLayoutProps {
   badge?: string;
 }
 
-/* ── Thin animated top progress bar ── */
+/* ── Page Loader ── */
 const PageLoader: React.FC = () => {
   const [width, setWidth] = useState(0);
-  
+
   useEffect(() => {
-    const sequence = [
-      { w: 30, t: 0 },
-      { w: 70, t: 100 },
-      { w: 100, t: 400 }
+    const timers = [
+      setTimeout(() => setWidth(30), 0),
+      setTimeout(() => setWidth(70), 100),
+      setTimeout(() => setWidth(100), 400),
     ];
-    
-    const timers = sequence.map(s => setTimeout(() => setWidth(s.w), s.t));
     return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
     <div
-      className="fixed top-0 left-0 h-[2px] z-[999] transition-all duration-500 ease-out pointer-events-none"
+      className="fixed top-0 left-0 h-[2px] z-[999] transition-all duration-500 ease-out"
       style={{
         width: `${width}%`,
-        background: 'linear-gradient(90deg, #6366f1, #38bdf8, #6366f1)',
+        background: 'linear-gradient(90deg,#6366f1,#38bdf8,#6366f1)',
         boxShadow: '0 0 10px rgba(99,102,241,0.6)',
         opacity: width === 100 ? 0 : 1,
       }}
@@ -62,90 +60,131 @@ const ModuleLayout: React.FC<ModuleLayoutProps> = ({
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  /* Memoized breadcrumb calculation */
+  /* 🔥 Dynamic Page Title */
+  useEffect(() => {
+    document.title = `${title} • Admin Panel`;
+  }, [title]);
+
+  /* ⌨️ Keyboard Shortcut (Back) */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'ArrowLeft') {
+        navigate('/dashboard');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
+
+  /* Breadcrumb */
   const moduleCrumb = useMemo(() => {
     const segments = location.pathname.split('/').filter(Boolean);
     const last = segments[segments.length - 1];
-    if (!last) return title;
-    return last.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return last
+      ? last.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : title;
   }, [location.pathname, title]);
 
   return (
     <>
       <PageLoader />
 
-      <div className="min-h-screen selection:bg-indigo-500/30 text-slate-200"
-           style={{ background: 'radial-gradient(at top left, #0d0d12 0%, #07070a 100%)' }}>
-        
-        {/* ── HERO HEADER ── */}
-        <header className="relative pt-6 pb-8 border-b border-white/[0.04]">
-          {/* Ambient background effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-[10%] -left-[5%] w-[40%] h-[120%] bg-indigo-500/5 blur-[120px] rounded-full" />
-            <div className="absolute top-0 right-0 w-[30%] h-[100%] bg-sky-500/5 blur-[100px] rounded-full" />
-            <div className="absolute inset-0 opacity-[0.015]" 
-                 style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.826 10.558c1.026 1.312 1.594 2.977 1.594 4.685V20H60v-4.757c0-2.433-.808-4.805-2.29-6.696l-2.884 2.011zM6.19 4.636L9.074 2.625A11.066 11.066 0 0 0 2.29 9.304l2.884 2.01c1.027-1.31 2.45-2.22 4.016-2.678z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")` }} 
-            />
-          </div>
+      <div
+        className="min-h-screen text-slate-200"
+        style={{
+          background:
+            'radial-gradient(at top left, #0d0d12 0%, #07070a 100%)',
+        }}
+      >
+
+        {/* HEADER */}
+        <header className="relative pt-6 pb-8 border-b border-white/[0.04] group">
+
+          {/* Glow hover */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none"
+            style={{
+              background:
+                'radial-gradient(circle at 20% 20%, rgba(99,102,241,0.08), transparent 60%)',
+            }}
+          />
 
           <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-            
-            {/* ── BREADCRUMB ── */}
+
+            {/* BREADCRUMB */}
             <nav className={cn(
               "flex items-center gap-2 mb-6 text-[11px] font-semibold tracking-widest uppercase transition-all duration-700",
-              mounted ? "opacity-50 translate-y-0" : "opacity-0 -translate-y-2"
+              mounted ? "opacity-50" : "opacity-0"
             )}>
-              <button onClick={() => navigate('/dashboard')} className="hover:text-white transition-colors flex items-center gap-1.5">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="hover:text-white flex items-center gap-1.5"
+              >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 DASHBOARD
               </button>
-              <ChevronRight className="w-3 h-3 opacity-30" />
-              <span className="text-indigo-400">{moduleCrumb}</span>
+
+              <ChevronRight className="w-3 opacity-30" />
+
+              {/* Active crumb highlight */}
+              <span className="text-indigo-400 font-bold tracking-wide">
+                {moduleCrumb}
+              </span>
             </nav>
 
-            {/* ── TITLE ROW ── */}
+            {/* TITLE */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+
               <div className={cn(
-                "flex items-start gap-5 transition-all duration-700 delay-100",
-                mounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+                "flex items-start gap-5 transition-all duration-700",
+                mounted ? "opacity-100" : "opacity-0"
               )}>
+
+                {/* BACK BUTTON */}
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="group flex-shrink-0 mt-1 w-11 h-11 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/20 flex items-center justify-center transition-all active:scale-95 shadow-xl"
+                  className="group w-11 h-11 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.08] flex items-center justify-center"
                 >
-                  <ArrowLeft className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+                  <ArrowLeft className="w-5 h-5 text-slate-400 group-hover:text-white" />
                 </button>
 
-                <div className="space-y-1">
+                <div>
                   <div className="flex items-center gap-4">
+
                     {icon && (
-                      <div className={cn("p-2.5 rounded-2xl bg-gradient-to-br shadow-lg flex-shrink-0", accentGradient)}>
-                        <div className="text-white drop-shadow-md">{icon}</div>
+                      <div className={cn(
+                        "p-2.5 rounded-2xl bg-gradient-to-br shadow-lg",
+                        accentGradient
+                      )}>
+                        {icon}
                       </div>
                     )}
-                    <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-none">
+
+                    <h1 className="text-3xl sm:text-4xl font-bold">
                       {title}
                     </h1>
+
                     {badge && (
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+                      <span className="px-2 py-1 text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-full">
                         {badge}
                       </span>
                     )}
                   </div>
+
                   {description && (
-                    <p className="text-sm text-slate-500 max-w-xl leading-relaxed">
+                    <p className="text-sm text-slate-500 mt-2 max-w-xl">
                       {description}
                     </p>
                   )}
-                  <div className={cn("h-1 w-12 rounded-full bg-gradient-to-r opacity-50", accentGradient)} />
+
+                  <div className={cn(
+                    "h-1 w-12 rounded-full mt-2 opacity-60 bg-gradient-to-r",
+                    accentGradient
+                  )} />
                 </div>
               </div>
 
               {actions && (
-                <div className={cn(
-                  "flex items-center gap-3 transition-all duration-700 delay-200",
-                  mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                )}>
+                <div className="flex items-center gap-3">
                   {actions}
                 </div>
               )}
@@ -153,25 +192,30 @@ const ModuleLayout: React.FC<ModuleLayoutProps> = ({
           </div>
         </header>
 
-        {/* ── CONTENT AREA ── */}
+        {/* MAIN */}
         <main className={cn(
-          "px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto transition-all duration-1000 delay-300",
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          "px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto transition-all duration-700",
+          mounted ? "opacity-100" : "opacity-0"
         )}>
-          <div className="group relative rounded-[2rem] border border-white/[0.05] bg-white/[0.01] backdrop-blur-xl overflow-hidden shadow-2xl">
-            {/* Top accent light */}
-            <div className={cn("absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent")} />
-            
-            {/* Content wrapper */}
+          <div className="relative rounded-[2rem] border border-white/[0.05] bg-white/[0.02] backdrop-blur-xl overflow-hidden shadow-2xl">
+
+            {/* glow */}
+            <div className="absolute inset-0 opacity-0 hover:opacity-100 transition duration-500 pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(circle at center, rgba(56,189,248,0.05), transparent 70%)',
+              }}
+            />
+
             <div className="p-6 sm:p-8 min-h-[400px]">
               {children}
             </div>
           </div>
         </main>
 
-        {/* ── MOBILE NAV ── */}
+        {/* MOBILE NAV */}
         {isMobile && (
-          <div className="h-24">
+          <div className="h-20">
             <MobileBottomNav />
           </div>
         )}
