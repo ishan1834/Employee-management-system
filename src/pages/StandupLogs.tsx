@@ -71,6 +71,8 @@ const StandupLogs: React.FC = () => {
     return acc;
   }, {} as Record<string, any[]>);
 
+  
+
   const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
   return (
