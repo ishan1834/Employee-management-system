@@ -30,6 +30,7 @@ const StandupLogs: React.FC = () => {
   const [blockers, setBlockers] = useState('');
   const [mood, setMood] = useState('neutral');
   const isSuperAdmin = adminProfile?.role === 'super_admin';
+  
 
   const fetchLogs = async () => {
     const { data } = await supabase
